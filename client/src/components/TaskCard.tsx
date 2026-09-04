@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { TaskWithAssignee } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import {
   Check,
   Clock,
@@ -28,6 +29,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
 }) => {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [nudging, setNudging] = useState(false);
   const [nudged, setNudged] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -44,8 +46,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const isToday = date.toDateString() === now.toDateString();
     const isOverdue = epoch < Math.floor(Date.now() / 1000) && !isCompleted;
 
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dateStr = isToday ? `Today at ${timeStr}` : date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ` at ${timeStr}`;
+    const timeStr = date.toLocaleTimeString(language === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = isToday
+      ? t('todayAt', { time: timeStr })
+      : date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' }) + ` ${timeStr}`;
 
     return { text: dateStr, isOverdue };
   };
@@ -87,7 +91,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               ? 'bg-emerald-500 border-emerald-500 text-white'
               : 'border-slate-300 hover:border-indigo-500 bg-white'
           }`}
-          aria-label={isCompleted ? 'Mark task as incomplete' : 'Mark task as complete'}
+          aria-label={isCompleted ? 'Mark incomplete' : 'Mark complete'}
         >
           {isCompleted && <Check className="w-4 h-4 stroke-[3]" />}
         </button>
@@ -114,24 +118,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </button>
 
               {showMenu && (
-                <div className="absolute right-0 mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-20 text-xs">
+                <div className="absolute end-0 mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-20 text-xs">
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onEdit(task);
                     }}
-                    className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    className="w-full px-3 py-2 text-start hover:bg-slate-50 flex items-center gap-2 text-slate-700"
                   >
-                    <Edit2 className="w-3.5 h-3.5 text-slate-500" /> Edit
+                    <Edit2 className="w-3.5 h-3.5 text-slate-500" /> {t('edit')}
                   </button>
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onDelete(task.id);
                     }}
-                    className="w-full px-3 py-2 text-left hover:bg-rose-50 flex items-center gap-2 text-rose-600"
+                    className="w-full px-3 py-2 text-start hover:bg-rose-50 flex items-center gap-2 text-rose-600"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-500" /> Delete
+                    <Trash2 className="w-3.5 h-3.5 text-rose-500" /> {t('delete')}
                   </button>
                 </div>
               )}
@@ -154,7 +158,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 priorityColors[task.priority] || priorityColors.medium
               }`}
             >
-              {task.priority}
+              {t(task.priority)}
             </span>
 
             {/* Recurrence Rule */}
@@ -162,10 +166,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                 <Repeat className="w-3 h-3" />
                 {task.recurrence_rule.includes('DAILY')
-                  ? 'Daily'
+                  ? t('daily')
                   : task.recurrence_rule.includes('WEEKLY')
-                  ? 'Weekly'
-                  : 'Recurring'}
+                  ? t('weekly')
+                  : t('recurring')}
               </span>
             )}
 
@@ -184,7 +188,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             )}
 
             {/* Assignee Chip */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ms-auto flex items-center gap-2">
               {task.assignee_name ? (
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -194,10 +198,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   }`}
                 >
                   <span>{task.assignee_avatar || '👤'}</span>
-                  <span>{isAssignedToMe ? 'You' : task.assignee_name}</span>
+                  <span>{isAssignedToMe ? t('you') : task.assignee_name}</span>
                 </span>
               ) : (
-                <span className="text-slate-400 text-xs italic">Unassigned</span>
+                <span className="text-slate-400 text-xs italic">{t('unassigned')}</span>
               )}
 
               {/* Nudge Assignee Button (FR-PUSH-2) */}
@@ -213,7 +217,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   }`}
                 >
                   <BellRing className={`w-3 h-3 ${nudging ? 'animate-bounce' : ''}`} />
-                  {nudged ? 'Nudged! 🔔' : 'Nudge'}
+                  {nudged ? t('nudged') : t('nudge')}
                 </button>
               )}
             </div>

@@ -188,6 +188,11 @@ SELECT * FROM tasks WHERE status != 'completed' AND due_at BETWEEN unixepoch() A
 
 FR-CRON-3: Dispatches a "Task Due Soon (30 min)" push notification to assignee_id.
 
+4.5 Multi-Language & Internationalization (i18n)
+FR-I18N-1 (Dictionary Architecture): The application must support multi-language localization using a dictionary/key-value structure. Initial release must support English (`en`) and Hebrew (`he`).
+FR-I18N-2 (Bi-directional Layout & RTL): When Hebrew is selected, the application dynamically switches document direction to Right-to-Left (`dir="rtl"`), properly aligning text, cards, buttons, modals, and flex containers.
+FR-I18N-3 (Language Persistence & Switcher): Users can switch between English and Hebrew from the UI at any time; the selection must be persisted locally in `localStorage`.
+
 5. Non-Functional Requirements & Platform Specifics
 5.1 iOS vs. Android Behavioral Requirements
 NFR-PLAT-1 (iOS Detection & Onboarding):
@@ -549,6 +554,11 @@ CREATE TABLE IF NOT EXISTS task_activities (
 - **FR-CRON-2:** Handler executes query:
   `SELECT * FROM tasks WHERE status != 'completed' AND due_at BETWEEN unixepoch() AND unixepoch() + 1800`.
 - **FR-CRON-3:** Dispatches a "Task Due Soon (30 min)" push notification to `assignee_id`.
+
+### 4.5 Multi-Language & Internationalization (i18n)
+- **FR-I18N-1 (Dictionary Architecture):** The application must support multi-language localization using a dictionary/key-value structure. Initial release must support English (`en`) and Hebrew (`he`).
+- **FR-I18N-2 (Bi-directional Layout & RTL):** When Hebrew is selected, the application dynamically switches document direction to Right-to-Left (`dir="rtl"`), properly aligning text, cards, buttons, modals, and flex containers.
+- **FR-I18N-3 (Language Persistence & Switcher):** Users can switch between English and Hebrew from the UI at any time; the selection must be persisted locally in `localStorage`.
 
 ---
 

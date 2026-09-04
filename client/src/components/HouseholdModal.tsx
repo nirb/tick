@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
 import { X, Copy, Check, Users, RefreshCw, LogIn } from 'lucide-react';
 
@@ -15,6 +16,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
   onShowToast,
 }) => {
   const { group, members, user, refreshGroup } = useAuth();
+  const { t } = useLanguage();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -27,7 +29,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
     navigator.clipboard.writeText(group.invite_code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2500);
-    onShowToast('Invite code copied to clipboard!', 'success');
+    onShowToast(t('toastCodeCopied'), 'success');
   };
 
   const handleCopyLink = () => {
@@ -35,7 +37,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
-    onShowToast('Shareable invite link copied!', 'success');
+    onShowToast(t('toastLinkCopied'), 'success');
   };
 
   const handleRegenerate = async () => {
@@ -43,7 +45,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
     try {
       await api.groups.regenerateInvite();
       await refreshGroup();
-      onShowToast('New invite code generated!', 'success');
+      onShowToast(t('toastTaskUpdated'), 'success');
     } catch (e: any) {
       onShowToast(e.message || 'Failed to regenerate code', 'error');
     } finally {
@@ -60,7 +62,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
       await api.groups.join(joinCode.trim().toUpperCase());
       await refreshGroup();
       setJoinCode('');
-      onShowToast('Successfully joined new household! 🏠', 'success');
+      onShowToast(t('toastJoinedGroup'), 'success');
       onClose();
     } catch (e: any) {
       onShowToast(e.message || 'Failed to join group', 'error');
@@ -74,7 +76,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+          className="absolute top-4 end-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -86,7 +88,9 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900">{group.name}</h3>
-            <p className="text-xs text-slate-500">{members.length} family members connected</p>
+            <p className="text-xs text-slate-500">
+              {t('membersConnected', { count: members.length })}
+            </p>
           </div>
         </div>
 
@@ -94,7 +98,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
         <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Family Invite Code
+              {t('familyInviteCode')}
             </span>
             {user?.role === 'admin' && (
               <button
@@ -104,7 +108,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
                 className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
               >
                 <RefreshCw className={`w-3 h-3 ${regenerating ? 'animate-spin' : ''}`} />
-                <span>New Code</span>
+                <span>{t('newCode')}</span>
               </button>
             )}
           </div>
@@ -115,7 +119,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
             </span>
             <button
               onClick={handleCopyCode}
-              title="Copy Code"
+              title={t('copyCode')}
               className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg transition-colors"
             >
               {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
@@ -127,14 +131,14 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
             className="w-full mt-3 py-2 px-3 bg-white border border-slate-200 hover:bg-slate-50 text-indigo-600 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedLink ? 'Link Copied!' : 'Copy Shareable Link'}</span>
+            <span>{copiedLink ? t('linkCopied') : t('copyShareLink')}</span>
           </button>
         </div>
 
         {/* Members List */}
         <div className="mb-6">
           <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
-            Members
+            {t('members')}
           </h4>
           <div className="space-y-2">
             {members.map((member) => (
@@ -149,7 +153,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
                       {member.name}
                       {member.id === user?.id && (
                         <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.2 rounded">
-                          You
+                          {t('you')}
                         </span>
                       )}
                     </p>
@@ -164,7 +168,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
                       : 'bg-slate-200 text-slate-700'
                   }`}
                 >
-                  {member.role}
+                  {member.role === 'admin' ? t('adminRole') : t('memberRole')}
                 </span>
               </div>
             ))}
@@ -174,12 +178,12 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
         {/* Join Another Group */}
         <form onSubmit={handleJoin} className="pt-4 border-t border-slate-100">
           <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-            Join Another Household
+            {t('joinAnotherHousehold')}
           </h4>
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Enter 6-char code"
+              placeholder={t('enterCodePlaceholder')}
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               maxLength={8}
@@ -191,7 +195,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
               className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>Join</span>
+              <span>{joining ? t('joining') : t('join')}</span>
             </button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { User, TaskWithAssignee } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Clock, CheckCircle2, ListTodo, UserCheck } from 'lucide-react';
 
 export type FilterTab = 'all' | 'mine' | 'due_soon' | 'completed';
@@ -23,22 +24,23 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   tasks,
 }) => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const now = Math.floor(Date.now() / 1000);
   const counts = {
     all: tasks.filter((t) => t.status !== 'completed').length,
     mine: user ? tasks.filter((t) => t.assignee_id === user.id && t.status !== 'completed').length : 0,
     due_soon: tasks.filter(
-      (t) => t.status !== 'completed' && t.due_at && t.due_at <= now + 86400 * 2 // due in next 48h
+      (t) => t.status !== 'completed' && t.due_at && t.due_at <= now + 86400 * 2
     ).length,
     completed: tasks.filter((t) => t.status === 'completed').length,
   };
 
   const tabs: { id: FilterTab; label: string; icon: any; count: number }[] = [
-    { id: 'all', label: 'All Open', icon: ListTodo, count: counts.all },
-    { id: 'mine', label: 'Mine', icon: UserCheck, count: counts.mine },
-    { id: 'due_soon', label: 'Due Soon', icon: Clock, count: counts.due_soon },
-    { id: 'completed', label: 'Completed', icon: CheckCircle2, count: counts.completed },
+    { id: 'all', label: t('allOpen'), icon: ListTodo, count: counts.all },
+    { id: 'mine', label: t('mine'), icon: UserCheck, count: counts.mine },
+    { id: 'due_soon', label: t('dueSoon'), icon: Clock, count: counts.due_soon },
+    { id: 'completed', label: t('completed'), icon: CheckCircle2, count: counts.completed },
   ];
 
   return (
@@ -61,7 +63,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
               <span
-                className={`ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] ${
+                className={`ms-0.5 px-1.5 py-0.2 rounded-full text-[10px] ${
                   isActive ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-300/60 text-slate-700'
                 }`}
               >
@@ -74,7 +76,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
       {/* Member Filter Chips */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <span className="text-slate-400 font-medium shrink-0 ml-1">Filter by:</span>
+        <span className="text-slate-400 font-medium shrink-0 ms-1">{t('filterBy')}</span>
 
         <button
           onClick={() => onAssigneeChange('')}
@@ -84,7 +86,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
               : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
           }`}
         >
-          Everyone
+          {t('everyone')}
         </button>
 
         {members.map((member) => {

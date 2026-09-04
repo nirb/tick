@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePush } from './context/PushContext';
+import { useLanguage } from './context/LanguageContext';
 import { api } from './lib/api';
 import { cacheTasks, getCachedTasks } from './lib/offline';
 import type { TaskWithAssignee, TaskPriority } from './types';
@@ -18,6 +19,7 @@ import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 export const App: React.FC = () => {
   const { user, group, members, loading: authLoading } = useAuth();
   const { showIOSGuide, setShowIOSGuide } = usePush();
+  const { t } = useLanguage();
 
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -45,12 +47,12 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      showToast('You are back online!', 'success');
+      showToast(t('toastBackOnline'), 'success');
       loadTasks();
     };
     const handleOffline = () => {
       setIsOnline(false);
-      showToast('Working offline. Local changes will be saved.', 'info');
+      showToast(t('toastWorkingOffline'), 'info');
     };
 
     window.addEventListener('online', handleOnline);
@@ -59,7 +61,7 @@ export const App: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [showToast]);
+  }, [showToast, t]);
 
   // Load Tasks
   const loadTasks = useCallback(async () => {
@@ -111,10 +113,9 @@ export const App: React.FC = () => {
     if (taskToEdit) {
       const updated = await api.tasks.update(taskToEdit.id, data);
       setTasks((prev) => prev.map((t) => (t.id === taskToEdit.id ? updated.task : t)));
-      showToast('Task updated!', 'success');
+      showToast(t('toastTaskUpdated'), 'success');
     } else {
       const created = await api.tasks.create(data);
-      // Join assignee info from members
       const assignee = members.find((m) => m.id === data.assignee_id);
       const newTask: TaskWithAssignee = {
         ...created.task,
@@ -123,7 +124,7 @@ export const App: React.FC = () => {
         creator_name: user?.name || null,
       };
       setTasks((prev) => [newTask, ...prev]);
-      showToast('Task created! 📋', 'success');
+      showToast(t('toastTaskCreated'), 'success');
     }
     await cacheTasks(tasks);
     setTaskToEdit(null);
@@ -150,17 +151,15 @@ export const App: React.FC = () => {
       if (newStatus === 'completed') {
         showToast(
           task.recurrence_rule
-            ? 'Task completed! Scheduled next recurrence 🔁'
-            : 'Task marked completed! 🎉',
+            ? t('toastTaskCompletedRecurring')
+            : t('toastTaskCompleted'),
           'success'
         );
-        // Refresh to pick up any automatically generated recurring instances
         if (task.recurrence_rule) {
           loadTasks();
         }
       }
     } catch (err: any) {
-      // Revert on failure
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
       showToast(err.message || 'Failed to update task status', 'error');
     }
@@ -169,12 +168,13 @@ export const App: React.FC = () => {
   // Nudge Assignee
   const handleNudge = async (taskId: string) => {
     const target = tasks.find((t) => t.id === taskId);
+    const assigneeName = target?.assignee_name || t('unassigned');
     try {
       const res = await api.tasks.nudge(taskId);
       if (res.push_sent > 0) {
-        showToast(`Push reminder sent to ${target?.assignee_name || 'assignee'}! 🔔`, 'success');
+        showToast(t('toastNudgeSent', { name: assigneeName }), 'success');
       } else {
-        showToast(`Nudge recorded (no active devices registered for ${target?.assignee_name}).`, 'info');
+        showToast(t('toastNudgeNoSubs', { name: assigneeName }), 'info');
       }
     } catch (err: any) {
       showToast(err.message || 'Could not send nudge', 'error');
@@ -183,11 +183,11 @@ export const App: React.FC = () => {
 
   // Delete Task
   const handleDeleteTask = async (taskId: string) => {
-    if (!confirm('Are you sure you want to delete this task?')) return;
+    if (!confirm(t('deleteTaskConfirm'))) return;
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
     try {
       await api.tasks.delete(taskId);
-      showToast('Task deleted', 'info');
+      showToast(t('toastTaskDeleted'), 'info');
     } catch (err: any) {
       showToast(err.message || 'Failed to delete task', 'error');
       loadTasks();
@@ -197,12 +197,10 @@ export const App: React.FC = () => {
   // Filter Tasks
   const now = Math.floor(Date.now() / 1000);
   const filteredTasks = tasks.filter((task) => {
-    // Assignee filter
     if (selectedAssignee && task.assignee_id !== selectedAssignee) {
       return false;
     }
 
-    // Tab filter
     if (currentTab === 'all') return task.status !== 'completed';
     if (currentTab === 'mine') return task.assignee_id === user?.id && task.status !== 'completed';
     if (currentTab === 'due_soon') {
@@ -244,10 +242,10 @@ export const App: React.FC = () => {
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              {group?.name || 'Family Tasks'}
+              {group?.name || t('appName')}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Organize, assign, and get things done together
+              {t('appTagline')}
             </p>
           </div>
 
@@ -259,7 +257,7 @@ export const App: React.FC = () => {
             className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-100 transition-all hover:shadow-lg"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            <span>Add Task</span>
+            <span>{t('createTask')}</span>
           </button>
         </div>
 
@@ -285,13 +283,13 @@ export const App: React.FC = () => {
             </div>
             <h3 className="text-base font-bold text-slate-900">
               {currentTab === 'completed'
-                ? 'No completed tasks yet'
-                : 'All caught up! 🎉'}
+                ? t('noCompletedTasks')
+                : t('allCaughtUp')}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xs mx-auto">
               {currentTab === 'completed'
-                ? 'Completed chores will show up here.'
-                : 'Great job! Everything for this filter is done.'}
+                ? t('noCompletedDesc')
+                : t('allCaughtUpDesc')}
             </p>
             {currentTab !== 'completed' && (
               <button
@@ -302,7 +300,7 @@ export const App: React.FC = () => {
                 className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Create a task</span>
+                <span>{t('createFirstTask')}</span>
               </button>
             )}
           </div>
@@ -314,8 +312,8 @@ export const App: React.FC = () => {
                 task={task}
                 onToggleStatus={handleToggleStatus}
                 onNudge={handleNudge}
-                onEdit={(t) => {
-                  setTaskToEdit(t);
+                onEdit={(tCard) => {
+                  setTaskToEdit(tCard);
                   setIsTaskModalOpen(true);
                 }}
                 onDelete={handleDeleteTask}
@@ -326,14 +324,14 @@ export const App: React.FC = () => {
       </main>
 
       {/* Floating Action Button (Mobile) */}
-      <div className="sm:hidden fixed bottom-6 right-6 z-30">
+      <div className="sm:hidden fixed bottom-6 end-6 z-30">
         <button
           onClick={() => {
             setTaskToEdit(null);
             setIsTaskModalOpen(true);
           }}
           className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/40 hover:bg-indigo-700 active:scale-95 transition-all"
-          aria-label="Add Task"
+          aria-label={t('createTask')}
         >
           <Plus className="w-6 h-6 stroke-[3]" />
         </button>

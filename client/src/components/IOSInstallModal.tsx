@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { Share, PlusSquare, Smartphone, X } from 'lucide-react';
 
 interface IOSInstallModalProps {
@@ -7,6 +8,7 @@ interface IOSInstallModalProps {
 }
 
 export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -14,8 +16,8 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
-          aria-label="Close modal"
+          className="absolute top-4 end-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+          aria-label={t('close')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -25,13 +27,13 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Install Tick on iPhone</h3>
-            <p className="text-xs text-slate-500">Required for Push Notifications on iOS</p>
+            <h3 className="text-lg font-bold text-slate-900">{t('installOnIphone')}</h3>
+            <p className="text-xs text-slate-500">{t('iosPushNotice')}</p>
           </div>
         </div>
 
         <p className="text-sm text-slate-600 mb-5 leading-relaxed">
-          Apple iOS requires adding Tick to your Home Screen before task reminder notifications can be enabled.
+          {t('iosExplanation')}
         </p>
 
         <div className="space-y-4 mb-6">
@@ -41,9 +43,9 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <p className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
-                Tap the <Share className="w-4 h-4 text-indigo-600 inline" /> <span className="font-semibold">Share</span> button
+                <Share className="w-4 h-4 text-indigo-600 inline" /> <span className="font-semibold">{t('step1Title')}</span>
               </p>
-              <p className="text-xs text-slate-500">Located at the bottom bar of Safari</p>
+              <p className="text-xs text-slate-500">{t('step1Desc')}</p>
             </div>
           </div>
 
@@ -53,9 +55,9 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <p className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
-                Select <PlusSquare className="w-4 h-4 text-indigo-600 inline" /> <span className="font-semibold">Add to Home Screen</span>
+                <PlusSquare className="w-4 h-4 text-indigo-600 inline" /> <span className="font-semibold">{t('step2Title')}</span>
               </p>
-              <p className="text-xs text-slate-500">Scroll down in the share sheet options</p>
+              <p className="text-xs text-slate-500">{t('step2Desc')}</p>
             </div>
           </div>
 
@@ -65,9 +67,9 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <p className="text-sm font-medium text-slate-900">
-                Launch Tick from your Home Screen
+                {t('step3Title')}
               </p>
-              <p className="text-xs text-slate-500">Tap "Enable Notifications" when prompted to receive instant chore reminders!</p>
+              <p className="text-xs text-slate-500">{t('step3Desc')}</p>
             </div>
           </div>
         </div>
@@ -76,7 +78,7 @@ export const IOSInstallModal: React.FC<IOSInstallModalProps> = ({ isOpen, onClos
           onClick={onClose}
           className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-200 transition-colors"
         >
-          Got it!
+          {t('gotIt')}
         </button>
       </div>
     </div>
