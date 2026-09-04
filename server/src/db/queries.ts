@@ -81,17 +81,21 @@ export async function createUser(
     email: string;
     role: UserRole;
     avatarUrl?: string | null;
+    passwordHash?: string | null;
+    authProvider?: 'email' | 'google';
   }
 ): Promise<User> {
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   const avatarUrl = data.avatarUrl || null;
+  const passwordHash = data.passwordHash || null;
+  const authProvider = data.authProvider || 'email';
 
   await db
     .prepare(
-      'INSERT INTO users (id, group_id, name, email, role, avatar_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO users (id, group_id, name, email, role, avatar_url, created_at, password_hash, auth_provider) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     )
-    .bind(id, data.groupId, data.name, data.email.toLowerCase().trim(), data.role, avatarUrl, now)
+    .bind(id, data.groupId, data.name, data.email.toLowerCase().trim(), data.role, avatarUrl, now, passwordHash, authProvider)
     .run();
 
   return {
@@ -102,12 +106,14 @@ export async function createUser(
     role: data.role,
     avatar_url: avatarUrl,
     created_at: now,
+    password_hash: passwordHash,
+    auth_provider: authProvider,
   };
 }
 
 export async function getUserById(db: D1Database, id: string): Promise<User | null> {
   const result = await db
-    .prepare('SELECT id, group_id, name, email, role, avatar_url, created_at FROM users WHERE id = ?')
+    .prepare('SELECT id, group_id, name, email, role, avatar_url, created_at, password_hash, auth_provider FROM users WHERE id = ?')
     .bind(id)
     .first<User>();
   return result || null;
@@ -115,7 +121,7 @@ export async function getUserById(db: D1Database, id: string): Promise<User | nu
 
 export async function getUserByEmail(db: D1Database, email: string): Promise<User | null> {
   const result = await db
-    .prepare('SELECT id, group_id, name, email, role, avatar_url, created_at FROM users WHERE email = ?')
+    .prepare('SELECT id, group_id, name, email, role, avatar_url, created_at, password_hash, auth_provider FROM users WHERE email = ?')
     .bind(email.toLowerCase().trim())
     .first<User>();
   return result || null;

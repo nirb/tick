@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { Bindings, JWTPayload, UserRole } from '../types';
 import { signJWT, authMiddleware } from '../auth';
+import { hashPassword, verifyPassword } from '../password';
 import {
   createUser,
   getUserByEmail,
@@ -24,51 +25,212 @@ function setAuthCookie(c: any, token: string) {
   );
 }
 
-// 1. Passwordless Magic Link / Quick Sign In
-authRoutes.post('/magic-link', async (c) => {
+// Helper to parse Google ID token (JWT) safely
+function decodeGoogleIdToken(token: string): { email: string; name?: string; picture?: string; sub: string } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4 !== 0) base64 += '=';
+    const jsonStr = atob(base64);
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
+// 1. Email & Password Registration (FR-AUTH-1)
+authRoutes.post('/register', async (c) => {
   const body = await c.req.json<{
     email: string;
-    name?: string;
+    password: string;
+    name: string;
     groupName?: string;
     inviteCode?: string;
   }>();
 
-  if (!body.email) {
-    return c.json({ error: 'Email is required' }, 400);
+  if (!body.email || !body.password || !body.name) {
+    return c.json({ error: 'Name, email, and password are required' }, 400);
   }
 
   const email = body.email.toLowerCase().trim();
+  if (!email.includes('@') || !email.includes('.')) {
+    return c.json({ error: 'Please provide a valid email address' }, 400);
+  }
+
+  if (body.password.length < 6) {
+    return c.json({ error: 'Password must be at least 6 characters long' }, 400);
+  }
+
+  const existing = await getUserByEmail(c.env.DB, email);
+  if (existing) {
+    return c.json({ error: 'An account with this email already exists' }, 400);
+  }
+
+  const passwordHash = await hashPassword(body.password);
+  let group = null;
+  let role: UserRole = 'member';
+
+  if (body.inviteCode && body.inviteCode.trim()) {
+    group = await getGroupByInviteCode(c.env.DB, body.inviteCode.trim().toUpperCase());
+    if (!group) {
+      return c.json({ error: 'Invalid family invite code' }, 400);
+    }
+  } else {
+    const householdName = body.groupName?.trim() || `${body.name.trim()}'s Family`;
+    group = await createGroup(c.env.DB, householdName);
+    role = 'admin';
+  }
+
+  const newUser = await createUser(c.env.DB, {
+    groupId: group.id,
+    name: body.name.trim(),
+    email,
+    role,
+    passwordHash,
+    authProvider: 'email',
+  });
+
+  const token = await signJWT(
+    {
+      sub: newUser.id,
+      groupId: newUser.group_id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+    },
+    c.env.JWT_SECRET
+  );
+
+  setAuthCookie(c, token);
+
+  // Return user without password_hash
+  const { password_hash, ...safeUser } = newUser;
+
+  return c.json(
+    {
+      success: true,
+      token,
+      user: safeUser,
+      group,
+    },
+    201
+  );
+});
+
+// 2. Email & Password Login (FR-AUTH-1)
+authRoutes.post('/login', async (c) => {
+  const body = await c.req.json<{
+    email: string;
+    password: string;
+  }>();
+
+  if (!body.email || !body.password) {
+    return c.json({ error: 'Email and password are required' }, 400);
+  }
+
+  const email = body.email.toLowerCase().trim();
+  const user = await getUserByEmail(c.env.DB, email);
+
+  if (!user) {
+    return c.json({ error: 'Invalid email or password' }, 401);
+  }
+
+  if (!user.password_hash) {
+    if (user.auth_provider === 'google') {
+      return c.json({ error: 'This account is linked to Google Sign-In. Please sign in with Google.' }, 400);
+    }
+    return c.json({ error: 'No password set for this account.' }, 400);
+  }
+
+  const isValid = await verifyPassword(body.password, user.password_hash);
+  if (!isValid) {
+    return c.json({ error: 'Invalid email or password' }, 401);
+  }
+
+  const group = await getGroupById(c.env.DB, user.group_id);
+
+  const token = await signJWT(
+    {
+      sub: user.id,
+      groupId: user.group_id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+    c.env.JWT_SECRET
+  );
+
+  setAuthCookie(c, token);
+
+  const { password_hash, ...safeUser } = user;
+
+  return c.json({
+    success: true,
+    token,
+    user: safeUser,
+    group,
+  });
+});
+
+// 3. Google / Gmail Sign-In (FR-AUTH-2)
+authRoutes.post('/google', async (c) => {
+  const body = await c.req.json<{
+    credential?: string;
+    email?: string;
+    name?: string;
+    avatarUrl?: string;
+    inviteCode?: string;
+  }>();
+
+  let email = body.email;
+  let name = body.name;
+  let avatarUrl = body.avatarUrl;
+
+  // If client provided a Google JWT credential (from Google Identity Services)
+  if (body.credential) {
+    const payload = decodeGoogleIdToken(body.credential);
+    if (!payload || !payload.email) {
+      return c.json({ error: 'Invalid Google credential token' }, 400);
+    }
+    email = payload.email;
+    name = payload.name || name;
+    avatarUrl = payload.picture || avatarUrl;
+  }
+
+  if (!email) {
+    return c.json({ error: 'Google email is required' }, 400);
+  }
+
+  email = email.toLowerCase().trim();
   let user = await getUserByEmail(c.env.DB, email);
   let group = null;
 
   if (user) {
     group = await getGroupById(c.env.DB, user.group_id);
   } else {
-    // New user registration
-    const userName = body.name || email.split('@')[0];
+    // New registration via Google
+    const userName = name?.trim() || email.split('@')[0];
+    let role: UserRole = 'member';
 
-    if (body.inviteCode) {
-      group = await getGroupByInviteCode(c.env.DB, body.inviteCode);
+    if (body.inviteCode && body.inviteCode.trim()) {
+      group = await getGroupByInviteCode(c.env.DB, body.inviteCode.trim().toUpperCase());
       if (!group) {
-        return c.json({ error: 'Invalid invite code' }, 400);
+        return c.json({ error: 'Invalid family invite code' }, 400);
       }
-      user = await createUser(c.env.DB, {
-        groupId: group.id,
-        name: userName,
-        email,
-        role: 'member',
-      });
     } else {
-      // Create new Household
-      const householdName = body.groupName || `${userName}'s Family`;
-      group = await createGroup(c.env.DB, householdName);
-      user = await createUser(c.env.DB, {
-        groupId: group.id,
-        name: userName,
-        email,
-        role: 'admin',
-      });
+      group = await createGroup(c.env.DB, `${userName}'s Family`);
+      role = 'admin';
     }
+
+    user = await createUser(c.env.DB, {
+      groupId: group.id,
+      name: userName,
+      email,
+      role,
+      avatarUrl: avatarUrl || null,
+      authProvider: 'google',
+    });
   }
 
   const token = await signJWT(
@@ -84,74 +246,17 @@ authRoutes.post('/magic-link', async (c) => {
 
   setAuthCookie(c, token);
 
-  return c.json({
-    success: true,
-    token,
-    user,
-    group,
-  });
-});
-
-// 2. Demo Login (Instant switch between family members for testing)
-authRoutes.post('/demo-login', async (c) => {
-  const body = await c.req.json<{ persona?: 'mom' | 'dad' | 'teen' }>();
-  const persona = body.persona || 'mom';
-
-  const demoAccounts = {
-    mom: { name: 'Sarah (Mom)', email: 'sarah.mom@tickfamily.app', role: 'admin' as UserRole, avatar: '👩' },
-    dad: { name: 'Alex (Dad)', email: 'alex.dad@tickfamily.app', role: 'admin' as UserRole, avatar: '👨' },
-    teen: { name: 'Leo (Teen)', email: 'leo.teen@tickfamily.app', role: 'member' as UserRole, avatar: '👦' },
-  };
-
-  const selected = demoAccounts[persona] || demoAccounts.mom;
-
-  // Check if group exists or create demo group
-  let group = await getGroupByInviteCode(c.env.DB, 'TICKFAM');
-  if (!group) {
-    group = await createGroup(c.env.DB, 'The Miller Household', 'TICKFAM');
-  }
-
-  // Ensure all demo users exist in the group
-  for (const p of Object.values(demoAccounts)) {
-    const existing = await getUserByEmail(c.env.DB, p.email);
-    if (!existing) {
-      await createUser(c.env.DB, {
-        groupId: group.id,
-        name: p.name,
-        email: p.email,
-        role: p.role,
-        avatarUrl: p.avatar,
-      });
-    }
-  }
-
-  const currentUser = await getUserByEmail(c.env.DB, selected.email);
-  if (!currentUser) {
-    return c.json({ error: 'Failed to initialize demo persona' }, 500);
-  }
-
-  const token = await signJWT(
-    {
-      sub: currentUser.id,
-      groupId: currentUser.group_id,
-      email: currentUser.email,
-      name: currentUser.name,
-      role: currentUser.role,
-    },
-    c.env.JWT_SECRET
-  );
-
-  setAuthCookie(c, token);
+  const { password_hash, ...safeUser } = user;
 
   return c.json({
     success: true,
     token,
-    user: currentUser,
+    user: safeUser,
     group,
   });
 });
 
-// 3. Get Current User Profile
+// 4. Get Current User Profile
 authRoutes.get('/me', authMiddleware, async (c) => {
   const jwtUser = c.get('user');
   const user = await getUserById(c.env.DB, jwtUser.sub);
@@ -160,10 +265,12 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   }
 
   const group = await getGroupById(c.env.DB, user.group_id);
-  return c.json({ user, group });
+  const { password_hash, ...safeUser } = user;
+
+  return c.json({ user: safeUser, group });
 });
 
-// 4. Logout
+// 5. Logout
 authRoutes.post('/logout', (c) => {
   c.header('Set-Cookie', 'tick_token=; HttpOnly; Path=/; Max-Age=0');
   return c.json({ success: true });

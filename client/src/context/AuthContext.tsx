@@ -8,8 +8,9 @@ interface AuthContextType {
   group: Group | null;
   members: User[];
   loading: boolean;
-  loginWithEmail: (email: string, name?: string, groupName?: string, inviteCode?: string) => Promise<void>;
-  loginDemo: (persona: 'mom' | 'dad' | 'teen') => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => Promise<void>;
+  loginWithGoogle: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshGroup: () => Promise<void>;
 }
@@ -32,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMembers(groupData.members);
       await cacheMembers(groupData.members);
     } catch {
-      // Fallback to offline cached members if network is offline
       const cached = await getCachedMembers();
       if (cached) setMembers(cached);
       setUser(null);
@@ -46,10 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchProfileAndGroup();
   }, []);
 
-  const loginWithEmail = async (email: string, name?: string, groupName?: string, inviteCode?: string) => {
+  const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await api.auth.magicLink(email, name, groupName, inviteCode);
+      const res = await api.auth.login(email, password);
       setToken(res.token);
       setUser(res.user);
       setGroup(res.group);
@@ -61,10 +61,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginDemo = async (persona: 'mom' | 'dad' | 'teen') => {
+  const register = async (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => {
     setLoading(true);
     try {
-      const res = await api.auth.demoLogin(persona);
+      const res = await api.auth.register(name, email, password, groupName, inviteCode);
+      setToken(res.token);
+      setUser(res.user);
+      setGroup(res.group);
+      const groupData = await api.groups.getMe();
+      setMembers(groupData.members);
+      await cacheMembers(groupData.members);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) => {
+    setLoading(true);
+    try {
+      const res = await api.auth.google(data);
       setToken(res.token);
       setUser(res.user);
       setGroup(res.group);
@@ -107,8 +122,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         group,
         members,
         loading,
-        loginWithEmail,
-        loginDemo,
+        login,
+        register,
+        loginWithGoogle,
         logout,
         refreshGroup,
       }}

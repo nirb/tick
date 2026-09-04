@@ -5,6 +5,7 @@ export interface Bindings {
   VAPID_SUBJECT: string;
   JWT_SECRET: string;
   APP_URL?: string;
+  GOOGLE_CLIENT_ID?: string;
 }
 
 export type UserRole = 'admin' | 'member';
@@ -30,6 +31,8 @@ export interface User {
   role: UserRole;
   avatar_url: string | null;
   created_at: number;
+  password_hash?: string | null;
+  auth_provider?: 'email' | 'google';
 }
 
 export interface Task {

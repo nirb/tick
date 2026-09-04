@@ -143,11 +143,10 @@ CREATE TABLE IF NOT EXISTS task_activities (
 );
 4. Functional Requirements
 4.1 Group & User Authentication
-FR-AUTH-1: Users register or sign in using a passwordless Magic Link (or email/pass) and are assigned to a Group.
-
-FR-AUTH-2: Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group.
-
-FR-AUTH-3: JWT tokens must be issued by the Worker, signed using HMAC-SHA256 via crypto.subtle, and stored in secure HttpOnly cookies.
+FR-AUTH-1 (Email & Password): Users register or sign in using their email address and a secure password. Passwords must be hashed using WebCrypto PBKDF2 / SHA-256 before persistence in D1.
+FR-AUTH-2 (Google / Gmail OAuth): Users can sign in or register with their Google account via Google Sign-In / OAuth.
+FR-AUTH-3 (Group Membership & Invites): Users are associated with a Household Group. Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group.
+FR-AUTH-4 (Session Management): JWT tokens must be issued by the Worker, signed using HMAC-SHA256 via crypto.subtle, and stored in secure HttpOnly cookies and Bearer tokens.
 
 4.2 Task Management Lifecycle
 FR-TASK-1 (Create): Any group member can create a task specifying title, description, assignee_id, priority, and due_at.
@@ -526,9 +525,10 @@ CREATE TABLE IF NOT EXISTS task_activities (
 ## 4. Functional Requirements
 
 ### 4.1 Group & User Authentication
-- **FR-AUTH-1:** Users register or sign in using a passwordless Magic Link (or email/pass) and are assigned to a Group.
-- **FR-AUTH-2:** Users can generate an invite link/code (`groups.invite_code`). New users providing this code immediately join the group.
-- **FR-AUTH-3:** JWT tokens must be issued by the Worker, signed using `HMAC-SHA256` via `crypto.subtle`, and stored in secure `HttpOnly` cookies.
+- **FR-AUTH-1 (Email & Password):** Users register or sign in using their email address and a secure password. Passwords are salted and hashed using WebCrypto PBKDF2 / SHA-256 before persistence in D1.
+- **FR-AUTH-2 (Google / Gmail OAuth):** Users can sign in or register with their Google account via Google Sign-In / OAuth.
+- **FR-AUTH-3 (Group Membership & Invites):** Users are associated with a Household Group. Users can generate an invite link/code (`groups.invite_code`). New users providing this code immediately join the group.
+- **FR-AUTH-4 (Session Management):** JWT tokens must be issued by the Worker, signed using `HMAC-SHA256` via `crypto.subtle`, and stored in secure `HttpOnly` cookies and Bearer tokens.
 
 ### 4.2 Task Management Lifecycle
 - **FR-TASK-1 (Create):** Any group member can create a task specifying `title`, `description`, `assignee_id`, `priority`, and `due_at`.

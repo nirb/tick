@@ -111,14 +111,25 @@ export interface Translations {
   installAppDesc: string;
 
   // Auth Screen
-  instantDemoLogin: string;
-  customSignIn: string;
-  hideCustomSignIn: string;
+  logIn: string;
+  signUp: string;
+  welcomeBack: string;
+  welcomeBackDesc: string;
+  createAccount: string;
+  createAccountDesc: string;
   yourName: string;
+  namePlaceholder: string;
   emailAddress: string;
+  password: string;
+  passwordPlaceholder: string;
+  householdNameOptional: string;
+  householdNamePlaceholder: string;
   inviteCodeOptional: string;
   inviteCodePlaceholder: string;
-  continueWithEmail: string;
+  continueWithGoogle: string;
+  dontHaveAccount: string;
+  alreadyHaveAccount: string;
+  orDivider: string;
   edgeD1: string;
   webPush: string;
   offlinePwa: string;
@@ -251,14 +262,25 @@ export const dictionaries: Record<Language, Translations> = {
     installTickApp: 'Install Tick App',
     installAppDesc: 'Get native push reminders & instant offline access',
 
-    instantDemoLogin: 'Instant Demo Family Login',
-    customSignIn: '▼ Or sign in with your email',
-    hideCustomSignIn: '▲ Hide custom sign-in',
-    yourName: 'Your Name',
+    logIn: 'Log In',
+    signUp: 'Sign Up',
+    welcomeBack: 'Welcome Back',
+    welcomeBackDesc: 'Sign in to access your family task board',
+    createAccount: 'Create Account',
+    createAccountDesc: 'Get started with your household chore manager',
+    yourName: 'Your Name *',
+    namePlaceholder: 'e.g. Sarah Miller',
     emailAddress: 'Email Address *',
+    password: 'Password *',
+    passwordPlaceholder: 'At least 6 characters',
+    householdNameOptional: 'Household / Family Name (optional)',
+    householdNamePlaceholder: 'e.g. The Miller Family',
     inviteCodeOptional: 'Family Invite Code (optional)',
-    inviteCodePlaceholder: 'Leave blank to create new household',
-    continueWithEmail: 'Continue with Email',
+    inviteCodePlaceholder: 'Enter 6-char code if joining an existing group',
+    continueWithGoogle: 'Continue with Google',
+    dontHaveAccount: "Don't have an account?",
+    alreadyHaveAccount: 'Already have an account?',
+    orDivider: 'or',
     edgeD1: 'Cloudflare D1',
     webPush: 'Web Push',
     offlinePwa: 'Offline PWA',
@@ -388,14 +410,25 @@ export const dictionaries: Record<Language, Translations> = {
     installTickApp: 'התקנת אפליקציית Tick',
     installAppDesc: 'קבלו התראות פוש וגישה מהירה גם במצב לא מקוון',
 
-    instantDemoLogin: 'כניסה מיידית לחשבון משפחתי לדוגמה',
-    customSignIn: '▼ או כניסה עם כתובת אימייל',
-    hideCustomSignIn: '▲ הסתר כניסה רגילה',
-    yourName: 'שמך',
+    logIn: 'התחברות',
+    signUp: 'הרשמה',
+    welcomeBack: 'ברוכים השבים',
+    welcomeBackDesc: 'התחברו כדי לצפות בלוח המשימות המשפחתי',
+    createAccount: 'יצירת חשבון חדש',
+    createAccountDesc: 'התחילו לנהל את מטלות הבית בקלות',
+    yourName: 'שמך המלא *',
+    namePlaceholder: 'לדוגמה: שרה ישראלי',
     emailAddress: 'כתובת אימייל *',
+    password: 'סיסמה *',
+    passwordPlaceholder: 'לפחות 6 תווים',
+    householdNameOptional: 'שם משק הבית / המשפחה (אופציונלי)',
+    householdNamePlaceholder: 'לדוגמה: משפחת ישראלי',
     inviteCodeOptional: 'קוד הזמנה משפחתי (אופציונלי)',
-    inviteCodePlaceholder: 'השאר ריק כדי ליצור משק בית חדש',
-    continueWithEmail: 'המשך עם אימייל',
+    inviteCodePlaceholder: 'הזן קוד בן 6 תווים להצטרפות למשפחה קיימת',
+    continueWithGoogle: 'המשך באמצעות Google',
+    dontHaveAccount: 'אין לך חשבון עדיין?',
+    alreadyHaveAccount: 'כבר יש לך חשבון?',
+    orDivider: 'או',
     edgeD1: 'מסד נתונים D1',
     webPush: 'התראות פוש',
     offlinePwa: 'אופליין מלא',

@@ -41,16 +41,22 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   auth: {
-    magicLink: (email: string, name?: string, groupName?: string, inviteCode?: string) =>
-      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/magic-link', {
+    login: (email: string, password: string) =>
+      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, name, groupName, inviteCode }),
+        body: JSON.stringify({ email, password }),
       }),
 
-    demoLogin: (persona: 'mom' | 'dad' | 'teen') =>
-      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/demo-login', {
+    register: (name: string, email: string, password: string, groupName?: string, inviteCode?: string) =>
+      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ persona }),
+        body: JSON.stringify({ name, email, password, groupName, inviteCode }),
+      }),
+
+    google: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) =>
+      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/google', {
+        method: 'POST',
+        body: JSON.stringify(data),
       }),
 
     getMe: () => request<{ user: User; group: Group }>('/api/auth/me'),

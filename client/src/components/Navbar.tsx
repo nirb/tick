@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenHousehold, onShowToast, isOnline }) => {
-  const { user, group, loginDemo, logout } = useAuth();
+  const { user, group, logout } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
   const { language, toggleLanguage, t } = useLanguage();
   const [showPushMenu, setShowPushMenu] = useState(false);
@@ -92,42 +92,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHousehold, onShowToast, is
             <span>{language === 'en' ? 'עברית' : 'English'}</span>
           </button>
 
-          {/* Quick Persona Switcher */}
+          {/* User Profile Badge */}
           {user && (
-            <div className="hidden sm:flex items-center bg-slate-100 p-1 rounded-xl">
-              <button
-                onClick={() => loginDemo('mom')}
-                title="Switch to Mom"
-                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 ${
-                  user.email === 'sarah.mom@tickfamily.app'
-                    ? 'bg-white text-indigo-700 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>👩</span> <span>{t('mom')}</span>
-              </button>
-              <button
-                onClick={() => loginDemo('dad')}
-                title="Switch to Dad"
-                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 ${
-                  user.email === 'alex.dad@tickfamily.app'
-                    ? 'bg-white text-indigo-700 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>👨</span> <span>{t('dad')}</span>
-              </button>
-              <button
-                onClick={() => loginDemo('teen')}
-                title="Switch to Leo"
-                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 ${
-                  user.email === 'leo.teen@tickfamily.app'
-                    ? 'bg-white text-indigo-700 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <span>👦</span> <span>{t('teen')}</span>
-              </button>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
+              <span className="text-sm">{user.avatar_url || '👤'}</span>
+              <span className="max-w-[120px] truncate">{user.name}</span>
+              <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full capitalize">
+                {user.role === 'admin' ? t('adminRole') : t('memberRole')}
+              </span>
             </div>
           )}
 
