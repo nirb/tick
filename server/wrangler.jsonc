@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tick-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-09-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tick-db",
+      "database_id": "e8b9fbfa-5b2f-4e1c-be2d-174df3a966a6",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "*/15 * * * *"
+    ]
+  },
+  "vars": {
+    "VAPID_PUBLIC_KEY": "BGpovX6SzcvQn35tqU1alOjzAeEeXbgeIdZzdx-ov0G70BPK3Qdjc0YtC9D-ImyHVXfBlpzXgwDeRiuTHREb9qY",
+    "VAPID_PRIVATE_KEY": "{\"alg\":\"ES256\",\"key_ops\":[\"sign\"],\"ext\":true,\"kty\":\"EC\",\"x\":\"ami9fpLNy9Cffm2pTVqU6PMB4R5duB4h1nN3H6i_Qbs\",\"y\":\"0BPK3Qdjc0YtC9D-ImyHVXfBlpzXgwDeRiuTHREb9qY\",\"crv\":\"P-256\",\"d\":\"SZHCZ_K3ljWNCy0M4dHGptlaR_9jXGQd7jlHStBloLY\"}",
+    "VAPID_SUBJECT": "mailto:nir.bejerano@gmail.com",
+    "JWT_SECRET": "tick-super-secret-family-jwt-key-2026",
+    "APP_URL": "http://localhost:5173"
+  }
+}
