@@ -312,7 +312,7 @@ export const dictionaries: Record<Language, Translations> = {
   },
 
   he: {
-    appName: 'טיק (Tick)',
+    appName: 'הקרציה',
     appTagline: 'מארגנים, מחלקים ומבצעים משימות יחד כמשפחה',
     online: 'מחובר',
     offline: 'לא מחובר',
@@ -397,7 +397,7 @@ export const dictionaries: Record<Language, Translations> = {
     join: 'הצטרף',
     joining: 'מצטרף...',
 
-    installOnIphone: 'התקנת Tick באייפון',
+    installOnIphone: 'התקנת "הקרציה" באייפון',
     iosPushNotice: 'נדרש לקבלת התראות פוש ב-iOS',
     iosExplanation: 'מכשירי אפל דורשים הוספת האפליקציה למסך הבית על מנת לאפשר קבלת התראות פוש.',
     step1Title: 'לחצו על כפתור השיתוף',
@@ -407,7 +407,7 @@ export const dictionaries: Record<Language, Translations> = {
     step3Title: 'פתחו את האפליקציה ממסך הבית',
     step3Desc: 'לחצו על "הפעל התראות" לקבלת תזכורות בזמן אמת!',
 
-    installTickApp: 'התקנת אפליקציית Tick',
+    installTickApp: 'התקנת אפליקציית "הקרציה"',
     installAppDesc: 'קבלו התראות פוש וגישה מהירה גם במצב לא מקוון',
 
     logIn: 'התחברות',
