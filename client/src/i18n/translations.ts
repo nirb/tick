@@ -403,7 +403,7 @@ export const dictionaries: Record<Language, Translations> = {
     adminRole: 'מנהל',
     memberRole: 'חבר',
 
-    allOpen: 'כל הפתוחות',
+    allOpen: 'הכל',
     mine: 'שלי',
     dueSoon: 'בקרוב',
     completed: 'הושלמו',
