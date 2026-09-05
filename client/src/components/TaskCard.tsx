@@ -11,6 +11,7 @@ import {
   Trash2,
   Edit2,
   Calendar,
+  ChevronDown,
 } from 'lucide-react';
 
 interface TaskCardProps {
@@ -33,6 +34,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [nudging, setNudging] = useState(false);
   const [nudged, setNudged] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const isCompleted = task.status === 'completed';
   const isAssignedToMe = user && task.assignee_id === user.id;
@@ -99,13 +101,39 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3
-              className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight ${
-                isCompleted ? 'line-through text-slate-400' : 'text-white'
-              }`}
-            >
-              {task.title}
-            </h3>
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <h3
+                onClick={() => task.description && setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start ${
+                  isCompleted ? 'line-through text-slate-400' : 'text-white'
+                } ${task.description ? 'cursor-pointer hover:text-sky-300 transition-colors select-none' : ''}`}
+                role={task.description ? 'button' : undefined}
+                aria-expanded={task.description ? isDescriptionExpanded : undefined}
+                tabIndex={task.description ? 0 : undefined}
+                onKeyDown={(e) => {
+                  if (task.description && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    setIsDescriptionExpanded(!isDescriptionExpanded);
+                  }
+                }}
+              >
+                {task.title}
+              </h3>
+              {task.description && (
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="p-0.5 text-slate-400 hover:text-sky-300 transition-colors shrink-0"
+                  aria-label={isDescriptionExpanded ? 'Collapse description' : 'Expand description'}
+                >
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isDescriptionExpanded ? 'rotate-180 text-sky-400' : ''
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
 
             {/* Menu Trigger */}
             <div className="relative shrink-0">
@@ -142,10 +170,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           </div>
 
-          {task.description && (
-            <p className={`text-xs sm:text-sm mt-1.5 leading-relaxed line-clamp-2 ${
-              isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
-            }`}>
+          {task.description && isDescriptionExpanded && (
+            <p
+              className={`text-xs sm:text-sm mt-2 p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line animate-in fade-in slide-in-from-top-1 ${
+                isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
+              }`}
+            >
               {task.description}
             </p>
           )}
