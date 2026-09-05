@@ -25,7 +25,6 @@ export const App: React.FC = () => {
 
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
-  const [, setIsOnline] = useState(navigator.onLine);
 
   // Filter States
   const [currentTab, setCurrentTab] = useState<FilterTab>('all');
@@ -45,26 +44,6 @@ export const App: React.FC = () => {
     }, 4000);
   }, []);
 
-  // Online / Offline Status
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      showToast(t('toastBackOnline'), 'success');
-      loadTasks();
-    };
-    const handleOffline = () => {
-      setIsOnline(false);
-      showToast(t('toastWorkingOffline'), 'info');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [showToast, t]);
-
   // Load Tasks
   const loadTasks = useCallback(async () => {
     if (!user || !group) return;
@@ -83,6 +62,18 @@ export const App: React.FC = () => {
       setLoadingTasks(false);
     }
   }, [user, group]);
+
+  // Auto-reload tasks when connectivity restores
+  useEffect(() => {
+    const handleOnline = () => {
+      loadTasks();
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loadTasks]);
 
   useEffect(() => {
     if (user && group) {

@@ -146,6 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handlePushClick = async () => {
     if (!isSubscribed) {
+      setIsMenuOpen(false);
       const ok = await subscribe();
       if (ok) {
         onShowToast(t('toastPushEnabled'), 'success');
@@ -154,6 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleTestPush = async () => {
+    setIsMenuOpen(false);
     try {
       const res = await sendTestNotification();
       if (res.sent > 0) {
@@ -167,6 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleUnsubscribe = async () => {
+    setIsMenuOpen(false);
     await unsubscribe();
     onShowToast(t('toastUnsubscribed'), 'info');
   };
@@ -194,6 +197,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     try {
       await updateUserName(trimmed);
       setIsEditingUserName(false);
+      setIsMenuOpen(false);
       onShowToast(t('toastUserNameUpdated'), 'success');
     } catch (e: any) {
       onShowToast(e.message || 'Failed to update name', 'error');
@@ -438,7 +442,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="space-y-1">
                   {/* Language Switcher */}
                   <button
-                    onClick={toggleLanguage}
+                    onClick={() => {
+                      toggleLanguage();
+                      setIsMenuOpen(false);
+                    }}
                     className="w-full px-2.5 py-2 hover:bg-white/10 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors"
                   >
                     <span className="flex items-center gap-2.5">
