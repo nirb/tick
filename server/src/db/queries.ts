@@ -127,6 +127,14 @@ export async function getUserById(db: D1Database, id: string): Promise<User | nu
   return result || null;
 }
 
+export async function updateUserName(db: D1Database, userId: string, name: string): Promise<User | null> {
+  await db
+    .prepare('UPDATE users SET name = ? WHERE id = ?')
+    .bind(name.trim(), userId)
+    .run();
+  return getUserById(db, userId);
+}
+
 export async function getUserByEmail(db: D1Database, email: string): Promise<User | null> {
   const result = await db
     .prepare('SELECT id, group_id, name, email, role, avatar_url, created_at, password_hash, auth_provider FROM users WHERE email = ?')

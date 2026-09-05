@@ -226,6 +226,7 @@ POST	/api/auth/login	Authenticates with email & password	No
 POST	/api/auth/register	Registers new account & group	No
 POST	/api/auth/google	Sign in / Register with Google OAuth	No
 GET	/api/auth/me	Fetches authenticated user & group	Yes
+PATCH	/api/auth/me	Updates current user profile (e.g. name)	Yes
 GET	/api/groups/me	Fetches active user group and members	Yes
 PATCH	/api/groups/me	Renames group (Admin only)	Yes
 POST	/api/groups/regenerate-invite	Regenerates invite code (Admin only)	Yes

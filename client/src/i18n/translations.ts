@@ -84,6 +84,7 @@ export interface Translations {
   // Group Modal
   groupTitle: string;
   editGroupName: string;
+  editUserName: string;
   groupNamePlaceholder: string;
   membersConnected: string;
   familyInviteCode: string;
@@ -163,6 +164,7 @@ export interface Translations {
   toastLinkCopied: string;
   toastJoinedGroup: string;
   toastGroupNameUpdated: string;
+  toastUserNameUpdated: string;
 }
 
 export const dictionaries: Record<Language, Translations> = {
@@ -241,6 +243,7 @@ export const dictionaries: Record<Language, Translations> = {
 
     groupTitle: 'Group Members',
     editGroupName: 'Edit Group Name',
+    editUserName: 'Edit your name',
     groupNamePlaceholder: 'Group name',
     membersConnected: '{count} members connected',
     familyInviteCode: 'Invite Code',
@@ -315,6 +318,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastLinkCopied: 'Shareable invite link copied!',
     toastJoinedGroup: 'Successfully joined group! 👥',
     toastGroupNameUpdated: 'Group name updated! 👥',
+    toastUserNameUpdated: 'Your name has been updated! 👤',
   },
 
   he: {
@@ -392,6 +396,7 @@ export const dictionaries: Record<Language, Translations> = {
 
     groupTitle: 'חברי הקבוצה',
     editGroupName: 'עריכת שם הקבוצה',
+    editUserName: 'עריכת שמך',
     groupNamePlaceholder: 'שם הקבוצה',
     membersConnected: '{count} חברים מחוברים',
     familyInviteCode: 'קוד הזמנה',
@@ -466,5 +471,6 @@ export const dictionaries: Record<Language, Translations> = {
     toastLinkCopied: 'קישור ההזמנה הועתק!',
     toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
     toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
+    toastUserNameUpdated: 'שמך עודכן בהצלחה! 👤',
   },
 };

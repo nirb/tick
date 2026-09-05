@@ -15,7 +15,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   onClose,
   onShowToast,
 }) => {
-  const { group, members, user, refreshGroup, updateGroupName } = useAuth();
+  const { group, members, user, refreshGroup, updateGroupName, updateUserName } = useAuth();
   const { t } = useLanguage();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -25,6 +25,9 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [savingName, setSavingName] = useState(false);
+  const [isEditingUserName, setIsEditingUserName] = useState(false);
+  const [editedUserName, setEditedUserName] = useState('');
+  const [savingUserName, setSavingUserName] = useState(false);
 
   if (!isOpen || !group) return null;
 
@@ -83,6 +86,37 @@ export const GroupModal: React.FC<GroupModalProps> = ({
       onShowToast(e.message || 'Failed to update group name', 'error');
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handleStartEditingUserName = () => {
+    if (!user) return;
+    setEditedUserName(user.name);
+    setIsEditingUserName(true);
+  };
+
+  const handleCancelEditingUserName = () => {
+    setIsEditingUserName(false);
+    setEditedUserName('');
+  };
+
+  const handleSaveUserName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = editedUserName.trim();
+    if (!trimmed || trimmed === user?.name) {
+      setIsEditingUserName(false);
+      return;
+    }
+
+    setSavingUserName(true);
+    try {
+      await updateUserName(trimmed);
+      setIsEditingUserName(false);
+      onShowToast(t('toastUserNameUpdated'), 'success');
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to update name', 'error');
+    } finally {
+      setSavingUserName(false);
     }
   };
 
@@ -224,18 +258,61 @@ export const GroupModal: React.FC<GroupModalProps> = ({
                 key={member.id}
                 className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xl">{member.avatar_url || '👤'}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900 flex items-center gap-1">
-                      {member.name}
-                      {member.id === user?.id && (
-                        <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.2 rounded">
-                          {t('you')}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-slate-500">{member.email}</p>
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <span className="text-xl shrink-0">{member.avatar_url || '👤'}</span>
+                  <div className="flex-1 min-w-0">
+                    {isEditingUserName && member.id === user?.id ? (
+                      <form onSubmit={handleSaveUserName} className="flex items-center gap-1.5 my-0.5">
+                        <input
+                          type="text"
+                          value={editedUserName}
+                          onChange={(e) => setEditedUserName(e.target.value)}
+                          placeholder={t('namePlaceholder')}
+                          autoFocus
+                          maxLength={40}
+                          className="w-full max-w-[170px] px-2 py-0.5 text-xs font-semibold text-slate-900 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                          disabled={savingUserName}
+                        />
+                        <button
+                          type="submit"
+                          disabled={savingUserName || !editedUserName.trim()}
+                          title={t('save')}
+                          className="p-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                        >
+                          {savingUserName ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelEditingUserName}
+                          disabled={savingUserName}
+                          title={t('cancel')}
+                          className="p-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg transition-colors shrink-0"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-slate-900 flex items-center gap-1 truncate">
+                          {member.name}
+                          {member.id === user?.id && (
+                            <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.2 rounded shrink-0">
+                              {t('you')}
+                            </span>
+                          )}
+                        </p>
+                        {member.id === user?.id && (
+                          <button
+                            onClick={handleStartEditingUserName}
+                            title={t('editUserName')}
+                            className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors shrink-0"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 truncate">{member.email}</p>
                   </div>
                 </div>
 

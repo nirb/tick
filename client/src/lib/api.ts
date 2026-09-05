@@ -61,6 +61,12 @@ export const api = {
 
     getMe: () => request<{ user: User; group: Group }>('/api/auth/me'),
 
+    updateProfile: (data: { name: string }) =>
+      request<{ success: boolean; user: User; token: string }>('/api/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
     logout: () =>
       request<{ success: boolean }>('/api/auth/logout', {
         method: 'POST',

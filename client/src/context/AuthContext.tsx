@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshGroup: () => Promise<void>;
   updateGroupName: (name: string) => Promise<void>;
+  updateUserName: (name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -121,6 +122,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setGroup(res.group);
   };
 
+  const updateUserName = async (name: string) => {
+    const res = await api.auth.updateProfile({ name });
+    setUser(res.user);
+    if (res.token) {
+      setToken(res.token);
+    }
+    await refreshGroup();
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -134,6 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         refreshGroup,
         updateGroupName,
+        updateUserName,
       }}
     >
       {children}

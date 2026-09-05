@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePush } from '../context/PushContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Bell, BellOff, Users, Wifi, WifiOff, Send, LogOut, CheckCircle2, Globe } from 'lucide-react';
+import { Bell, BellOff, Users, Wifi, WifiOff, Send, LogOut, CheckCircle2, Globe, Pencil, Check, X, RefreshCw } from 'lucide-react';
 
 interface NavbarProps {
   onOpenGroup: () => void;
@@ -11,10 +11,13 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnline }) => {
-  const { user, group, logout } = useAuth();
+  const { user, group, logout, updateUserName } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
   const { language, toggleLanguage, t } = useLanguage();
   const [showPushMenu, setShowPushMenu] = useState(false);
+  const [isEditingUserName, setIsEditingUserName] = useState(false);
+  const [editedUserName, setEditedUserName] = useState('');
+  const [savingUserName, setSavingUserName] = useState(false);
 
   const handlePushClick = async () => {
     if (!isSubscribed) {
@@ -45,6 +48,37 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnli
     setShowPushMenu(false);
     await unsubscribe();
     onShowToast(t('toastUnsubscribed'), 'info');
+  };
+
+  const handleStartEditingUserName = () => {
+    if (!user) return;
+    setEditedUserName(user.name);
+    setIsEditingUserName(true);
+  };
+
+  const handleCancelEditingUserName = () => {
+    setIsEditingUserName(false);
+    setEditedUserName('');
+  };
+
+  const handleSaveUserName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = editedUserName.trim();
+    if (!trimmed || trimmed === user?.name) {
+      setIsEditingUserName(false);
+      return;
+    }
+
+    setSavingUserName(true);
+    try {
+      await updateUserName(trimmed);
+      setIsEditingUserName(false);
+      onShowToast(t('toastUserNameUpdated'), 'success');
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to update name', 'error');
+    } finally {
+      setSavingUserName(false);
+    }
   };
 
   return (
@@ -94,13 +128,52 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnli
 
           {/* User Profile Badge */}
           {user && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
-              <span className="text-sm">{user.avatar_url || '👤'}</span>
-              <span className="max-w-[120px] truncate">{user.name}</span>
-              <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full capitalize">
-                {user.role === 'admin' ? t('adminRole') : t('memberRole')}
-              </span>
-            </div>
+            isEditingUserName ? (
+              <form onSubmit={handleSaveUserName} className="hidden sm:flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-xl">
+                <input
+                  type="text"
+                  value={editedUserName}
+                  onChange={(e) => setEditedUserName(e.target.value)}
+                  placeholder={t('namePlaceholder')}
+                  autoFocus
+                  maxLength={40}
+                  className="w-24 px-1.5 py-0.5 text-xs font-semibold text-slate-900 border border-indigo-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                  disabled={savingUserName}
+                />
+                <button
+                  type="submit"
+                  disabled={savingUserName || !editedUserName.trim()}
+                  title={t('save')}
+                  className="p-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                >
+                  {savingUserName ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEditingUserName}
+                  disabled={savingUserName}
+                  title={t('cancel')}
+                  className="p-1 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-lg transition-colors shrink-0"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </form>
+            ) : (
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700">
+                <span className="text-sm">{user.avatar_url || '👤'}</span>
+                <span className="max-w-[120px] truncate">{user.name}</span>
+                <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full capitalize">
+                  {user.role === 'admin' ? t('adminRole') : t('memberRole')}
+                </span>
+                <button
+                  onClick={handleStartEditingUserName}
+                  title={t('editUserName')}
+                  className="p-0.5 text-slate-400 hover:text-indigo-600 rounded transition-colors"
+                >
+                  <Pencil className="w-3 h-3" />
+                </button>
+              </div>
+            )
           )}
 
           {/* Web Push Toggle Button & Dropdown */}

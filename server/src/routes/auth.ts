@@ -6,6 +6,7 @@ import {
   createUser,
   getUserByEmail,
   getUserById,
+  updateUserName,
   createGroup,
   getGroupByInviteCode,
   getGroupById,
@@ -270,7 +271,43 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   return c.json({ user: safeUser, group });
 });
 
-// 5. Logout
+// 5. Update Current User Profile (e.g. name)
+authRoutes.patch('/me', authMiddleware, async (c) => {
+  const jwtUser = c.get('user');
+  const body = await c.req.json<{ name?: string }>();
+
+  if (!body.name || !body.name.trim()) {
+    return c.json({ error: 'Name is required' }, 400);
+  }
+
+  const updatedUser = await updateUserName(c.env.DB, jwtUser.sub, body.name.trim());
+  if (!updatedUser) {
+    return c.json({ error: 'User not found' }, 404);
+  }
+
+  // Refreshed JWT with new name
+  const token = await signJWT(
+    {
+      sub: updatedUser.id,
+      groupId: updatedUser.group_id,
+      email: updatedUser.email,
+      name: updatedUser.name,
+      role: updatedUser.role,
+    },
+    c.env.JWT_SECRET
+  );
+
+  setAuthCookie(c, token);
+
+  const { password_hash, ...safeUser } = updatedUser;
+  return c.json({
+    success: true,
+    user: safeUser,
+    token,
+  });
+});
+
+// 6. Logout
 authRoutes.post('/logout', (c) => {
   c.header('Set-Cookie', 'tick_token=; HttpOnly; Path=/; Max-Age=0');
   return c.json({ success: true });
