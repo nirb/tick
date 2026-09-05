@@ -1,7 +1,7 @@
 {
-  "name": "Tick - Family Task Manager",
+  "name": "Tick - Task Manager",
   "short_name": "Tick",
-  "description": "Collaborative family chore and task manager with Web Push notifications",
+  "description": "Collaborative tasks with Web Push notifications",
   "start_url": "/",
   "scope": "/",
   "id": "/",
