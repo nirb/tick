@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePush } from './context/PushContext';
 import { useLanguage } from './context/LanguageContext';
 import { useInstall } from './context/InstallContext';
 import { api } from './lib/api';
 import { cacheTasks, getCachedTasks } from './lib/offline';
-import type { TaskWithAssignee, TaskPriority, GroupMembership } from './types';
+import type { TaskWithAssignee, TaskPriority } from './types';
 import { Navbar } from './components/Navbar';
 import { TaskCard } from './components/TaskCard';
 import { TaskFilters, type FilterTab } from './components/TaskFilters';
@@ -15,26 +15,10 @@ import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
-import {
-  Plus,
-  CheckCircle,
-  RefreshCw,
-  ChevronDown,
-  Users,
-  Check,
-  Settings,
-} from 'lucide-react';
+import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const {
-    user,
-    group,
-    groups,
-    switchGroup,
-    createGroup,
-    members,
-    loading: authLoading,
-  } = useAuth();
+  const { user, group, members, loading: authLoading } = useAuth();
   const { showIOSGuide, setShowIOSGuide } = usePush();
   const { isInstallModalOpen, setIsInstallModalOpen } = useInstall();
   const { t } = useLanguage();
@@ -46,14 +30,6 @@ export const App: React.FC = () => {
   // Filter States
   const [currentTab, setCurrentTab] = useState<FilterTab>('all');
   const [selectedAssignee, setSelectedAssignee] = useState<string>('');
-
-  // Group Switcher States
-  const [showGroupMenu, setShowGroupMenu] = useState(false);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [creatingGroupLoading, setCreatingGroupLoading] = useState(false);
-  const [switchingGroupId, setSwitchingGroupId] = useState<string | null>(null);
-  const groupMenuRef = useRef<HTMLDivElement>(null);
 
   // Modals & UI States
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -68,72 +44,6 @@ export const App: React.FC = () => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
   }, []);
-
-  // Close group menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (groupMenuRef.current && !groupMenuRef.current.contains(event.target as Node)) {
-        setShowGroupMenu(false);
-        setIsCreatingGroup(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const displayGroups: GroupMembership[] =
-    groups.length > 0
-      ? groups
-      : group
-      ? [
-          {
-            group_id: group.id,
-            name: group.name,
-            invite_code: group.invite_code,
-            role: user?.role || 'member',
-            joined_at: group.created_at,
-          },
-        ]
-      : [];
-
-  const handleSwitchGroup = async (groupId: string) => {
-    if (groupId === group?.id) {
-      setShowGroupMenu(false);
-      return;
-    }
-    setSwitchingGroupId(groupId);
-    try {
-      await switchGroup(groupId);
-      setShowGroupMenu(false);
-      showToast(t('toastSwitchedGroup'), 'success');
-    } catch (err: any) {
-      showToast(err.message || 'Failed to switch group', 'error');
-    } finally {
-      setSwitchingGroupId(null);
-    }
-  };
-
-  const handleCreateGroupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = newGroupName.trim();
-    if (!trimmed) return;
-
-    setCreatingGroupLoading(true);
-    try {
-      await createGroup(trimmed);
-      setNewGroupName('');
-      setIsCreatingGroup(false);
-      setShowGroupMenu(false);
-      showToast(t('toastGroupCreated'), 'success');
-    } catch (err: any) {
-      showToast(err.message || 'Failed to create group', 'error');
-    } finally {
-      setCreatingGroupLoading(false);
-    }
-  };
 
   // Online / Offline Status
   useEffect(() => {
@@ -180,6 +90,14 @@ export const App: React.FC = () => {
     }
   }, [user?.id, group?.id, loadTasks]);
 
+  const cleanTaskUrl = useCallback(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('task=')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('task');
+      window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+    }
+  }, []);
+
   // Check URL query parameters for task deep linking (?task=UUID)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -190,8 +108,9 @@ export const App: React.FC = () => {
         setTaskToEdit(target);
         setIsTaskModalOpen(true);
       }
+      cleanTaskUrl();
     }
-  }, [tasks]);
+  }, [tasks, cleanTaskUrl]);
 
   // Handle Task Create/Update
   const handleSaveTask = async (data: {
@@ -365,161 +284,17 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-transparent text-slate-100 flex flex-col selection:bg-sky-500 selection:text-white">
       {/* Top Navigation */}
-      <Navbar onShowToast={showToast} />
+      <Navbar
+        onShowToast={showToast}
+        onCreateTask={() => {
+          setTaskToEdit(null);
+          setIsTaskModalOpen(true);
+        }}
+        onOpenGroup={() => setIsGroupModalOpen(true)}
+      />
 
       {/* Main Container */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 pb-24">
-        {/* Header Title & Quick Create */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="relative" ref={groupMenuRef}>
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <button
-                onClick={() => {
-                  setShowGroupMenu(!showGroupMenu);
-                  setIsCreatingGroup(false);
-                  setNewGroupName('');
-                }}
-                className="group flex items-center gap-2 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-xl"
-              >
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text">
-                  {group?.name || t('appName')}
-                </h2>
-                <ChevronDown
-                  className={`w-5 h-5 sm:w-6 sm:h-6 text-slate-400 group-hover:text-white transition-transform duration-200 shrink-0 ${
-                    showGroupMenu ? 'rotate-180' : ''
-                  }`}
-                />
-              </button>
-              <span className="text-xs sm:text-sm text-slate-400 font-medium">
-                {t('appTagline')}
-              </span>
-            </div>
-
-            {showGroupMenu && (
-              <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 z-40 text-xs text-slate-100 animate-in fade-in zoom-in-95">
-                <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-sky-400" />
-                    {t('myGroups')}
-                  </span>
-                  <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
-                    {displayGroups.length}
-                  </span>
-                </div>
-
-                {/* List of groups */}
-                <div className="max-h-52 overflow-y-auto space-y-1 my-1">
-                  {displayGroups.map((g) => {
-                    const isActive = g.group_id === group?.id;
-                    const isSwitching = switchingGroupId === g.group_id;
-                    return (
-                      <button
-                        key={g.group_id}
-                        onClick={() => handleSwitchGroup(g.group_id)}
-                        disabled={isSwitching}
-                        className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                          isActive
-                            ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
-                            : 'hover:bg-white/10 text-slate-200 font-medium'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                          {isActive ? (
-                            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                          ) : isSwitching ? (
-                            <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
-                          ) : (
-                            <div className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          <span className="truncate">{g.name}</span>
-                        </div>
-                        <span
-                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
-                            g.role === 'admin'
-                              ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
-                              : 'bg-white/10 text-slate-300 border-white/15'
-                          }`}
-                        >
-                          {g.role === 'admin' ? t('adminRole') : t('memberRole')}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Creation inline form or Action Buttons */}
-                <div className="pt-1.5 border-t border-white/10 space-y-1">
-                  {isCreatingGroup ? (
-                    <form onSubmit={handleCreateGroupSubmit} className="p-1 space-y-2">
-                      <input
-                        type="text"
-                        value={newGroupName}
-                        onChange={(e) => setNewGroupName(e.target.value)}
-                        placeholder={t('newGroupName')}
-                        maxLength={50}
-                        autoFocus
-                        disabled={creatingGroupLoading}
-                        className="w-full px-2.5 py-1 bg-slate-950/80 border border-sky-400/50 rounded-lg text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
-                      />
-                      <div className="flex items-center gap-1.5 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsCreatingGroup(false);
-                            setNewGroupName('');
-                          }}
-                          disabled={creatingGroupLoading}
-                          className="px-2 py-1 text-[11px] text-slate-400 hover:text-white rounded-lg transition-colors"
-                        >
-                          {t('cancel')}
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={creatingGroupLoading || !newGroupName.trim()}
-                          className="px-2.5 py-1 text-[11px] bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
-                        >
-                          {creatingGroupLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
-                          <span>{t('create')}</span>
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => setIsCreatingGroup(true)}
-                      className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-sky-300 font-semibold transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>{t('createNewGroup')}</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setShowGroupMenu(false);
-                      setIsGroupModalOpen(true);
-                    }}
-                    className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-slate-300 font-semibold transition-colors"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{t('manageGroup')}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => {
-              setTaskToEdit(null);
-              setIsTaskModalOpen(true);
-            }}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 glow-btn text-white text-sm font-bold rounded-xl"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span>{t('createTask')}</span>
-          </button>
-        </div>
-
         {/* Filters */}
         <TaskFilters
           currentTab={currentTab}
@@ -602,6 +377,7 @@ export const App: React.FC = () => {
         onClose={() => {
           setIsTaskModalOpen(false);
           setTaskToEdit(null);
+          cleanTaskUrl();
         }}
         onSubmit={handleSaveTask}
         members={members}
