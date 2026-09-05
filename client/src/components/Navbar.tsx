@@ -5,12 +5,12 @@ import { useLanguage } from '../context/LanguageContext';
 import { Bell, BellOff, Users, Wifi, WifiOff, Send, LogOut, CheckCircle2, Globe } from 'lucide-react';
 
 interface NavbarProps {
-  onOpenHousehold: () => void;
+  onOpenGroup: () => void;
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   isOnline: boolean;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenHousehold, onShowToast, isOnline }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnline }) => {
   const { user, group, logout } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
   const { language, toggleLanguage, t } = useLanguage();
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHousehold, onShowToast, is
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
-        {/* Brand & Household */}
+        {/* Brand & Group */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-md shadow-indigo-100 shrink-0">
             ✓
@@ -70,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenHousehold, onShowToast, is
 
             {group && (
               <button
-                onClick={onOpenHousehold}
+                onClick={onOpenGroup}
                 className="flex items-center gap-1 text-xs text-slate-500 hover:text-indigo-600 transition-colors font-medium text-start"
               >
                 <Users className="w-3 h-3" />

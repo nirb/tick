@@ -74,11 +74,11 @@ authRoutes.post('/register', async (c) => {
   if (body.inviteCode && body.inviteCode.trim()) {
     group = await getGroupByInviteCode(c.env.DB, body.inviteCode.trim().toUpperCase());
     if (!group) {
-      return c.json({ error: 'Invalid family invite code' }, 400);
+      return c.json({ error: 'Invalid invite code' }, 400);
     }
   } else {
-    const householdName = body.groupName?.trim() || `${body.name.trim()}'s Family`;
-    group = await createGroup(c.env.DB, householdName);
+    const groupName = body.groupName?.trim() || `${body.name.trim()}'s Group`;
+    group = await createGroup(c.env.DB, groupName);
     role = 'admin';
   }
 
@@ -216,10 +216,10 @@ authRoutes.post('/google', async (c) => {
     if (body.inviteCode && body.inviteCode.trim()) {
       group = await getGroupByInviteCode(c.env.DB, body.inviteCode.trim().toUpperCase());
       if (!group) {
-        return c.json({ error: 'Invalid family invite code' }, 400);
+        return c.json({ error: 'Invalid invite code' }, 400);
       }
     } else {
-      group = await createGroup(c.env.DB, `${userName}'s Family`);
+      group = await createGroup(c.env.DB, `${userName}'s Group`);
       role = 'admin';
     }
 

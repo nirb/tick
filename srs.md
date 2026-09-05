@@ -4,7 +4,7 @@
 Build an offline-ready, multi-user Progressive Web Application (PWA) tailored for families and small collaborative groups to organize, assign, track, and complete daily chores, errands, and shared tasks. The application runs entirely serverless on Cloudflare's edge infrastructure with native support for multi-device Web Push notifications (including iOS 16.4+ standalone PWAs and Android browsers).
 
 ### 1.2 Core Capabilities
-1. **Multi-Tenant Groups (Households):** Group creation, member invites via shareable link or code, role-based visibility (Admin vs. Member).
+1. **Multi-Tenant Groups:** Group creation, member invites via shareable link or code, role-based visibility (Admin vs. Member).
 2. **Task Lifecycle Management:** Task creation, due dates, recurring cadences (daily, weekly, custom), assignee routing, priority flags, and completion states.
 3. **PWA & Edge Web Push Notification Engine:** End-to-end VAPID push system natively operating on Cloudflare Workers (WebCrypto / `nodejs_compat`) notifying assignees on assignment, completion, overdue nudges, and chat mentions.
 4. **Offline Resilience & Edge Persistence:** Cloudflare D1 serverless SQLite backing data store with client-side cache and offline queueing via Service Worker IndexedDB sync.
@@ -69,7 +69,7 @@ Build an offline-ready, multi-user Progressive Web Application (PWA) tailored fo
 SQL
 -- Migration 0001_initial_schema.sql
 
--- 1. Households / Groups
+-- 1. Groups
 CREATE TABLE IF NOT EXISTS groups (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS task_activities (
 4.1 Group & User Authentication
 FR-AUTH-1 (Email & Password): Users register or sign in using their email address and a secure password. Passwords must be hashed using WebCrypto PBKDF2 / SHA-256 before persistence in D1.
 FR-AUTH-2 (Google / Gmail OAuth): Users can sign in or register with their Google account via Google Sign-In / OAuth.
-FR-AUTH-3 (Group Membership, Invites & Renaming): Users are associated with a Household Group. Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group. Household Admins can rename the group via PATCH /api/groups/me.
+FR-AUTH-3 (Group Membership, Invites & Renaming): Users are associated with a Group. Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group. Group Admins can rename the group via PATCH /api/groups/me.
 FR-AUTH-4 (Session Management): JWT tokens must be issued by the Worker, signed using HMAC-SHA256 via crypto.subtle, and stored in secure HttpOnly cookies and Bearer tokens.
 
 4.2 Task Management Lifecycle
@@ -223,11 +223,11 @@ NFR-PERF-3: Frontend bundle size < 120KB gzipped for fast loading on cellular ne
 6.1 Endpoints Overview
 Method	Endpoint	Description	Auth Required
 POST	/api/auth/login	Authenticates with email & password	No
-POST	/api/auth/register	Registers new account & household	No
+POST	/api/auth/register	Registers new account & group	No
 POST	/api/auth/google	Sign in / Register with Google OAuth	No
-GET	/api/auth/me	Fetches authenticated user & household	Yes
+GET	/api/auth/me	Fetches authenticated user & group	Yes
 GET	/api/groups/me	Fetches active user group and members	Yes
-PATCH	/api/groups/me	Renames household group (Admin only)	Yes
+PATCH	/api/groups/me	Renames group (Admin only)	Yes
 POST	/api/groups/regenerate-invite	Regenerates invite code (Admin only)	Yes
 POST	/api/groups/join	Joins existing group via invite code	Yes
 GET	/api/tasks	Lists group tasks (filters: status, assignee)	Yes
@@ -382,7 +382,7 @@ Gemini is AI and can make mistakes.
 Build an offline-ready, multi-user Progressive Web Application (PWA) tailored for families and small collaborative groups to organize, assign, track, and complete daily chores, errands, and shared tasks. The application runs entirely serverless on Cloudflare's edge infrastructure with native support for multi-device Web Push notifications (including iOS 16.4+ standalone PWAs and Android browsers).
 
 ### 1.2 Core Capabilities
-1. **Multi-Tenant Groups (Households):** Group creation, member invites via shareable link or code, role-based visibility (Admin vs. Member).
+1. **Multi-Tenant Groups:** Group creation, member invites via shareable link or code, role-based visibility (Admin vs. Member).
 2. **Task Lifecycle Management:** Task creation, due dates, recurring cadences (daily, weekly, custom), assignee routing, priority flags, and completion states.
 3. **PWA & Edge Web Push Notification Engine:** End-to-end VAPID push system natively operating on Cloudflare Workers (WebCrypto / `nodejs_compat`) notifying assignees on assignment, completion, overdue nudges, and chat mentions.
 4. **Offline Resilience & Edge Persistence:** Cloudflare D1 serverless SQLite backing data store with client-side cache and offline queueing via Service Worker IndexedDB sync.
@@ -452,7 +452,7 @@ Build an offline-ready, multi-user Progressive Web Application (PWA) tailored fo
 ```sql
 -- Migration 0001_initial_schema.sql
 
--- 1. Households / Groups
+-- 1. Groups
 CREATE TABLE IF NOT EXISTS groups (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -533,7 +533,7 @@ CREATE TABLE IF NOT EXISTS task_activities (
 ### 4.1 Group & User Authentication
 - **FR-AUTH-1 (Email & Password):** Users register or sign in using their email address and a secure password. Passwords are salted and hashed using WebCrypto PBKDF2 / SHA-256 before persistence in D1.
 - **FR-AUTH-2 (Google / Gmail OAuth):** Users can sign in or register with their Google account via Google Sign-In / OAuth.
-- **FR-AUTH-3 (Group Membership & Invites):** Users are associated with a Household Group. Users can generate an invite link/code (`groups.invite_code`). New users providing this code immediately join the group.
+- **FR-AUTH-3 (Group Membership, Invites & Renaming):** Users are associated with a Group. Users can generate an invite link/code (`groups.invite_code`). New users providing this code immediately join the group. Group Admins can rename the group via `PATCH /api/groups/me`.
 - **FR-AUTH-4 (Session Management):** JWT tokens must be issued by the Worker, signed using `HMAC-SHA256` via `crypto.subtle`, and stored in secure `HttpOnly` cookies and Bearer tokens.
 
 ### 4.2 Task Management Lifecycle

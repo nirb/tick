@@ -81,8 +81,8 @@ export interface Translations {
   saveChanges: string;
   saving: string;
 
-  // Household Modal
-  householdTitle: string;
+  // Group Modal
+  groupTitle: string;
   editGroupName: string;
   groupNamePlaceholder: string;
   membersConnected: string;
@@ -92,7 +92,7 @@ export interface Translations {
   copyShareLink: string;
   linkCopied: string;
   members: string;
-  joinAnotherHousehold: string;
+  joinAnotherGroup: string;
   enterCodePlaceholder: string;
   join: string;
   joining: string;
@@ -124,8 +124,8 @@ export interface Translations {
   emailAddress: string;
   password: string;
   passwordPlaceholder: string;
-  householdNameOptional: string;
-  householdNamePlaceholder: string;
+  groupNameOptional: string;
+  groupNameSignupPlaceholder: string;
   inviteCodeOptional: string;
   inviteCodePlaceholder: string;
   continueWithGoogle: string;
@@ -239,9 +239,9 @@ export const dictionaries: Record<Language, Translations> = {
     saveChanges: 'Save Changes',
     saving: 'Saving...',
 
-    householdTitle: 'Household Members',
-    editGroupName: 'Edit Household Name',
-    groupNamePlaceholder: 'Household name',
+    groupTitle: 'Group Members',
+    editGroupName: 'Edit Group Name',
+    groupNamePlaceholder: 'Group name',
     membersConnected: '{count} members connected',
     familyInviteCode: 'Invite Code',
     newCode: 'New Code',
@@ -249,7 +249,7 @@ export const dictionaries: Record<Language, Translations> = {
     copyShareLink: 'Copy Shareable Link',
     linkCopied: 'Link Copied!',
     members: 'Members',
-    joinAnotherHousehold: 'Join Another Household',
+    joinAnotherGroup: 'Join Another Group',
     enterCodePlaceholder: 'Enter 6-char code',
     join: 'Join',
     joining: 'Joining...',
@@ -272,14 +272,14 @@ export const dictionaries: Record<Language, Translations> = {
     welcomeBack: 'Welcome Back',
     welcomeBackDesc: 'Sign in to access your task board',
     createAccount: 'Create Account',
-    createAccountDesc: 'Get started with your household chore manager',
+    createAccountDesc: 'Get started with your group task manager',
     yourName: 'Your Name *',
     namePlaceholder: 'e.g. Sarah Miller',
     emailAddress: 'Email Address *',
     password: 'Password *',
     passwordPlaceholder: 'At least 6 characters',
-    householdNameOptional: 'Name (optional)',
-    householdNamePlaceholder: 'e.g. The Miller Family',
+    groupNameOptional: 'Group Name (optional)',
+    groupNameSignupPlaceholder: 'e.g. The Millers, Roommates, Team',
     inviteCodeOptional: 'Invite Code (optional)',
     inviteCodePlaceholder: 'Enter 6-char code if joining an existing group',
     continueWithGoogle: 'Continue with Google',
@@ -313,8 +313,8 @@ export const dictionaries: Record<Language, Translations> = {
     toastWorkingOffline: 'Working offline. Local changes will be saved.',
     toastCodeCopied: 'Invite code copied to clipboard!',
     toastLinkCopied: 'Shareable invite link copied!',
-    toastJoinedGroup: 'Successfully joined new household! 🏠',
-    toastGroupNameUpdated: 'Household name updated! 🏠',
+    toastJoinedGroup: 'Successfully joined group! 👥',
+    toastGroupNameUpdated: 'Group name updated! 👥',
   },
 
   he: {
@@ -390,17 +390,17 @@ export const dictionaries: Record<Language, Translations> = {
     saveChanges: 'שמור שינויים',
     saving: 'שומר...',
 
-    householdTitle: 'חברי הבית',
-    editGroupName: 'עריכת שם משק הבית',
-    groupNamePlaceholder: 'שם משק הבית',
-    membersConnected: '{count} בני משפחה מחוברים',
+    groupTitle: 'חברי הקבוצה',
+    editGroupName: 'עריכת שם הקבוצה',
+    groupNamePlaceholder: 'שם הקבוצה',
+    membersConnected: '{count} חברים מחוברים',
     familyInviteCode: 'קוד הזמנה',
     newCode: 'קוד חדש',
     copyCode: 'העתק קוד',
     copyShareLink: 'העתק קישור להזמנה',
     linkCopied: 'הקישור הועתק!',
     members: 'חברים',
-    joinAnotherHousehold: 'הצטרף למשק בית קיים',
+    joinAnotherGroup: 'הצטרף לקבוצה אחרת',
     enterCodePlaceholder: 'הזן קוד בן 6 תווים',
     join: 'הצטרף',
     joining: 'מצטרף...',
@@ -423,14 +423,14 @@ export const dictionaries: Record<Language, Translations> = {
     welcomeBack: 'ברוכים השבים',
     welcomeBackDesc: 'התחברו כדי לצפות בלוח המשימות המשפחתי',
     createAccount: 'יצירת חשבון חדש',
-    createAccountDesc: 'התחילו לנהל את מטלות הבית בקלות',
+    createAccountDesc: 'התחילו לנהל משימות קבוצתיות בקלות',
     yourName: 'שמך המלא *',
     namePlaceholder: 'לדוגמה: שרה ישראלי',
     emailAddress: 'כתובת אימייל *',
     password: 'סיסמה *',
     passwordPlaceholder: 'לפחות 6 תווים',
-    householdNameOptional: 'שם משק הבית / המשפחה (אופציונלי)',
-    householdNamePlaceholder: 'לדוגמה: משפחת ישראלי',
+    groupNameOptional: 'שם הקבוצה (אופציונלי)',
+    groupNameSignupPlaceholder: 'לדוגמה: משפחה, שותפים, צוות',
     inviteCodeOptional: 'קוד הזמנה משפחתי (אופציונלי)',
     inviteCodePlaceholder: 'הזן קוד בן 6 תווים להצטרפות למשפחה קיימת',
     continueWithGoogle: 'המשך באמצעות Google',
@@ -464,7 +464,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastWorkingOffline: 'פועל במצב לא מקוון. השינויים יישמרו מקומית.',
     toastCodeCopied: 'קוד ההזמנה הועתק ללוח!',
     toastLinkCopied: 'קישור ההזמנה הועתק!',
-    toastJoinedGroup: 'הצטרפת בהצלחה למשק הבית! 🏠',
-    toastGroupNameUpdated: 'שם משק הבית עודכן בהצלחה! 🏠',
+    toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
+    toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
   },
 };

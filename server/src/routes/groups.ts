@@ -31,11 +31,11 @@ groupRoutes.get('/me', async (c) => {
   });
 });
 
-// PATCH /api/groups/me - Admin renames the household group
+// PATCH /api/groups/me - Admin renames the group
 groupRoutes.patch('/me', async (c) => {
   const jwtUser = c.get('user');
   if (jwtUser.role !== 'admin') {
-    return c.json({ error: 'Only admins can rename the household group' }, 403);
+    return c.json({ error: 'Only admins can rename the group' }, 403);
   }
 
   const body = await c.req.json<{ name: string }>();

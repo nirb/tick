@@ -9,7 +9,7 @@ import { Navbar } from './components/Navbar';
 import { TaskCard } from './components/TaskCard';
 import { TaskFilters, type FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
-import { HouseholdModal } from './components/HouseholdModal';
+import { GroupModal } from './components/GroupModal';
 import { IOSInstallModal } from './components/IOSInstallModal';
 import { AndroidInstallBanner } from './components/AndroidInstallBanner';
 import { AuthScreen } from './components/AuthScreen';
@@ -31,7 +31,7 @@ export const App: React.FC = () => {
 
   // Modals & UI States
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isHouseholdModalOpen, setIsHouseholdModalOpen] = useState(false);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -231,7 +231,7 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-indigo-500 selection:text-white">
       {/* Top Navigation */}
       <Navbar
-        onOpenHousehold={() => setIsHouseholdModalOpen(true)}
+        onOpenGroup={() => setIsGroupModalOpen(true)}
         onShowToast={showToast}
         isOnline={isOnline}
       />
@@ -349,9 +349,9 @@ export const App: React.FC = () => {
         taskToEdit={taskToEdit}
       />
 
-      <HouseholdModal
-        isOpen={isHouseholdModalOpen}
-        onClose={() => setIsHouseholdModalOpen(false)}
+      <GroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
         onShowToast={showToast}
       />
 

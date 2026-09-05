@@ -4,13 +4,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
 import { X, Copy, Check, Users, RefreshCw, LogIn, Pencil } from 'lucide-react';
 
-interface HouseholdModalProps {
+interface GroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-export const HouseholdModal: React.FC<HouseholdModalProps> = ({
+export const GroupModal: React.FC<GroupModalProps> = ({
   isOpen,
   onClose,
   onShowToast,
@@ -256,7 +256,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
         {/* Join Another Group */}
         <form onSubmit={handleJoin} className="pt-4 border-t border-slate-100">
           <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-            {t('joinAnotherHousehold')}
+            {t('joinAnotherGroup')}
           </h4>
           <div className="flex items-center gap-2">
             <input

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Mail, Lock, User as UserIcon, Home, Globe, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Users, Globe, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface AuthScreenProps {
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
@@ -15,7 +15,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [householdName, setHouseholdName] = useState('');
+  const [groupName, setGroupName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googlePromptOpen, setGooglePromptOpen] = useState(false);
@@ -47,7 +47,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
           name.trim(),
           email.trim(),
           password,
-          householdName.trim() || undefined,
+          groupName.trim() || undefined,
           inviteCode.trim() || undefined
         );
         onShowToast(t('toastSignedIn'), 'success');
@@ -232,13 +232,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Home className="w-3.5 h-3.5 text-indigo-400" /> {t('householdNameOptional')}
+                  <Users className="w-3.5 h-3.5 text-indigo-400" /> {t('groupNameOptional')}
                 </label>
                 <input
                   type="text"
-                  placeholder={t('householdNamePlaceholder')}
-                  value={householdName}
-                  onChange={(e) => setHouseholdName(e.target.value)}
+                  placeholder={t('groupNameSignupPlaceholder')}
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>

@@ -1,6 +1,6 @@
 -- Migration 0001_initial_schema.sql
 
--- 1. Households / Groups
+-- 1. Groups
 CREATE TABLE IF NOT EXISTS groups (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
