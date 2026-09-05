@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
-import { X, Copy, Check, Users, RefreshCw, LogIn } from 'lucide-react';
+import { X, Copy, Check, Users, RefreshCw, LogIn, Pencil } from 'lucide-react';
 
 interface HouseholdModalProps {
   isOpen: boolean;
@@ -15,13 +15,16 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
   onClose,
   onShowToast,
 }) => {
-  const { group, members, user, refreshGroup } = useAuth();
+  const { group, members, user, refreshGroup, updateGroupName } = useAuth();
   const { t } = useLanguage();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [joining, setJoining] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   if (!isOpen || !group) return null;
 
@@ -50,6 +53,36 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
       onShowToast(e.message || 'Failed to regenerate code', 'error');
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const handleStartEditingName = () => {
+    setEditedName(group.name);
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditingName = () => {
+    setIsEditingName(false);
+    setEditedName('');
+  };
+
+  const handleSaveGroupName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = editedName.trim();
+    if (!trimmed || trimmed === group.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setSavingName(true);
+    try {
+      await updateGroupName(trimmed);
+      setIsEditingName(false);
+      onShowToast(t('toastGroupNameUpdated'), 'success');
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to update group name', 'error');
+    } finally {
+      setSavingName(false);
     }
   };
 
@@ -83,12 +116,57 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
         </button>
 
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
             <Users className="w-6 h-6" />
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">{group.name}</h3>
-            <p className="text-xs text-slate-500">
+          <div className="flex-1 min-w-0">
+            {isEditingName ? (
+              <form onSubmit={handleSaveGroupName} className="flex items-center gap-1.5 mt-0.5">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  placeholder={t('groupNamePlaceholder')}
+                  autoFocus
+                  maxLength={50}
+                  className="w-full px-2.5 py-1 text-sm font-bold text-slate-900 border border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  disabled={savingName}
+                />
+                <button
+                  type="submit"
+                  disabled={savingName || !editedName.trim()}
+                  title={t('save')}
+                  className="p-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors shrink-0"
+                >
+                  {savingName ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEditingName}
+                  disabled={savingName}
+                  title={t('cancel')}
+                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-lg font-bold text-slate-900 truncate" title={group.name}>
+                  {group.name}
+                </h3>
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={handleStartEditingName}
+                    title={t('editGroupName')}
+                    className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors shrink-0"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
+            <p className="text-xs text-slate-500 mt-0.5">
               {t('membersConnected', { count: members.length })}
             </p>
           </div>

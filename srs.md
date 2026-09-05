@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS task_activities (
 4.1 Group & User Authentication
 FR-AUTH-1 (Email & Password): Users register or sign in using their email address and a secure password. Passwords must be hashed using WebCrypto PBKDF2 / SHA-256 before persistence in D1.
 FR-AUTH-2 (Google / Gmail OAuth): Users can sign in or register with their Google account via Google Sign-In / OAuth.
-FR-AUTH-3 (Group Membership & Invites): Users are associated with a Household Group. Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group.
+FR-AUTH-3 (Group Membership, Invites & Renaming): Users are associated with a Household Group. Users can generate an invite link/code (groups.invite_code). New users providing this code immediately join the group. Household Admins can rename the group via PATCH /api/groups/me.
 FR-AUTH-4 (Session Management): JWT tokens must be issued by the Worker, signed using HMAC-SHA256 via crypto.subtle, and stored in secure HttpOnly cookies and Bearer tokens.
 
 4.2 Task Management Lifecycle
@@ -222,8 +222,14 @@ NFR-PERF-3: Frontend bundle size < 120KB gzipped for fast loading on cellular ne
 6. API Interface Specification (Hono / Cloudflare Workers)
 6.1 Endpoints Overview
 Method	Endpoint	Description	Auth Required
-POST	/api/auth/magic-link	Sends/verifies access token	No
+POST	/api/auth/login	Authenticates with email & password	No
+POST	/api/auth/register	Registers new account & household	No
+POST	/api/auth/google	Sign in / Register with Google OAuth	No
+GET	/api/auth/me	Fetches authenticated user & household	Yes
 GET	/api/groups/me	Fetches active user group and members	Yes
+PATCH	/api/groups/me	Renames household group (Admin only)	Yes
+POST	/api/groups/regenerate-invite	Regenerates invite code (Admin only)	Yes
+POST	/api/groups/join	Joins existing group via invite code	Yes
 GET	/api/tasks	Lists group tasks (filters: status, assignee)	Yes
 POST	/api/tasks	Creates task & triggers push to assignee	Yes
 PATCH	/api/tasks/:id	Updates status/assignee & triggers push	Yes

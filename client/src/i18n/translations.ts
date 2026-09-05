@@ -83,6 +83,8 @@ export interface Translations {
 
   // Household Modal
   householdTitle: string;
+  editGroupName: string;
+  groupNamePlaceholder: string;
   membersConnected: string;
   familyInviteCode: string;
   newCode: string;
@@ -160,6 +162,7 @@ export interface Translations {
   toastCodeCopied: string;
   toastLinkCopied: string;
   toastJoinedGroup: string;
+  toastGroupNameUpdated: string;
 }
 
 export const dictionaries: Record<Language, Translations> = {
@@ -237,6 +240,8 @@ export const dictionaries: Record<Language, Translations> = {
     saving: 'Saving...',
 
     householdTitle: 'Household Members',
+    editGroupName: 'Edit Household Name',
+    groupNamePlaceholder: 'Household name',
     membersConnected: '{count} members connected',
     familyInviteCode: 'Invite Code',
     newCode: 'New Code',
@@ -309,6 +314,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastCodeCopied: 'Invite code copied to clipboard!',
     toastLinkCopied: 'Shareable invite link copied!',
     toastJoinedGroup: 'Successfully joined new household! 🏠',
+    toastGroupNameUpdated: 'Household name updated! 🏠',
   },
 
   he: {
@@ -385,6 +391,8 @@ export const dictionaries: Record<Language, Translations> = {
     saving: 'שומר...',
 
     householdTitle: 'חברי הבית',
+    editGroupName: 'עריכת שם משק הבית',
+    groupNamePlaceholder: 'שם משק הבית',
     membersConnected: '{count} בני משפחה מחוברים',
     familyInviteCode: 'קוד הזמנה',
     newCode: 'קוד חדש',
@@ -457,5 +465,6 @@ export const dictionaries: Record<Language, Translations> = {
     toastCodeCopied: 'קוד ההזמנה הועתק ללוח!',
     toastLinkCopied: 'קישור ההזמנה הועתק!',
     toastJoinedGroup: 'הצטרפת בהצלחה למשק הבית! 🏠',
+    toastGroupNameUpdated: 'שם משק הבית עודכן בהצלחה! 🏠',
   },
 };

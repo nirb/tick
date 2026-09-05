@@ -61,6 +61,14 @@ export async function regenerateInviteCode(db: D1Database, groupId: string): Pro
   return newCode;
 }
 
+export async function updateGroupName(db: D1Database, groupId: string, name: string): Promise<Group | null> {
+  await db
+    .prepare('UPDATE groups SET name = ? WHERE id = ?')
+    .bind(name.trim(), groupId)
+    .run();
+  return getGroupById(db, groupId);
+}
+
 export async function getGroupMembers(db: D1Database, groupId: string): Promise<User[]> {
   const { results } = await db
     .prepare(

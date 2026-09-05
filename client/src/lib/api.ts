@@ -75,6 +75,12 @@ export const api = {
         method: 'POST',
       }),
 
+    updateName: (name: string) =>
+      request<{ success: boolean; group: Group }>('/api/groups/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ name }),
+      }),
+
     join: (inviteCode: string) =>
       request<{ success: boolean; group: Group; members: User[] }>('/api/groups/join', {
         method: 'POST',

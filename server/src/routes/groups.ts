@@ -6,6 +6,7 @@ import {
   getGroupMembers,
   regenerateInviteCode,
   getGroupByInviteCode,
+  updateGroupName,
 } from '../db/queries';
 
 export const groupRoutes = new Hono<{
@@ -28,6 +29,26 @@ groupRoutes.get('/me', async (c) => {
     group,
     members,
   });
+});
+
+// PATCH /api/groups/me - Admin renames the household group
+groupRoutes.patch('/me', async (c) => {
+  const jwtUser = c.get('user');
+  if (jwtUser.role !== 'admin') {
+    return c.json({ error: 'Only admins can rename the household group' }, 403);
+  }
+
+  const body = await c.req.json<{ name: string }>();
+  if (!body.name || !body.name.trim()) {
+    return c.json({ error: 'Group name is required' }, 400);
+  }
+
+  const updatedGroup = await updateGroupName(c.env.DB, jwtUser.groupId, body.name.trim());
+  if (!updatedGroup) {
+    return c.json({ error: 'Group not found' }, 404);
+  }
+
+  return c.json({ success: true, group: updatedGroup });
 });
 
 // POST /api/groups/regenerate-invite - Admin regenerates invite code

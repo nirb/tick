@@ -13,6 +13,7 @@ interface AuthContextType {
   loginWithGoogle: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshGroup: () => Promise<void>;
+  updateGroupName: (name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -115,6 +116,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateGroupName = async (name: string) => {
+    const res = await api.groups.updateName(name);
+    setGroup(res.group);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -127,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         logout,
         refreshGroup,
+        updateGroupName,
       }}
     >
       {children}
