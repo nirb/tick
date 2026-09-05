@@ -372,26 +372,28 @@ export const App: React.FC = () => {
         {/* Header Title & Quick Create */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="relative" ref={groupMenuRef}>
-            <button
-              onClick={() => {
-                setShowGroupMenu(!showGroupMenu);
-                setIsCreatingGroup(false);
-                setNewGroupName('');
-              }}
-              className="group flex items-center gap-2 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-xl"
-            >
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text">
-                {group?.name || t('appName')}
-              </h2>
-              <ChevronDown
-                className={`w-5 h-5 sm:w-6 sm:h-6 text-slate-400 group-hover:text-white transition-transform duration-200 shrink-0 ${
-                  showGroupMenu ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
-              {t('appTagline')}
-            </p>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <button
+                onClick={() => {
+                  setShowGroupMenu(!showGroupMenu);
+                  setIsCreatingGroup(false);
+                  setNewGroupName('');
+                }}
+                className="group flex items-center gap-2 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-xl"
+              >
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text">
+                  {group?.name || t('appName')}
+                </h2>
+                <ChevronDown
+                  className={`w-5 h-5 sm:w-6 sm:h-6 text-slate-400 group-hover:text-white transition-transform duration-200 shrink-0 ${
+                    showGroupMenu ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              <span className="text-xs sm:text-sm text-slate-400 font-medium">
+                {t('appTagline')}
+              </span>
+            </div>
 
             {showGroupMenu && (
               <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 z-40 text-xs text-slate-100 animate-in fade-in zoom-in-95">
