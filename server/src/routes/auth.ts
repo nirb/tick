@@ -141,15 +141,19 @@ authRoutes.post('/login', async (c) => {
   }
 
   if (!user.password_hash) {
-    if (user.auth_provider === 'google') {
-      return c.json({ error: 'This account is linked to Google Sign-In. Please sign in with Google.' }, 400);
+    if (body.password.length >= 6) {
+      const passwordHash = await hashPassword(body.password);
+      await c.env.DB.prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+        .bind(passwordHash, user.id)
+        .run();
+    } else {
+      return c.json({ error: 'Please enter a password of at least 6 characters to set your account password.' }, 400);
     }
-    return c.json({ error: 'No password set for this account.' }, 400);
-  }
-
-  const isValid = await verifyPassword(body.password, user.password_hash);
-  if (!isValid) {
-    return c.json({ error: 'Invalid email or password' }, 401);
+  } else {
+    const isValid = await verifyPassword(body.password, user.password_hash);
+    if (!isValid) {
+      return c.json({ error: 'Invalid email or password' }, 401);
+    }
   }
 
   const group = await getGroupById(c.env.DB, user.group_id);
