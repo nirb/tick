@@ -1,4 +1,4 @@
-import type { Group, Task, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
+import type { Group, GroupMembership, Task, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -42,24 +42,24 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 export const api = {
   auth: {
     login: (email: string, password: string) =>
-      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/login', {
+      request<{ success: boolean; token: string; user: User; group: Group; groups?: GroupMembership[] }>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       }),
 
     register: (name: string, email: string, password: string, groupName?: string, inviteCode?: string) =>
-      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/register', {
+      request<{ success: boolean; token: string; user: User; group: Group; groups?: GroupMembership[] }>('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({ name, email, password, groupName, inviteCode }),
       }),
 
     google: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) =>
-      request<{ success: boolean; token: string; user: User; group: Group }>('/api/auth/google', {
+      request<{ success: boolean; token: string; user: User; group: Group; groups?: GroupMembership[] }>('/api/auth/google', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
-    getMe: () => request<{ user: User; group: Group }>('/api/auth/me'),
+    getMe: () => request<{ user: User; group: Group; groups?: GroupMembership[] }>('/api/auth/me'),
 
     updateProfile: (data: { name: string }) =>
       request<{ success: boolean; user: User; token: string }>('/api/auth/me', {
@@ -74,7 +74,21 @@ export const api = {
   },
 
   groups: {
-    getMe: () => request<{ group: Group; members: User[] }>('/api/groups/me'),
+    list: () => request<{ groups: GroupMembership[] }>('/api/groups'),
+
+    getMe: () => request<{ group: Group; members: User[]; groups?: GroupMembership[] }>('/api/groups/me'),
+
+    create: (name: string) =>
+      request<{ success: boolean; token: string; group: Group; groups: GroupMembership[] }>('/api/groups', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      }),
+
+    switch: (groupId: string) =>
+      request<{ success: boolean; token: string; group: Group; groups: GroupMembership[]; members: User[] }>('/api/groups/switch', {
+        method: 'POST',
+        body: JSON.stringify({ groupId }),
+      }),
 
     regenerateInvite: () =>
       request<{ success: boolean; invite_code: string }>('/api/groups/regenerate-invite', {
@@ -88,9 +102,14 @@ export const api = {
       }),
 
     join: (inviteCode: string) =>
-      request<{ success: boolean; group: Group; members: User[] }>('/api/groups/join', {
+      request<{ success: boolean; token: string; group: Group; members: User[]; groups: GroupMembership[] }>('/api/groups/join', {
         method: 'POST',
         body: JSON.stringify({ inviteCode }),
+      }),
+
+    leave: (groupId: string) =>
+      request<{ success: boolean; token: string; group: Group; groups: GroupMembership[] }>(`/api/groups/${groupId}/leave`, {
+        method: 'POST',
       }),
   },
 

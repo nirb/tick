@@ -10,6 +10,7 @@ import {
   createGroup,
   getGroupByInviteCode,
   getGroupById,
+  getUserGroups,
 } from '../db/queries';
 
 export const authRoutes = new Hono<{
@@ -107,6 +108,7 @@ authRoutes.post('/register', async (c) => {
 
   // Return user without password_hash
   const { password_hash, ...safeUser } = newUser;
+  const groups = await getUserGroups(c.env.DB, newUser.id);
 
   return c.json(
     {
@@ -114,6 +116,7 @@ authRoutes.post('/register', async (c) => {
       token,
       user: safeUser,
       group,
+      groups,
     },
     201
   );
@@ -165,12 +168,14 @@ authRoutes.post('/login', async (c) => {
   setAuthCookie(c, token);
 
   const { password_hash, ...safeUser } = user;
+  const groups = await getUserGroups(c.env.DB, user.id);
 
   return c.json({
     success: true,
     token,
     user: safeUser,
     group,
+    groups,
   });
 });
 
@@ -248,12 +253,14 @@ authRoutes.post('/google', async (c) => {
   setAuthCookie(c, token);
 
   const { password_hash, ...safeUser } = user;
+  const groups = await getUserGroups(c.env.DB, user.id);
 
   return c.json({
     success: true,
     token,
     user: safeUser,
     group,
+    groups,
   });
 });
 
@@ -266,9 +273,10 @@ authRoutes.get('/me', authMiddleware, async (c) => {
   }
 
   const group = await getGroupById(c.env.DB, user.group_id);
+  const groups = await getUserGroups(c.env.DB, user.id);
   const { password_hash, ...safeUser } = user;
 
-  return c.json({ user: safeUser, group });
+  return c.json({ user: safeUser, group, groups });
 });
 
 // 5. Update Current User Profile (e.g. name)

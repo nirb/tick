@@ -67,28 +67,28 @@ export const App: React.FC = () => {
 
   // Load Tasks
   const loadTasks = useCallback(async () => {
-    if (!user) return;
+    if (!user || !group) return;
     setLoadingTasks(true);
     try {
       const res = await api.tasks.list();
       setTasks(res.tasks);
-      await cacheTasks(res.tasks);
+      await cacheTasks(res.tasks, group.id);
     } catch {
       // Offline fallback
-      const cached = await getCachedTasks();
+      const cached = await getCachedTasks(group.id);
       if (cached) {
         setTasks(cached);
       }
     } finally {
       setLoadingTasks(false);
     }
-  }, [user]);
+  }, [user, group]);
 
   useEffect(() => {
-    if (user) {
+    if (user && group) {
       loadTasks();
     }
-  }, [user, loadTasks]);
+  }, [user?.id, group?.id, loadTasks]);
 
   // Check URL query parameters for task deep linking (?task=UUID)
   useEffect(() => {

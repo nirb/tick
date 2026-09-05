@@ -97,6 +97,14 @@ export interface Translations {
   enterCodePlaceholder: string;
   join: string;
   joining: string;
+  myGroups: string;
+  switchGroup: string;
+  createNewGroup: string;
+  newGroupName: string;
+  create: string;
+  manageGroup: string;
+  leaveGroup: string;
+  leaveGroupConfirm: string;
 
   // Install Modal
   installOnIphone: string;
@@ -177,6 +185,9 @@ export interface Translations {
   toastJoinedGroup: string;
   toastGroupNameUpdated: string;
   toastUserNameUpdated: string;
+  toastGroupCreated: string;
+  toastSwitchedGroup: string;
+  toastLeftGroup: string;
 }
 
 export const dictionaries: Record<Language, Translations> = {
@@ -268,6 +279,14 @@ export const dictionaries: Record<Language, Translations> = {
     enterCodePlaceholder: 'Enter 6-char code',
     join: 'Join',
     joining: 'Joining...',
+    myGroups: 'My Groups',
+    switchGroup: 'Switch Group',
+    createNewGroup: 'Create New Group',
+    newGroupName: 'New Group Name',
+    create: 'Create',
+    manageGroup: 'Manage Group',
+    leaveGroup: 'Leave Group',
+    leaveGroupConfirm: 'Are you sure you want to leave this group?',
 
     installOnIphone: 'Install Tick on iPhone',
     installOnAndroid: 'Install Tick on Android',
@@ -343,6 +362,9 @@ export const dictionaries: Record<Language, Translations> = {
     toastJoinedGroup: 'Successfully joined group! 👥',
     toastGroupNameUpdated: 'Group name updated! 👥',
     toastUserNameUpdated: 'Your name has been updated! 👤',
+    toastGroupCreated: 'Group created! 👥',
+    toastSwitchedGroup: 'Switched group! 👥',
+    toastLeftGroup: 'Left group.',
   },
 
   he: {
@@ -433,6 +455,14 @@ export const dictionaries: Record<Language, Translations> = {
     enterCodePlaceholder: 'הזן קוד בן 6 תווים',
     join: 'הצטרף',
     joining: 'מצטרף...',
+    myGroups: 'הקבוצות שלי',
+    switchGroup: 'החלף קבוצה',
+    createNewGroup: 'צור קבוצה חדשה',
+    newGroupName: 'שם הקבוצה החדשה',
+    create: 'צור',
+    manageGroup: 'ניהול קבוצה',
+    leaveGroup: 'עזוב קבוצה',
+    leaveGroupConfirm: 'האם אתה בטוח שברצונך לעזוב קבוצה זו?',
 
     installOnIphone: 'התקנת "הקרציה" באייפון',
     installOnAndroid: 'התקנת "הקרציה" באנדרואיד',
@@ -508,5 +538,8 @@ export const dictionaries: Record<Language, Translations> = {
     toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
     toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
     toastUserNameUpdated: 'שמך עודכן בהצלחה! 👤',
+    toastGroupCreated: 'הקבוצה נוצרה בהצלחה! 👥',
+    toastSwitchedGroup: 'הועברת לקבוצה בהצלחה! 👥',
+    toastLeftGroup: 'עזבת את הקבוצה.',
   },
 };

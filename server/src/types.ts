@@ -23,6 +23,14 @@ export interface Group {
   created_at: number;
 }
 
+export interface GroupMembership {
+  group_id: string;
+  name: string;
+  invite_code: string;
+  role: UserRole;
+  joined_at: number;
+}
+
 export interface User {
   id: string;
   group_id: string;

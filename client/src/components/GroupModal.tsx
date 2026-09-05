@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
-import { X, Copy, Check, Users, RefreshCw, LogIn, Pencil } from 'lucide-react';
+import { X, Copy, Check, Users, RefreshCw, LogIn, Pencil, Plus, ArrowRightLeft, LogOut } from 'lucide-react';
 
 interface GroupModalProps {
   isOpen: boolean;
@@ -15,7 +15,19 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   onClose,
   onShowToast,
 }) => {
-  const { group, members, user, refreshGroup, updateGroupName, updateUserName } = useAuth();
+  const {
+    group,
+    groups,
+    members,
+    user,
+    refreshGroup,
+    switchGroup,
+    createGroup,
+    joinGroup,
+    leaveGroup,
+    updateGroupName,
+    updateUserName,
+  } = useAuth();
   const { t } = useLanguage();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -28,6 +40,26 @@ export const GroupModal: React.FC<GroupModalProps> = ({
   const [isEditingUserName, setIsEditingUserName] = useState(false);
   const [editedUserName, setEditedUserName] = useState('');
   const [savingUserName, setSavingUserName] = useState(false);
+  const [isCreatingNewGroup, setIsCreatingNewGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [creatingNewGroup, setCreatingNewGroup] = useState(false);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
+
+  const displayGroups =
+    groups && groups.length > 0
+      ? groups
+      : group
+      ? [
+          {
+            group_id: group.id,
+            name: group.name,
+            invite_code: group.invite_code,
+            role: user?.role || 'member',
+            joined_at: group.created_at,
+          },
+        ]
+      : [];
 
   if (!isOpen || !group) return null;
 
@@ -120,17 +152,59 @@ export const GroupModal: React.FC<GroupModalProps> = ({
     }
   };
 
+  const handleSwitch = async (targetId: string) => {
+    if (targetId === group.id) return;
+    setSwitchingId(targetId);
+    try {
+      await switchGroup(targetId);
+      onShowToast(t('toastSwitchedGroup'), 'success');
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to switch group', 'error');
+    } finally {
+      setSwitchingId(null);
+    }
+  };
+
+  const handleCreateGroup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = newGroupName.trim();
+    if (!trimmed) return;
+    setCreatingNewGroup(true);
+    try {
+      await createGroup(trimmed);
+      onShowToast(t('toastGroupCreated'), 'success');
+      setNewGroupName('');
+      setIsCreatingNewGroup(false);
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to create group', 'error');
+    } finally {
+      setCreatingNewGroup(false);
+    }
+  };
+
+  const handleLeave = async () => {
+    if (displayGroups.length <= 1) return;
+    if (!window.confirm(t('leaveGroupConfirm'))) return;
+    setLeaving(true);
+    try {
+      await leaveGroup(group.id);
+      onShowToast(t('toastLeftGroup'), 'info');
+    } catch (e: any) {
+      onShowToast(e.message || 'Failed to leave group', 'error');
+    } finally {
+      setLeaving(false);
+    }
+  };
+
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
 
     setJoining(true);
     try {
-      await api.groups.join(joinCode.trim().toUpperCase());
-      await refreshGroup();
+      await joinGroup(joinCode.trim().toUpperCase());
       setJoinCode('');
       onShowToast(t('toastJoinedGroup'), 'success');
-      onClose();
     } catch (e: any) {
       onShowToast(e.message || 'Failed to join group', 'error');
     } finally {
@@ -328,6 +402,128 @@ export const GroupModal: React.FC<GroupModalProps> = ({
               </div>
             ))}
           </div>
+        </div>
+
+        {/* My Groups & Switching */}
+        <div className="pt-4 border-t border-white/12 mb-6">
+          <div className="flex items-center justify-between mb-2.5">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-sky-400" />
+              {t('myGroups')}
+            </h4>
+            {!isCreatingNewGroup && (
+              <button
+                onClick={() => setIsCreatingNewGroup(true)}
+                className="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{t('createNewGroup')}</span>
+              </button>
+            )}
+          </div>
+
+          {/* List of groups */}
+          <div className="space-y-2 mb-3">
+            {displayGroups.map((g) => {
+              const isActive = g.group_id === group.id;
+              const isSwitching = switchingId === g.group_id;
+              return (
+                <div
+                  key={g.group_id}
+                  className={`flex items-center justify-between p-2.5 rounded-xl border transition-colors ${
+                    isActive
+                      ? 'bg-sky-500/15 border-sky-400/40 shadow-sm shadow-sky-500/10'
+                      : 'bg-slate-950/60 border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                    <span className="text-sm font-bold text-white truncate">{g.name}</span>
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
+                        g.role === 'admin'
+                          ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
+                          : 'bg-white/10 text-slate-300 border-white/15'
+                      }`}
+                    >
+                      {g.role === 'admin' ? t('adminRole') : t('memberRole')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isActive ? (
+                      <>
+                        <span className="text-xs font-bold text-sky-400 flex items-center gap-1 px-2 py-1">
+                          <Check className="w-3.5 h-3.5" />
+                        </span>
+                        {displayGroups.length > 1 && (
+                          <button
+                            onClick={handleLeave}
+                            disabled={leaving}
+                            title={t('leaveGroup')}
+                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 rounded-lg transition-colors border border-rose-500/30 text-xs font-semibold flex items-center gap-1"
+                          >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">{t('leaveGroup')}</span>
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleSwitch(g.group_id)}
+                        disabled={isSwitching}
+                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-colors disabled:opacity-50"
+                      >
+                        {isSwitching ? (
+                          <RefreshCw className="w-3 h-3 animate-spin text-sky-400" />
+                        ) : (
+                          <ArrowRightLeft className="w-3 h-3 text-sky-400" />
+                        )}
+                        <span>{t('switchGroup')}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Inline Create Group Form */}
+          {isCreatingNewGroup && (
+            <form onSubmit={handleCreateGroup} className="p-3 bg-slate-950/70 border border-sky-400/40 rounded-xl space-y-2.5 mb-3">
+              <span className="text-xs font-bold text-white block">{t('createNewGroup')}</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  placeholder={t('newGroupName')}
+                  maxLength={50}
+                  autoFocus
+                  disabled={creatingNewGroup}
+                  className="px-3 py-1.5 bg-slate-900 border border-white/20 text-white rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sky-400 flex-1"
+                />
+                <button
+                  type="submit"
+                  disabled={creatingNewGroup || !newGroupName.trim()}
+                  className="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg text-xs transition-colors disabled:opacity-50 flex items-center gap-1"
+                >
+                  {creatingNewGroup && <RefreshCw className="w-3 h-3 animate-spin" />}
+                  <span>{t('create')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCreatingNewGroup(false);
+                    setNewGroupName('');
+                  }}
+                  disabled={creatingNewGroup}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Join Another Group */}

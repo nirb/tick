@@ -1,5 +1,6 @@
 import {
   Group,
+  GroupMembership,
   User,
   Task,
   TaskWithAssignee,
@@ -70,13 +71,150 @@ export async function updateGroupName(db: D1Database, groupId: string, name: str
 }
 
 export async function getGroupMembers(db: D1Database, groupId: string): Promise<User[]> {
-  const { results } = await db
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT u.id, ? as group_id, u.name, u.email, gm.role, u.avatar_url, gm.joined_at as created_at
+         FROM users u
+         JOIN group_members gm ON u.id = gm.user_id
+         WHERE gm.group_id = ?
+         ORDER BY gm.role ASC, u.name ASC`
+      )
+      .bind(groupId, groupId)
+      .all<User>();
+
+    if (results && results.length > 0) {
+      return results;
+    }
+  } catch {
+    // Fallback if group_members table does not exist yet
+  }
+
+  const { results: legacy } = await db
     .prepare(
       'SELECT id, group_id, name, email, role, avatar_url, created_at FROM users WHERE group_id = ? ORDER BY role ASC, name ASC'
     )
     .bind(groupId)
     .all<User>();
-  return results;
+  return legacy;
+}
+
+export async function getUserGroups(db: D1Database, userId: string): Promise<GroupMembership[]> {
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT g.id as group_id, g.name, g.invite_code, gm.role, gm.joined_at
+         FROM groups g
+         JOIN group_members gm ON g.id = gm.group_id
+         WHERE gm.user_id = ?
+         ORDER BY gm.joined_at ASC`
+      )
+      .bind(userId)
+      .all<GroupMembership>();
+
+    if (results && results.length > 0) {
+      return results;
+    }
+  } catch {
+    // Fallback if group_members table does not exist yet
+  }
+
+  const { results: fallback } = await db
+    .prepare(
+      `SELECT g.id as group_id, g.name, g.invite_code, u.role, u.created_at as joined_at
+       FROM groups g
+       JOIN users u ON g.id = u.group_id
+       WHERE u.id = ?`
+    )
+    .bind(userId)
+    .all<GroupMembership>();
+  return fallback;
+}
+
+export async function addUserToGroup(
+  db: D1Database,
+  userId: string,
+  groupId: string,
+  role: UserRole = 'member'
+): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    await db
+      .prepare(
+        `INSERT INTO group_members (user_id, group_id, role, joined_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id, group_id) DO UPDATE SET role = excluded.role`
+      )
+      .bind(userId, groupId, role, now)
+      .run();
+  } catch (err) {
+    console.warn('Could not insert into group_members:', err);
+  }
+}
+
+export async function getUserGroupMembership(
+  db: D1Database,
+  userId: string,
+  groupId: string
+): Promise<{ role: UserRole } | null> {
+  try {
+    const member = await db
+      .prepare('SELECT role FROM group_members WHERE user_id = ? AND group_id = ?')
+      .bind(userId, groupId)
+      .first<{ role: UserRole }>();
+    if (member) return member;
+  } catch {
+    // Fallback
+  }
+
+  const user = await db
+    .prepare('SELECT role FROM users WHERE id = ? AND group_id = ?')
+    .bind(userId, groupId)
+    .first<{ role: UserRole }>();
+  return user || null;
+}
+
+export async function setUserActiveGroup(
+  db: D1Database,
+  userId: string,
+  groupId: string,
+  role: UserRole
+): Promise<void> {
+  await db
+    .prepare('UPDATE users SET group_id = ?, role = ? WHERE id = ?')
+    .bind(groupId, role, userId)
+    .run();
+}
+
+export async function leaveGroup(
+  db: D1Database,
+  userId: string,
+  groupId: string
+): Promise<{ success: boolean; newActiveGroup: Group | null; remainingGroups: GroupMembership[] }> {
+  try {
+    await db
+      .prepare('DELETE FROM group_members WHERE user_id = ? AND group_id = ?')
+      .bind(userId, groupId)
+      .run();
+  } catch (err) {
+    console.warn('Failed to delete from group_members:', err);
+  }
+
+  const remaining = await getUserGroups(db, userId);
+
+  let newActiveGroup: Group | null = null;
+  if (remaining.length > 0) {
+    newActiveGroup = await getGroupById(db, remaining[0].group_id);
+    if (newActiveGroup) {
+      await setUserActiveGroup(db, userId, newActiveGroup.id, remaining[0].role);
+    }
+  }
+
+  return {
+    success: true,
+    newActiveGroup,
+    remainingGroups: remaining,
+  };
 }
 
 // ---------------- Users ----------------
@@ -105,6 +243,9 @@ export async function createUser(
     )
     .bind(id, data.groupId, data.name, data.email.toLowerCase().trim(), data.role, avatarUrl, now, passwordHash, authProvider)
     .run();
+
+  // Record initial group membership
+  await addUserToGroup(db, id, data.groupId, data.role);
 
   return {
     id,

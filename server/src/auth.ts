@@ -129,3 +129,12 @@ export async function authMiddleware(c: Context<{ Bindings: Bindings; Variables:
   c.set('user', payload);
   await next();
 }
+
+export function setAuthCookie(c: Context, token: string) {
+  const isSecure = c.req.url.startsWith('https://');
+  c.header(
+    'Set-Cookie',
+    `tick_token=${token}; HttpOnly; ${isSecure ? 'Secure; ' : ''}SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24 * 30}`
+  );
+}
+
