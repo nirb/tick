@@ -224,7 +224,7 @@ export const dictionaries: Record<Language, Translations> = {
     monthly: 'Every Month',
     recurring: 'Recurring',
 
-    newTask: 'New Family Task',
+    newTask: 'New Task',
     editTask: 'Edit Chore / Task',
     taskTitle: 'Task Title *',
     taskTitlePlaceholder: 'e.g. Empty dishwasher, Take out trash, Math homework',
@@ -237,8 +237,8 @@ export const dictionaries: Record<Language, Translations> = {
     saving: 'Saving...',
 
     householdTitle: 'Household Members',
-    membersConnected: '{count} family members connected',
-    familyInviteCode: 'Family Invite Code',
+    membersConnected: '{count} members connected',
+    familyInviteCode: 'Invite Code',
     newCode: 'New Code',
     copyCode: 'Copy Code',
     copyShareLink: 'Copy Shareable Link',
@@ -265,7 +265,7 @@ export const dictionaries: Record<Language, Translations> = {
     logIn: 'Log In',
     signUp: 'Sign Up',
     welcomeBack: 'Welcome Back',
-    welcomeBackDesc: 'Sign in to access your family task board',
+    welcomeBackDesc: 'Sign in to access your task board',
     createAccount: 'Create Account',
     createAccountDesc: 'Get started with your household chore manager',
     yourName: 'Your Name *',
@@ -273,9 +273,9 @@ export const dictionaries: Record<Language, Translations> = {
     emailAddress: 'Email Address *',
     password: 'Password *',
     passwordPlaceholder: 'At least 6 characters',
-    householdNameOptional: 'Household / Family Name (optional)',
+    householdNameOptional: 'Name (optional)',
     householdNamePlaceholder: 'e.g. The Miller Family',
-    inviteCodeOptional: 'Family Invite Code (optional)',
+    inviteCodeOptional: 'Invite Code (optional)',
     inviteCodePlaceholder: 'Enter 6-char code if joining an existing group',
     continueWithGoogle: 'Continue with Google',
     dontHaveAccount: "Don't have an account?",
@@ -313,7 +313,7 @@ export const dictionaries: Record<Language, Translations> = {
 
   he: {
     appName: 'הקרציה',
-    appTagline: 'מארגנים, מחלקים ומבצעים משימות יחד כמשפחה',
+    appTagline: 'מארגנים, מחלקים ומבצעים משימות יחד',
     online: 'מחובר',
     offline: 'לא מחובר',
     save: 'שמור',
@@ -386,7 +386,7 @@ export const dictionaries: Record<Language, Translations> = {
 
     householdTitle: 'חברי הבית',
     membersConnected: '{count} בני משפחה מחוברים',
-    familyInviteCode: 'קוד הזמנה משפחתי',
+    familyInviteCode: 'קוד הזמנה',
     newCode: 'קוד חדש',
     copyCode: 'העתק קוד',
     copyShareLink: 'העתק קישור להזמנה',
