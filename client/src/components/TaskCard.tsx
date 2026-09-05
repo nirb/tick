@@ -57,10 +57,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const dueInfo = formatDue(task.due_at);
 
   const priorityColors = {
-    low: 'bg-slate-100 text-slate-700 border-slate-200',
-    medium: 'bg-blue-50 text-blue-700 border-blue-200',
-    high: 'bg-amber-50 text-amber-700 border-amber-200',
-    urgent: 'bg-rose-50 text-rose-700 border-rose-200 font-semibold',
+    low: 'bg-slate-500/20 text-slate-200 border-slate-400/30 font-semibold',
+    medium: 'bg-sky-500/20 text-sky-200 border-sky-400/40 font-semibold',
+    high: 'bg-amber-500/20 text-amber-200 border-amber-400/40 font-semibold',
+    urgent: 'bg-rose-500/25 text-rose-200 border-rose-400/40 font-bold shadow-sm shadow-rose-500/20',
   };
 
   const handleNudge = async () => {
@@ -76,20 +76,20 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      className={`group relative bg-white rounded-2xl p-4 sm:p-5 border transition-all duration-200 ${
+      className={`group relative rounded-2xl p-4 sm:p-5 border transition-all duration-200 ${
         isCompleted
-          ? 'border-slate-200 bg-slate-50/60 opacity-75'
-          : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+          ? 'border-white/5 bg-slate-900/40 opacity-60'
+          : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-sky-400/50 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
       }`}
     >
       <div className="flex items-start gap-3.5">
         {/* Checkbox */}
         <button
           onClick={() => onToggleStatus(task)}
-          className={`w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center border transition-colors shrink-0 ${
+          className={`w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
             isCompleted
-              ? 'bg-emerald-500 border-emerald-500 text-white'
-              : 'border-slate-300 hover:border-indigo-500 bg-white'
+              ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
+              : 'border-white/25 hover:border-sky-400 bg-slate-950/60 text-transparent'
           }`}
           aria-label={isCompleted ? 'Mark incomplete' : 'Mark complete'}
         >
@@ -100,8 +100,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h3
-              className={`text-sm sm:text-base font-semibold leading-snug break-words ${
-                isCompleted ? 'line-through text-slate-400' : 'text-slate-900'
+              className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight ${
+                isCompleted ? 'line-through text-slate-400' : 'text-white'
               }`}
             >
               {task.title}
@@ -111,31 +111,31 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <div className="relative shrink-0">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                 aria-label="Task options"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
 
               {showMenu && (
-                <div className="absolute end-0 mt-1 w-32 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-20 text-xs">
+                <div className="absolute end-0 mt-1 w-32 bg-[#0f172a]/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 py-1.5 z-20 text-xs text-slate-200">
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onEdit(task);
                     }}
-                    className="w-full px-3 py-2 text-start hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    className="w-full px-3 py-2 text-start hover:bg-white/10 flex items-center gap-2 text-slate-200 transition-colors font-medium"
                   >
-                    <Edit2 className="w-3.5 h-3.5 text-slate-500" /> {t('edit')}
+                    <Edit2 className="w-3.5 h-3.5 text-sky-400" /> {t('edit')}
                   </button>
                   <button
                     onClick={() => {
                       setShowMenu(false);
                       onDelete(task.id);
                     }}
-                    className="w-full px-3 py-2 text-start hover:bg-rose-50 flex items-center gap-2 text-rose-600"
+                    className="w-full px-3 py-2 text-start hover:bg-rose-500/20 flex items-center gap-2 text-rose-400 transition-colors font-medium"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-rose-500" /> {t('delete')}
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" /> {t('delete')}
                   </button>
                 </div>
               )}
@@ -143,8 +143,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
 
           {task.description && (
-            <p className={`text-xs sm:text-sm mt-1 leading-relaxed line-clamp-2 ${
-              isCompleted ? 'text-slate-400' : 'text-slate-600'
+            <p className={`text-xs sm:text-sm mt-1.5 leading-relaxed line-clamp-2 ${
+              isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
             }`}>
               {task.description}
             </p>
@@ -154,7 +154,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex flex-wrap items-center gap-2 mt-3 text-xs">
             {/* Priority Badge */}
             <span
-              className={`px-2 py-0.5 rounded-full border capitalize ${
+              className={`px-2.5 py-0.5 rounded-full border capitalize ${
                 priorityColors[task.priority] || priorityColors.medium
               }`}
             >
@@ -163,7 +163,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Recurrence Rule */}
             {task.recurrence_rule && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/40 font-semibold">
                 <Repeat className="w-3 h-3" />
                 {task.recurrence_rule.includes('DAILY')
                   ? t('daily')
@@ -176,13 +176,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Due Date */}
             {dueInfo && (
               <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border font-semibold ${
                   dueInfo.isOverdue
-                    ? 'bg-rose-50 text-rose-700 border-rose-200 font-medium'
-                    : 'bg-slate-50 text-slate-600 border-slate-200'
+                    ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
+                    : 'bg-white/10 text-slate-200 border-white/15'
                 }`}
               >
-                {dueInfo.isOverdue ? <Clock className="w-3 h-3 text-rose-600" /> : <Calendar className="w-3 h-3" />}
+                {dueInfo.isOverdue ? <Clock className="w-3 h-3 text-rose-300" /> : <Calendar className="w-3 h-3 text-sky-400" />}
                 {dueInfo.text}
               </span>
             )}
@@ -191,17 +191,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <div className="ms-auto flex items-center gap-2">
               {task.assignee_name ? (
                 <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
                     isAssignedToMe
-                      ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                      ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                      : 'bg-white/10 text-slate-200 border-white/15'
                   }`}
                 >
-                  <span>{task.assignee_avatar || '👤'}</span>
+                  <span className="text-sm">{task.assignee_avatar || '👤'}</span>
                   <span>{isAssignedToMe ? t('you') : task.assignee_name}</span>
                 </span>
               ) : (
-                <span className="text-slate-400 text-xs italic">{t('unassigned')}</span>
+                <span className="text-slate-400 text-xs italic font-medium">{t('unassigned')}</span>
               )}
 
               {/* Nudge Assignee Button (FR-PUSH-2) */}
@@ -210,10 +210,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   onClick={handleNudge}
                   disabled={nudging || nudged}
                   title={`Send a push reminder to ${task.assignee_name}`}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
                     nudged
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-amber-100 text-amber-800 hover:bg-amber-200 active:scale-95'
+                      ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40'
+                      : 'bg-amber-500/20 text-amber-200 border-amber-400/40 hover:bg-amber-500/30 active:scale-95 shadow-sm shadow-amber-500/10'
                   }`}
                 >
                   <BellRing className={`w-3 h-3 ${nudging ? 'animate-bounce' : ''}`} />

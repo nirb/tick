@@ -90,39 +90,39 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white flex flex-col justify-center items-center px-4 py-12 selection:bg-indigo-500">
+    <div className="min-h-screen bg-transparent text-white flex flex-col justify-center items-center px-4 py-12">
       {/* Top Language Switcher */}
       <div className="absolute top-6 end-6">
         <button
           onClick={toggleLanguage}
-          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
+          className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
         >
-          <Globe className="w-3.5 h-3.5 text-indigo-300" />
+          <Globe className="w-3.5 h-3.5 text-sky-400" />
           <span>{language === 'en' ? 'עברית' : 'English'}</span>
         </button>
       </div>
 
-      <div className="max-w-md w-full bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
-        {/* Logo & Heading */}
+      <div className="glass max-w-md w-full p-6 sm:p-8 relative shadow-2xl bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-3xl">
+        {/* Logo & Heading with Floating Animation */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-indigo-400 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-indigo-500/20 mb-3">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white font-black text-3xl shadow-xl shadow-sky-500/30 mb-3 animate-float">
             ✓
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">{t('appName')}</h2>
-          <p className="text-xs sm:text-sm text-indigo-200/80 mt-1 max-w-xs">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">{t('appName')}</h2>
+          <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1.5 max-w-xs">
             {mode === 'login' ? t('welcomeBackDesc') : t('createAccountDesc')}
           </p>
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="flex items-center p-1 bg-white/5 rounded-2xl border border-white/10 mb-6">
+        <div className="flex items-center p-1.5 bg-slate-950/60 rounded-2xl border border-white/12 mb-6">
           <button
             type="button"
             onClick={() => setMode('login')}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               mode === 'login'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             {t('logIn')}
@@ -132,8 +132,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
             onClick={() => setMode('signup')}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
               mode === 'signup'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/25'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             {t('signUp')}
@@ -145,7 +145,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
           type="button"
           onClick={handleGoogleSignInClick}
           disabled={submitting}
-          className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold rounded-xl flex items-center justify-center gap-3 transition-colors shadow-sm disabled:opacity-50"
+          className="w-full py-2.5 px-4 bg-white/10 hover:bg-white/15 text-white border border-white/15 text-sm font-bold rounded-xl flex items-center justify-center gap-3 transition-colors shadow-sm disabled:opacity-50"
         >
           {/* Official Google G Logo */}
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -172,10 +172,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         {/* Divider */}
         <div className="relative my-5">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10"></div>
+            <div className="w-full border-t border-white/15"></div>
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-slate-900 px-3 text-slate-400 uppercase tracking-wider font-semibold">
+            <span className="bg-[#0f172a] px-3 text-slate-300 uppercase tracking-wider font-bold">
               {t('orDivider')}
             </span>
           </div>
@@ -185,8 +185,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {mode === 'signup' && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                <UserIcon className="w-3.5 h-3.5 text-indigo-400" /> {t('yourName')}
+              <label className="block text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+                <UserIcon className="w-3.5 h-3.5 text-sky-400" /> {t('yourName')}
               </label>
               <input
                 type="text"
@@ -194,14 +194,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
                 placeholder={t('namePlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 text-sm font-medium focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-indigo-400" /> {t('emailAddress')}
+            <label className="block text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-sky-400" /> {t('emailAddress')}
             </label>
             <input
               type="email"
@@ -209,13 +209,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 text-sm font-medium focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-indigo-400" /> {t('password')}
+            <label className="block text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-sky-400" /> {t('password')}
             </label>
             <input
               type="password"
@@ -224,27 +224,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
               placeholder={t('passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 text-sm font-medium focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
             />
           </div>
 
           {mode === 'signup' && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-indigo-400" /> {t('groupNameOptional')}
+                <label className="block text-xs font-bold text-slate-200 mb-1.5 flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-sky-400" /> {t('groupNameOptional')}
                 </label>
                 <input
                   type="text"
                   placeholder={t('groupNameSignupPlaceholder')}
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 text-xs font-medium focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-200 mb-1.5">
                   {t('inviteCodeOptional')}
                 </label>
                 <input
@@ -252,7 +252,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
                   placeholder={t('inviteCodePlaceholder')}
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-xs uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 text-xs font-mono uppercase tracking-wider focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
                 />
               </div>
             </>
@@ -261,7 +261,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
           <button
             type="submit"
             disabled={submitting || !email.trim() || !password}
-            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all mt-4"
+            className="w-full py-3 px-4 glow-btn text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all mt-4 disabled:opacity-50"
           >
             <span>{submitting ? t('loading') : mode === 'login' ? t('logIn') : t('signUp')}</span>
             <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -269,14 +269,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         </form>
 
         {/* Toggle Mode Footer */}
-        <div className="mt-5 text-center text-xs text-slate-400">
+        <div className="mt-5 text-center text-xs text-slate-300 font-medium">
           {mode === 'login' ? (
             <p>
               {t('dontHaveAccount')}{' '}
               <button
                 type="button"
                 onClick={() => setMode('signup')}
-                className="text-indigo-400 hover:text-indigo-300 font-semibold underline ms-1"
+                className="text-sky-400 hover:text-sky-300 font-bold underline ms-1"
               >
                 {t('signUp')}
               </button>
@@ -287,7 +287,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
               <button
                 type="button"
                 onClick={() => setMode('login')}
-                className="text-indigo-400 hover:text-indigo-300 font-semibold underline ms-1"
+                className="text-sky-400 hover:text-sky-300 font-bold underline ms-1"
               >
                 {t('logIn')}
               </button>
@@ -296,18 +296,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         </div>
 
         {/* Feature bullets */}
-        <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-3 gap-2 text-center">
+        <div className="mt-8 pt-6 border-t border-white/12 grid grid-cols-3 gap-2 text-center">
           <div className="flex flex-col items-center">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 mb-1" />
-            <span className="text-[11px] text-slate-400">{t('edgeD1')}</span>
+            <CheckCircle2 className="w-4 h-4 text-sky-400 mb-1" />
+            <span className="text-[11px] text-slate-200 font-semibold">{t('edgeD1')}</span>
           </div>
           <div className="flex flex-col items-center">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 mb-1" />
-            <span className="text-[11px] text-slate-400">{t('webPush')}</span>
+            <CheckCircle2 className="w-4 h-4 text-sky-400 mb-1" />
+            <span className="text-[11px] text-slate-200 font-semibold">{t('webPush')}</span>
           </div>
           <div className="flex flex-col items-center">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 mb-1" />
-            <span className="text-[11px] text-slate-400">{t('offlinePwa')}</span>
+            <CheckCircle2 className="w-4 h-4 text-sky-400 mb-1" />
+            <span className="text-[11px] text-slate-200 font-semibold">{t('offlinePwa')}</span>
           </div>
         </div>
       </div>
@@ -315,7 +315,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
       {/* Google Sign-In Email Modal */}
       {googlePromptOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-white/10 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl">
+          <div className="bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl max-w-sm w-full p-6 text-white shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24">
                 <path
@@ -353,7 +353,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
                   placeholder="name@gmail.com"
                   value={googleEmail}
                   onChange={(e) => setGoogleEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all"
                 />
               </div>
 
@@ -361,14 +361,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
                 <button
                   type="button"
                   onClick={() => setGooglePromptOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !googleEmail.trim()}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow disabled:opacity-50"
+                  className="px-4 py-2 glow-btn text-white text-xs font-bold rounded-xl shadow disabled:opacity-50"
                 >
                   {submitting ? t('loading') : t('continueWithGoogle')}
                 </button>

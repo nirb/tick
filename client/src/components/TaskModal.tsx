@@ -97,31 +97,31 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const priorityOptions: { value: TaskPriority; label: string; color: string }[] = [
-    { value: 'low', label: t('low'), color: 'bg-slate-100 text-slate-700 hover:bg-slate-200' },
-    { value: 'medium', label: t('medium'), color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-    { value: 'high', label: t('high'), color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-    { value: 'urgent', label: t('urgent'), color: 'bg-rose-100 text-rose-700 hover:bg-rose-200 font-bold' },
+    { value: 'low', label: t('low'), color: 'bg-slate-500/20 text-slate-200 border-slate-400/40 font-semibold' },
+    { value: 'medium', label: t('medium'), color: 'bg-sky-500/20 text-sky-200 border-sky-400/40 font-semibold' },
+    { value: 'high', label: t('high'), color: 'bg-amber-500/20 text-amber-200 border-amber-400/40 font-semibold' },
+    { value: 'urgent', label: t('urgent'), color: 'bg-rose-500/25 text-rose-200 border-rose-400/40 font-bold' },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in">
+      <div className="bg-slate-900/95 backdrop-blur-2xl rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-white/15 relative max-h-[90vh] overflow-y-auto text-slate-100">
         <button
           onClick={onClose}
-          className="absolute top-4 end-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+          className="absolute top-4 end-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h3 className="text-xl font-bold text-slate-900 mb-4">
+        <h3 className="text-xl font-bold gradient-text mb-4">
           {taskToEdit ? t('editTask') : t('newTask')}
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
               {t('taskTitle')}
             </label>
             <input
@@ -130,13 +130,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               placeholder={t('taskTitlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-sm font-medium transition-all"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
               {t('descriptionNotes')}
             </label>
             <textarea
@@ -144,14 +144,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               placeholder={t('descriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-sm transition-all font-normal"
             />
           </div>
 
           {/* Assignee Selection */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <UserIcon className="w-3.5 h-3.5 text-indigo-600" /> {t('assignTo')}
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <UserIcon className="w-3.5 h-3.5 text-sky-400" /> {t('assignTo')}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
@@ -159,8 +159,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onClick={() => setAssigneeId('')}
                 className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
                   assigneeId === ''
-                    ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 font-semibold'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
+                    : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
                 }`}
               >
                 <span className="text-base">👤</span>
@@ -174,8 +174,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   onClick={() => setAssigneeId(member.id)}
                   className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
                     assigneeId === member.id
-                      ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 font-semibold'
-                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                      ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
+                      : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
                   }`}
                 >
                   <span className="text-base">{member.avatar_url || '👤'}</span>
@@ -187,8 +187,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
           {/* Priority */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> {t('priority')}
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> {t('priority')}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {priorityOptions.map((opt) => (
@@ -196,10 +196,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   key={opt.value}
                   type="button"
                   onClick={() => setPriority(opt.value)}
-                  className={`py-2 px-1 rounded-xl text-xs text-center border transition-all ${
+                  className={`py-2 px-1 rounded-xl text-xs text-center border transition-all font-bold ${
                     priority === opt.value
-                      ? `${opt.color} ring-2 ring-offset-1 ring-slate-400 border-transparent shadow-sm`
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? `${opt.color} ring-2 ring-sky-400 border-sky-400/70 shadow-sm shadow-sky-500/20`
+                      : `${opt.color} opacity-70 hover:opacity-100`
                   }`}
                 >
                   {opt.label}
@@ -211,25 +211,25 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           {/* Due Date & Recurrence Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-indigo-600" /> {t('dueDateTime')}
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-sky-400" /> {t('dueDateTime')}
               </label>
               <input
                 type="datetime-local"
                 value={dueDateTime}
                 onChange={(e) => setDueDateTime(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Repeat className="w-3.5 h-3.5 text-purple-600" /> {t('repeat')}
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Repeat className="w-3.5 h-3.5 text-indigo-400" /> {t('repeat')}
               </label>
               <select
                 value={recurrence}
                 onChange={(e) => setRecurrence(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs bg-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs font-medium"
               >
                 <option value="none">{t('doesNotRepeat')}</option>
                 <option value="daily">{t('daily')}</option>
@@ -240,18 +240,18 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
             >
               {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={submitting || !title.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-100 transition-all"
+              className="px-5 py-2.5 glow-btn disabled:opacity-50 text-white text-sm font-bold rounded-xl"
             >
               {submitting ? t('saving') : taskToEdit ? t('saveChanges') : t('createTask')}
             </button>

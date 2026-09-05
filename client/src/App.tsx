@@ -219,8 +219,8 @@ export const App: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
-        <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
+      <div className="min-h-screen bg-transparent flex items-center justify-center text-white">
+        <RefreshCw className="w-8 h-8 text-sky-400 animate-spin" />
       </div>
     );
   }
@@ -230,7 +230,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-transparent text-slate-100 flex flex-col selection:bg-sky-500 selection:text-white">
       {/* Top Navigation */}
       <Navbar
         onOpenGroup={() => setIsGroupModalOpen(true)}
@@ -243,10 +243,10 @@ export const App: React.FC = () => {
         {/* Header Title & Quick Create */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight gradient-text">
               {group?.name || t('appName')}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
               {t('appTagline')}
             </p>
           </div>
@@ -256,7 +256,7 @@ export const App: React.FC = () => {
               setTaskToEdit(null);
               setIsTaskModalOpen(true);
             }}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-100 transition-all hover:shadow-lg"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 glow-btn text-white text-sm font-bold rounded-xl"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
             <span>{t('createTask')}</span>
@@ -276,19 +276,19 @@ export const App: React.FC = () => {
         {/* Task List */}
         {loadingTasks && tasks.length === 0 ? (
           <div className="py-12 flex justify-center items-center text-slate-400">
-            <RefreshCw className="w-6 h-6 animate-spin text-indigo-500" />
+            <RefreshCw className="w-6 h-6 animate-spin text-sky-400" />
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-slate-200/80 shadow-sm mt-4">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+          <div className="glass rounded-3xl p-8 sm:p-12 text-center border border-white/15 mt-4 bg-slate-900/60 backdrop-blur-md">
+            <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-sky-500/20">
               <CheckCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-white">
               {currentTab === 'completed'
                 ? t('noCompletedTasks')
                 : t('allCaughtUp')}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-xs mx-auto">
               {currentTab === 'completed'
                 ? t('noCompletedDesc')
                 : t('allCaughtUpDesc')}
@@ -299,9 +299,9 @@ export const App: React.FC = () => {
                   setTaskToEdit(null);
                   setIsTaskModalOpen(true);
                 }}
-                className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors"
+                className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-200 text-xs font-bold rounded-xl transition-all shadow-sm shadow-sky-500/20"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>{t('createFirstTask')}</span>
               </button>
             )}
@@ -332,7 +332,7 @@ export const App: React.FC = () => {
             setTaskToEdit(null);
             setIsTaskModalOpen(true);
           }}
-          className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/40 hover:bg-indigo-700 active:scale-95 transition-all"
+          className="w-14 h-14 rounded-full glow-btn text-white flex items-center justify-center shadow-xl shadow-sky-500/30 active:scale-95 transition-all"
           aria-label={t('createTask')}
         >
           <Plus className="w-6 h-6 stroke-[3]" />
