@@ -321,7 +321,12 @@ export async function getTasksByGroupId(
     params.push(filters.priority);
   }
 
-  query += ' ORDER BY CASE t.status WHEN "pending" THEN 1 WHEN "in_progress" THEN 2 WHEN "completed" THEN 3 ELSE 4 END, t.due_at ASC, t.created_at DESC';
+  query += ` ORDER BY 
+    CASE t.status WHEN 'completed' THEN 2 ELSE 1 END ASC,
+    DATE(COALESCE(t.due_at, t.created_at), 'unixepoch', 'localtime') ASC,
+    CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC,
+    COALESCE(t.due_at, t.created_at) ASC,
+    t.created_at DESC`;
 
   const stmt = db.prepare(query).bind(...params);
   const { results } = await stmt.all<TaskWithAssignee>();

@@ -217,6 +217,49 @@ export const App: React.FC = () => {
     return true;
   });
 
+  const priorityRank: Record<TaskPriority, number> = {
+    urgent: 1,
+    high: 2,
+    medium: 3,
+    low: 4,
+  };
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    // 1. Status: completed last
+    const statusRank = (s: string) => (s === 'completed' ? 2 : 1);
+    if (statusRank(a.status) !== statusRank(b.status)) {
+      return statusRank(a.status) - statusRank(b.status);
+    }
+
+    // 2. Day bucket of effective date: due_at if set, otherwise created_at
+    const dateA = a.due_at !== null ? a.due_at : a.created_at;
+    const dateB = b.due_at !== null ? b.due_at : b.created_at;
+
+    const dA = new Date(dateA * 1000);
+    const dB = new Date(dateB * 1000);
+    const dayA = `${dA.getFullYear()}-${String(dA.getMonth() + 1).padStart(2, '0')}-${String(dA.getDate()).padStart(2, '0')}`;
+    const dayB = `${dB.getFullYear()}-${String(dB.getMonth() + 1).padStart(2, '0')}-${String(dB.getDate()).padStart(2, '0')}`;
+
+    if (dayA !== dayB) {
+      return dayA.localeCompare(dayB);
+    }
+
+    // 3. Priority: urgent > high > medium > low
+    const prioA = priorityRank[a.priority] ?? 3;
+    const prioB = priorityRank[b.priority] ?? 3;
+    if (prioA !== prioB) {
+      return prioA - prioB;
+    }
+
+    // 4. Exact timestamp within the day and priority
+    if (dateA !== dateB) {
+      return dateA - dateB;
+    }
+
+    // 5. Tie-break: newer created first
+    return b.created_at - a.created_at;
+  });
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-transparent flex items-center justify-center text-white">
@@ -278,7 +321,7 @@ export const App: React.FC = () => {
           <div className="py-12 flex justify-center items-center text-slate-400">
             <RefreshCw className="w-6 h-6 animate-spin text-sky-400" />
           </div>
-        ) : filteredTasks.length === 0 ? (
+        ) : sortedTasks.length === 0 ? (
           <div className="glass rounded-3xl p-8 sm:p-12 text-center border border-white/15 mt-4 bg-slate-900/60 backdrop-blur-md">
             <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-sky-500/20">
               <CheckCircle className="w-8 h-8" />
@@ -308,7 +351,7 @@ export const App: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredTasks.map((task) => (
+            {sortedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
