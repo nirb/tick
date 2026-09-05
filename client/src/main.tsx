@@ -5,15 +5,18 @@ import { App } from './App';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import { PushProvider } from './context/PushContext';
+import { InstallProvider } from './context/InstallContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
-      <AuthProvider>
-        <PushProvider>
-          <App />
-        </PushProvider>
-      </AuthProvider>
+      <InstallProvider>
+        <AuthProvider>
+          <PushProvider>
+            <App />
+          </PushProvider>
+        </AuthProvider>
+      </InstallProvider>
     </LanguageProvider>
   </StrictMode>
 );

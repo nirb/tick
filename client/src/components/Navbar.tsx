@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePush } from '../context/PushContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Bell, BellOff, Users, Wifi, WifiOff, Send, LogOut, CheckCircle2, Globe, Pencil, Check, X, RefreshCw } from 'lucide-react';
+import { useInstall } from '../context/InstallContext';
+import { Bell, BellOff, Users, Wifi, WifiOff, Send, LogOut, CheckCircle2, Globe, Pencil, Check, X, RefreshCw, Download } from 'lucide-react';
 
 interface NavbarProps {
   onOpenGroup: () => void;
@@ -14,6 +15,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnli
   const { user, group, logout, updateUserName } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
   const { language, toggleLanguage, t } = useLanguage();
+  const { isInstalled, promptInstall } = useInstall();
   const [showPushMenu, setShowPushMenu] = useState(false);
   const [isEditingUserName, setIsEditingUserName] = useState(false);
   const [editedUserName, setEditedUserName] = useState('');
@@ -125,6 +127,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenGroup, onShowToast, isOnli
             <Globe className="w-3.5 h-3.5 text-slate-500" />
             <span>{language === 'en' ? 'עברית' : 'English'}</span>
           </button>
+
+          {/* Install Button (visible when not installed) */}
+          {!isInstalled && (
+            <button
+              onClick={promptInstall}
+              title={t('installTickApp')}
+              className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="hidden sm:inline">{t('install')}</span>
+            </button>
+          )}
 
           {/* User Profile Badge */}
           {user && (

@@ -98,16 +98,28 @@ export interface Translations {
   join: string;
   joining: string;
 
-  // iOS Install Modal
+  // Install Modal
   installOnIphone: string;
+  installOnAndroid: string;
+  installOnDesktop: string;
   iosPushNotice: string;
   iosExplanation: string;
+  androidExplanation: string;
+  desktopExplanation: string;
   step1Title: string;
   step1Desc: string;
   step2Title: string;
   step2Desc: string;
   step3Title: string;
   step3Desc: string;
+  androidStep1Title: string;
+  androidStep1Desc: string;
+  androidStep2Title: string;
+  androidStep2Desc: string;
+  desktopStep1Title: string;
+  desktopStep1Desc: string;
+  desktopStep2Title: string;
+  desktopStep2Desc: string;
 
   // Android Banner
   installTickApp: string;
@@ -258,14 +270,26 @@ export const dictionaries: Record<Language, Translations> = {
     joining: 'Joining...',
 
     installOnIphone: 'Install Tick on iPhone',
+    installOnAndroid: 'Install Tick on Android',
+    installOnDesktop: 'Install Tick on Desktop',
     iosPushNotice: 'Required for Push Notifications on iOS',
-    iosExplanation: 'Apple iOS requires adding Tick to your Home Screen before task reminder notifications can be enabled.',
+    iosExplanation: 'Apple iOS requires adding Tick to your Home Screen before notifications can be enabled.',
+    androidExplanation: 'Install Tick to your device for instant offline access and quick launcher access.',
+    desktopExplanation: 'Install Tick on your computer to run it in its own fast, dedicated window.',
     step1Title: 'Tap the Share button',
     step1Desc: 'Located at the bottom bar of Safari',
     step2Title: 'Select Add to Home Screen',
     step2Desc: 'Scroll down in the share sheet options',
     step3Title: 'Launch Tick from your Home Screen',
     step3Desc: 'Tap "Enable Notifications" when prompted to receive instant chore reminders!',
+    androidStep1Title: 'Tap the Menu button (⋮)',
+    androidStep1Desc: 'Located at the top right of your Chrome browser',
+    androidStep2Title: 'Tap "Install app" or "Add to Home screen"',
+    androidStep2Desc: 'Confirm to add Tick to your home screen',
+    desktopStep1Title: 'Look for the Install icon in the address bar',
+    desktopStep1Desc: 'Located at the right end of the URL address bar (or Menu ⋮ → "Install Tick")',
+    desktopStep2Title: 'Click "Install"',
+    desktopStep2Desc: 'Tick will launch in its own standalone desktop window',
 
     installTickApp: 'Install Tick App',
     installAppDesc: 'Get native push reminders & instant offline access',
@@ -411,14 +435,26 @@ export const dictionaries: Record<Language, Translations> = {
     joining: 'מצטרף...',
 
     installOnIphone: 'התקנת "הקרציה" באייפון',
+    installOnAndroid: 'התקנת "הקרציה" באנדרואיד',
+    installOnDesktop: 'התקנת "הקרציה" במחשב',
     iosPushNotice: 'נדרש לקבלת התראות פוש ב-iOS',
     iosExplanation: 'מכשירי אפל דורשים הוספת האפליקציה למסך הבית על מנת לאפשר קבלת התראות פוש.',
+    androidExplanation: 'התקינו את האפליקציה למכשיר לקבלת חוויית מסך מלא וגישה מהירה ממסך הבית.',
+    desktopExplanation: 'התקינו את האפליקציה במחשב להפעלה מהירה בחלון עצמאי משולחן העבודה.',
     step1Title: 'לחצו על כפתור השיתוף',
     step1Desc: 'נמצא בסרגל התחתון של Safari בדפדפן',
     step2Title: 'בחרו "הוסף למסך הבית"',
     step2Desc: 'גללו למטה בתפריט האפשרויות ובחרו באייקון הפלוס',
     step3Title: 'פתחו את האפליקציה ממסך הבית',
     step3Desc: 'לחצו על "הפעל התראות" לקבלת תזכורות בזמן אמת!',
+    androidStep1Title: 'לחצו על תפריט הדפדפן (⋮)',
+    androidStep1Desc: 'נמצא בפינה העליונה של דפדפן Chrome',
+    androidStep2Title: 'בחרו "התקן אפליקציה" או "הוסף למסך הבית"',
+    androidStep2Desc: 'אשרו את ההתקנה לקבלת האפליקציה במסך הבית',
+    desktopStep1Title: 'חפשו את סמל ההתקנה בשורת הכתובת',
+    desktopStep1Desc: 'מופיע בצד שורת הכתובת (או בתפריט ⋮ → "התקן את הקרציה")',
+    desktopStep2Title: 'לחצו על "התקן"',
+    desktopStep2Desc: '"הקרציה" תיפתח כאפליקציה עצמאית במחשב שלך',
 
     installTickApp: 'התקנת אפליקציית "הקרציה"',
     installAppDesc: 'קבלו התראות פוש וגישה מהירה גם במצב לא מקוון',

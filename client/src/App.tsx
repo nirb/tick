@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePush } from './context/PushContext';
 import { useLanguage } from './context/LanguageContext';
+import { useInstall } from './context/InstallContext';
 import { api } from './lib/api';
 import { cacheTasks, getCachedTasks } from './lib/offline';
 import type { TaskWithAssignee, TaskPriority } from './types';
@@ -10,8 +11,8 @@ import { TaskCard } from './components/TaskCard';
 import { TaskFilters, type FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
-import { IOSInstallModal } from './components/IOSInstallModal';
-import { AndroidInstallBanner } from './components/AndroidInstallBanner';
+import { InstallModal } from './components/InstallModal';
+import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
@@ -19,6 +20,7 @@ import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 export const App: React.FC = () => {
   const { user, group, members, loading: authLoading } = useAuth();
   const { showIOSGuide, setShowIOSGuide } = usePush();
+  const { isInstallModalOpen, setIsInstallModalOpen } = useInstall();
   const { t } = useLanguage();
 
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
@@ -355,12 +357,15 @@ export const App: React.FC = () => {
         onShowToast={showToast}
       />
 
-      <IOSInstallModal
-        isOpen={showIOSGuide}
-        onClose={() => setShowIOSGuide(false)}
+      <InstallModal
+        isOpen={isInstallModalOpen || showIOSGuide}
+        onClose={() => {
+          setIsInstallModalOpen(false);
+          setShowIOSGuide(false);
+        }}
       />
 
-      <AndroidInstallBanner />
+      <InstallBanner />
 
       <ToastContainer toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
     </div>

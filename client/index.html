@@ -11,6 +11,18 @@
     <meta name="apple-mobile-web-app-title" content="Tick" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Tick - Family Tasks & Chores</title>
+    <script>
+      window.deferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.deferredInstallPrompt = e;
+        window.dispatchEvent(new Event('tick:beforeinstallprompt'));
+      });
+      window.addEventListener('appinstalled', function() {
+        window.deferredInstallPrompt = null;
+        window.dispatchEvent(new Event('tick:appinstalled'));
+      });
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white min-h-screen">
     <div id="root"></div>
