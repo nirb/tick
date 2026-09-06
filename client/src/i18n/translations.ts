@@ -80,6 +80,12 @@ export interface Translations {
   createTask: string;
   saveChanges: string;
   saving: string;
+  typeNotes: string;
+  typeChecklist: string;
+  addChecklistItem: string;
+  checklistItemPlaceholder: string;
+  deleteItem: string;
+  checklistProgress: string;
 
   // Group Modal
   groupTitle: string;
@@ -263,6 +269,12 @@ export const dictionaries: Record<Language, Translations> = {
     createTask: 'Create Task',
     saveChanges: 'Save Changes',
     saving: 'Saving...',
+    typeNotes: 'Notes',
+    typeChecklist: 'Checklist',
+    addChecklistItem: 'Add item',
+    checklistItemPlaceholder: 'Add an item (press Enter)...',
+    deleteItem: 'Delete item',
+    checklistProgress: '{done} of {total} done',
 
     groupTitle: 'Group Members',
     editGroupName: 'Edit Group Name',
@@ -439,6 +451,12 @@ export const dictionaries: Record<Language, Translations> = {
     createTask: 'צור משימה',
     saveChanges: 'שמור שינויים',
     saving: 'שומר...',
+    typeNotes: 'הערות',
+    typeChecklist: 'צ׳קליסט',
+    addChecklistItem: 'הוסף פריט',
+    checklistItemPlaceholder: 'הוסף פריט (לחץ Enter)...',
+    deleteItem: 'מחק פריט',
+    checklistProgress: '{done} מתוך {total} הושלמו',
 
     groupTitle: 'חברי הקבוצה',
     editGroupName: 'עריכת שם הקבוצה',

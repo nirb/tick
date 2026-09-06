@@ -62,3 +62,24 @@ export interface TaskActivity {
   details: string | null;
   created_at: number;
 }
+
+export type ChecklistItemStatus = 'done' | 'not done';
+
+export interface ChecklistItem {
+  id: string;
+  status: ChecklistItemStatus;
+  description: string;
+}
+
+export interface TextTaskContent {
+  type: 'description';
+  description: string;
+}
+
+export interface ChecklistTaskContent {
+  type: 'checklist';
+  checklist: ChecklistItem[];
+}
+
+export type TaskContent = TextTaskContent | ChecklistTaskContent;
+

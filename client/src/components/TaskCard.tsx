@@ -12,7 +12,9 @@ import {
   Edit2,
   Calendar,
   ChevronDown,
+  CheckSquare,
 } from 'lucide-react';
+import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
 
 interface TaskCardProps {
   task: TaskWithAssignee;
@@ -20,6 +22,7 @@ interface TaskCardProps {
   onNudge: (taskId: string) => Promise<void>;
   onEdit: (task: TaskWithAssignee) => void;
   onDelete: (taskId: string) => void;
+  onUpdateDescription?: (taskId: string, description: string | null) => Promise<void>;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -28,6 +31,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onNudge,
   onEdit,
   onDelete,
+  onUpdateDescription,
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -35,6 +39,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [nudged, setNudged] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  const content = parseTaskContent(task.description);
+  const hasContent =
+    content !== null &&
+    ((content.type === 'description' && content.description.length > 0) ||
+      (content.type === 'checklist' && content.checklist.length > 0));
+  const isChecklist = content?.type === 'checklist';
+  const checklistStats = isChecklist ? getChecklistStats(content.checklist) : null;
 
   const isCompleted = task.status === 'completed';
   const isAssignedToMe = user && task.assignee_id === user.id;
@@ -76,6 +88,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
+  const handleToggleChecklistItem = (index: number) => {
+    if (!content || content.type !== 'checklist') return;
+    const updatedItems = content.checklist.map((item, idx) =>
+      idx === index
+        ? {
+            ...item,
+            status: (item.status === 'done' ? 'not done' : 'done') as 'done' | 'not done',
+          }
+        : item
+    );
+    const serialized = serializeTaskContent({
+      type: 'checklist',
+      checklist: updatedItems,
+    });
+    if (onUpdateDescription) {
+      onUpdateDescription(task.id, serialized);
+    }
+  };
+
   return (
     <div
       className={`group relative rounded-2xl p-4 sm:p-5 border transition-all duration-200 ${
@@ -103,15 +134,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <h3
-                onClick={() => task.description && setIsDescriptionExpanded(!isDescriptionExpanded)}
+                onClick={() => hasContent && setIsDescriptionExpanded(!isDescriptionExpanded)}
                 className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start ${
                   isCompleted ? 'line-through text-slate-400' : 'text-white'
-                } ${task.description ? 'cursor-pointer hover:text-sky-300 transition-colors select-none' : ''}`}
-                role={task.description ? 'button' : undefined}
-                aria-expanded={task.description ? isDescriptionExpanded : undefined}
-                tabIndex={task.description ? 0 : undefined}
+                } ${hasContent ? 'cursor-pointer hover:text-sky-300 transition-colors select-none' : ''}`}
+                role={hasContent ? 'button' : undefined}
+                aria-expanded={hasContent ? isDescriptionExpanded : undefined}
+                tabIndex={hasContent ? 0 : undefined}
                 onKeyDown={(e) => {
-                  if (task.description && (e.key === 'Enter' || e.key === ' ')) {
+                  if (hasContent && (e.key === 'Enter' || e.key === ' ')) {
                     e.preventDefault();
                     setIsDescriptionExpanded(!isDescriptionExpanded);
                   }
@@ -119,12 +150,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               >
                 {task.title}
               </h3>
-              {task.description && (
+              {hasContent && (
                 <button
                   type="button"
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="p-0.5 text-slate-400 hover:text-sky-300 transition-colors shrink-0"
-                  aria-label={isDescriptionExpanded ? 'Collapse description' : 'Expand description'}
+                  aria-label={isDescriptionExpanded ? 'Collapse details' : 'Expand details'}
                 >
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
@@ -170,14 +201,73 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           </div>
 
-          {task.description && isDescriptionExpanded && (
-            <p
-              className={`text-xs sm:text-sm mt-2 p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line animate-in fade-in slide-in-from-top-1 ${
-                isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
-              }`}
-            >
-              {task.description}
-            </p>
+          {hasContent && isDescriptionExpanded && (
+            content?.type === 'checklist' ? (
+              <div className="mt-2.5 p-3 rounded-xl bg-slate-950/60 border border-white/10 space-y-2 animate-in fade-in slide-in-from-top-1">
+                <div className="space-y-1.5">
+                  {content.checklist.map((item, index) => (
+                    <div
+                      key={item.id || index}
+                      className="flex items-center gap-2.5 text-xs sm:text-sm group/item select-none"
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleChecklistItem(index);
+                        }}
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
+                          item.status === 'done'
+                            ? 'bg-emerald-500 border-emerald-400 text-white shadow-xs'
+                            : 'border-white/30 hover:border-sky-400 bg-slate-900 text-transparent'
+                        }`}
+                        aria-label={item.status === 'done' ? 'Mark item incomplete' : 'Mark item complete'}
+                      >
+                        {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
+                      </button>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleChecklistItem(index);
+                        }}
+                        className={`cursor-pointer break-words flex-1 transition-colors leading-tight ${
+                          item.status === 'done'
+                            ? 'line-through text-slate-500'
+                            : isCompleted
+                            ? 'text-slate-400 line-through'
+                            : 'text-slate-200 hover:text-white'
+                        }`}
+                      >
+                        {item.description}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Progress bar inside expanded view */}
+                {checklistStats && checklistStats.total > 0 && (
+                  <div className="pt-2 mt-1 border-t border-white/5 flex items-center gap-2 text-[11px] text-slate-400">
+                    <div className="flex-1 bg-white/10 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-sky-400 to-emerald-400 h-full transition-all duration-300 rounded-full"
+                        style={{ width: `${(checklistStats.done / checklistStats.total) * 100}%` }}
+                      />
+                    </div>
+                    <span className="font-semibold text-slate-300">
+                      {checklistStats.done}/{checklistStats.total}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p
+                className={`text-xs sm:text-sm mt-2 p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line animate-in fade-in slide-in-from-top-1 ${
+                  isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
+                }`}
+              >
+                {content?.description}
+              </p>
+            )
           )}
 
           {/* Badges and Assignee */}
@@ -190,6 +280,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             >
               {t(task.priority)}
             </span>
+
+            {/* Checklist Progress Badge */}
+            {checklistStats && checklistStats.total > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${
+                  checklistStats.allDone
+                    ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
+                    : 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                }`}
+                title={t('checklistProgress', {
+                  done: String(checklistStats.done),
+                  total: String(checklistStats.total),
+                })}
+              >
+                <CheckSquare className="w-3 h-3" />
+                <span>
+                  {checklistStats.done}/{checklistStats.total}
+                </span>
+              </button>
+            )}
 
             {/* Recurrence Rule */}
             {task.recurrence_rule && (

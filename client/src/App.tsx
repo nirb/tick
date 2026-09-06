@@ -167,6 +167,23 @@ export const App: React.FC = () => {
     }
   };
 
+  // Update Task Description / Checklist
+  const handleUpdateDescription = async (taskId: string, newDescription: string | null) => {
+    // Optimistic Update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, description: newDescription } : t))
+    );
+
+    try {
+      const updated = await api.tasks.update(taskId, { description: newDescription });
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated.task : t)));
+      await cacheTasks(tasks);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update task description', 'error');
+      loadTasks();
+    }
+  };
+
   // Nudge Assignee
   const handleNudge = async (taskId: string) => {
     const target = tasks.find((t) => t.id === taskId);
@@ -342,6 +359,7 @@ export const App: React.FC = () => {
                   setIsTaskModalOpen(true);
                 }}
                 onDelete={handleDeleteTask}
+                onUpdateDescription={handleUpdateDescription}
               />
             ))}
           </div>
