@@ -25,7 +25,6 @@
     "VAPID_SUBJECT": "mailto:nir.bejerano@gmail.com",
     "JWT_SECRET": "tick-super-secret-family-jwt-key-2026",
     "APP_URL": "http://localhost:5173",
-    "GOOGLE_CLIENT_ID": "580513780419-s3jrau7gc45rv5ujbgsm7a8ds1e97oso.apps.googleusercontent.com",
-    "GOOGLE_CLIENT_SECRET": "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"
+    "GOOGLE_CLIENT_ID": "580513780419-s3jrau7gc45rv5ujbgsm7a8ds1e97oso.apps.googleusercontent.com"
   }
 }
