@@ -216,8 +216,12 @@ export const App: React.FC = () => {
   // Filter Tasks
   const now = Math.floor(Date.now() / 1000);
   const filteredTasks = tasks.filter((task) => {
-    if (selectedAssignee && task.assignee_id !== selectedAssignee) {
-      return false;
+    if (selectedAssignee) {
+      if (selectedAssignee === 'unassigned') {
+        if (task.assignee_id) return false;
+      } else if (task.assignee_id !== selectedAssignee) {
+        return false;
+      }
     }
 
     if (currentTab === 'all') return task.status !== 'completed';

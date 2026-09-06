@@ -1,11 +1,10 @@
 import React from 'react';
 import type { User, TaskWithAssignee } from '../types';
-import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Clock, CheckCircle2, ListTodo, UserCheck } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Avatar } from './Avatar';
 
-export type FilterTab = 'all' | 'mine' | 'due_soon' | 'completed';
+export type FilterTab = 'all' | 'completed' | 'mine' | 'due_soon';
 
 interface TaskFiltersProps {
   currentTab: FilterTab;
@@ -24,90 +23,109 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   members,
   tasks,
 }) => {
-  const { user } = useAuth();
   const { t } = useLanguage();
 
-  const now = Math.floor(Date.now() / 1000);
-  const counts = {
-    all: tasks.filter((t) => t.status !== 'completed').length,
-    mine: user ? tasks.filter((t) => t.assignee_id === user.id && t.status !== 'completed').length : 0,
-    due_soon: tasks.filter(
-      (t) => t.status !== 'completed' && t.due_at && t.due_at <= now + 86400 * 2
-    ).length,
-    completed: tasks.filter((t) => t.status === 'completed').length,
-  };
+  const completedCount = tasks.filter((t) => t.status === 'completed').length;
 
-  const tabs: { id: FilterTab; label: string; icon: any; count: number }[] = [
-    { id: 'all', label: t('allOpen'), icon: ListTodo, count: counts.all },
-    { id: 'mine', label: t('mine'), icon: UserCheck, count: counts.mine },
-    { id: 'due_soon', label: t('dueSoon'), icon: Clock, count: counts.due_soon },
-    { id: 'completed', label: t('completed'), icon: CheckCircle2, count: counts.completed },
-  ];
+  const tabFilteredTasks = tasks.filter((task) => {
+    if (currentTab === 'completed') return task.status === 'completed';
+    return task.status !== 'completed';
+  });
+
+  const unassignedCount = tabFilteredTasks.filter((t) => !t.assignee_id).length;
 
   return (
-    <div className="space-y-3 mb-6">
-      {/* Primary Status Tabs */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/70 backdrop-blur-md rounded-2xl border border-white/12 overflow-x-auto no-scrollbar shadow-lg shadow-black/20">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = currentTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`flex-1 min-w-[90px] py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shrink-0 ${
-                isActive
-                  ? 'bg-gradient-to-r from-sky-500/30 to-indigo-500/30 text-sky-200 border border-sky-400/50 shadow-sm shadow-sky-500/20'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10 border border-transparent'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{tab.label}</span>
-              <span
-                className={`ms-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  isActive ? 'bg-sky-500/40 text-white border border-sky-400/40' : 'bg-white/10 text-slate-300'
-                }`}
-              >
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+    <div className="flex items-center gap-1.5 p-3 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/12 overflow-x-auto no-scrollbar text-xs shadow-md shadow-black/15 mb-6">
+      <span className="text-slate-400 font-bold shrink-0 px-2">{t('filterBy')}</span>
 
-      {/* Member Filter Chips */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <span className="text-slate-400 font-bold shrink-0 ms-1">{t('filterBy')}</span>
-
-        <button
-          onClick={() => onAssigneeChange('')}
-          className={`px-3 py-1 rounded-full border transition-all shrink-0 font-bold ${
-            selectedAssignee === ''
-              ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-sm shadow-sky-500/25'
-              : 'bg-slate-900/60 text-slate-200 border-white/15 hover:bg-white/10'
+      {/* Everyone */}
+      <button
+        onClick={() => {
+          onTabChange('all');
+          onAssigneeChange('');
+        }}
+        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border transition-all shrink-0 font-bold ${selectedAssignee === '' && currentTab === 'all'
+          ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-sm shadow-sky-500/25'
+          : 'bg-slate-800/80 text-slate-200 border-white/10 hover:bg-white/10'
           }`}
+      >
+        <span>{t('everyone')}</span>
+        <span
+          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${selectedAssignee === '' && currentTab === 'all'
+            ? 'bg-white/25 text-white'
+            : 'bg-white/10 text-slate-300'
+            }`}
         >
-          {t('everyone')}
-        </button>
+          {tabFilteredTasks.length}
+        </span>
+      </button>
 
-        {members.map((member) => {
-          const isSelected = selectedAssignee === member.id;
-          return (
-            <button
-              key={member.id}
-              onClick={() => onAssigneeChange(isSelected ? '' : member.id)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all shrink-0 font-bold ${
-                isSelected
-                  ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-sm shadow-sky-500/25'
-                  : 'bg-slate-900/60 text-slate-200 border-white/15 hover:bg-white/10'
+      {/* Members */}
+      {members.map((member) => {
+        const isSelected = selectedAssignee === member.id;
+        const memberCount = tabFilteredTasks.filter((t) => t.assignee_id === member.id).length;
+        return (
+          <button
+            key={member.id}
+            onClick={() => onAssigneeChange(isSelected ? '' : member.id)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full border transition-all shrink-0 font-bold ${isSelected
+              ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-sm shadow-sky-500/25'
+              : 'bg-slate-800/80 text-slate-200 border-white/10 hover:bg-white/10'
               }`}
+          >
+            <Avatar url={member.avatar_url} name={member.name} size="xs" />
+            <span>{member.name}</span>
+            <span
+              className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isSelected ? 'bg-white/25 text-white' : 'bg-white/10 text-slate-300'
+                }`}
             >
-              <Avatar url={member.avatar_url} name={member.name} size="xs" />
-              <span>{member.name}</span>
-            </button>
-          );
-        })}
-      </div>
+              {memberCount}
+            </span>
+          </button>
+        );
+      })}
+
+      {/* Unassigned */}
+      {unassignedCount > 0 && (
+        <button
+          onClick={() => onAssigneeChange(selectedAssignee === 'unassigned' ? '' : 'unassigned')}
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all shrink-0 font-bold ${selectedAssignee === 'unassigned'
+            ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-transparent shadow-sm shadow-sky-500/25'
+            : 'bg-slate-800/80 text-slate-200 border-white/10 hover:bg-white/10'
+            }`}
+        >
+          <span>{t('unassigned')}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${selectedAssignee === 'unassigned'
+              ? 'bg-white/25 text-white'
+              : 'bg-white/10 text-slate-300'
+              }`}
+          >
+            {unassignedCount}
+          </span>
+        </button>
+      )}
+
+      {/* Separator */}
+      <div className="h-4 w-px bg-white/15 shrink-0 mx-0.5" />
+
+      {/* Completed Filter */}
+      <button
+        onClick={() => onTabChange(currentTab === 'completed' ? 'all' : 'completed')}
+        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all shrink-0 font-bold ${currentTab === 'completed'
+          ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-transparent shadow-sm shadow-emerald-500/25'
+          : 'bg-slate-800/80 text-slate-200 border-white/10 hover:bg-white/10'
+          }`}
+      >
+        <CheckCircle2 className="w-3.5 h-3.5" />
+        <span>{t('completed')}</span>
+        <span
+          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${currentTab === 'completed' ? 'bg-white/25 text-white' : 'bg-white/10 text-slate-300'
+            }`}
+        >
+          {completedCount}
+        </span>
+      </button>
     </div>
   );
 };
