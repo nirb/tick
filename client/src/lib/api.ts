@@ -53,7 +53,7 @@ export const api = {
         body: JSON.stringify({ name, email, password, groupName, inviteCode }),
       }),
 
-    google: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) =>
+    google: (data: { credential: string; inviteCode?: string }) =>
       request<{ success: boolean; token: string; user: User; group: Group; groups?: GroupMembership[] }>('/api/auth/google', {
         method: 'POST',
         body: JSON.stringify(data),

@@ -21,6 +21,7 @@ import {
   Users,
   Settings,
 } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 interface NavbarProps {
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -409,7 +410,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ) : (
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="text-xl shrink-0">{user.avatar_url || '👤'}</span>
+                          <Avatar url={user.avatar_url} name={user.name} size="md" />
                           <div className="min-w-0">
                             <div className="text-xs font-bold text-white truncate flex items-center gap-1.5">
                               <span className="truncate">{user.name}</span>

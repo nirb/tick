@@ -27,20 +27,6 @@ function setAuthCookie(c: any, token: string) {
   );
 }
 
-// Helper to parse Google ID token (JWT) safely
-function decodeGoogleIdToken(token: string): { email: string; name?: string; picture?: string; sub: string } | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4 !== 0) base64 += '=';
-    const jsonStr = atob(base64);
-    return JSON.parse(jsonStr);
-  } catch {
-    return null;
-  }
-}
-
 // 1. Email & Password Registration (FR-AUTH-1)
 authRoutes.post('/register', async (c) => {
   const body = await c.req.json<{
@@ -183,44 +169,84 @@ authRoutes.post('/login', async (c) => {
   });
 });
 
-// 3. Google / Gmail Sign-In (FR-AUTH-2)
+// 3. Google / Gmail Sign-In (FR-AUTH-2) - Cryptographically verified with Google Identity Services
 authRoutes.post('/google', async (c) => {
   const body = await c.req.json<{
     credential?: string;
-    email?: string;
-    name?: string;
-    avatarUrl?: string;
     inviteCode?: string;
   }>();
 
-  let email = body.email;
-  let name = body.name;
-  let avatarUrl = body.avatarUrl;
+  if (!body.credential || !body.credential.trim()) {
+    return c.json({ error: 'Google credential token is required' }, 400);
+  }
 
-  // If client provided a Google JWT credential (from Google Identity Services)
-  if (body.credential) {
-    const payload = decodeGoogleIdToken(body.credential);
-    if (!payload || !payload.email) {
-      return c.json({ error: 'Invalid Google credential token' }, 400);
+  // Cryptographically verify the Google ID token via Google's OAuth2 tokeninfo service
+  let payload: {
+    iss?: string;
+    sub?: string;
+    aud?: string;
+    email?: string;
+    email_verified?: string | boolean;
+    name?: string;
+    picture?: string;
+    exp?: string | number;
+  };
+
+  try {
+    const googleRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(body.credential.trim())}`
+    );
+    if (!googleRes.ok) {
+      const errText = await googleRes.text();
+      console.warn('Google token verification failed:', errText);
+      return c.json({ error: 'Invalid or expired Google authentication credential' }, 401);
     }
-    email = payload.email;
-    name = payload.name || name;
-    avatarUrl = payload.picture || avatarUrl;
+    payload = await googleRes.json();
+  } catch (err) {
+    console.error('Failed to communicate with Google authentication servers:', err);
+    return c.json({ error: 'Could not connect to Google authentication service' }, 502);
   }
 
-  if (!email) {
-    return c.json({ error: 'Google email is required' }, 400);
+  // Verify email is present and verified by Google
+  const isEmailVerified = payload.email_verified === 'true' || payload.email_verified === true;
+  if (!payload.email || !isEmailVerified) {
+    return c.json({ error: 'Google account email is not verified' }, 400);
   }
 
-  email = email.toLowerCase().trim();
+  // Verify issuer
+  const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+  if (!payload.iss || !validIssuers.includes(payload.iss)) {
+    return c.json({ error: 'Invalid Google token issuer' }, 401);
+  }
+
+  // Verify audience if GOOGLE_CLIENT_ID is configured
+  if (c.env.GOOGLE_CLIENT_ID && payload.aud !== c.env.GOOGLE_CLIENT_ID) {
+    return c.json({ error: 'Google credential was issued for a different client ID' }, 401);
+  }
+
+  // Verify expiration
+  if (payload.exp && Number(payload.exp) * 1000 < Date.now()) {
+    return c.json({ error: 'Google credential has expired' }, 401);
+  }
+
+  const email = payload.email.toLowerCase().trim();
+  const userName = payload.name?.trim() || email.split('@')[0];
+  const avatarUrl = payload.picture || null;
+
   let user = await getUserByEmail(c.env.DB, email);
   let group = null;
 
   if (user) {
     group = await getGroupById(c.env.DB, user.group_id);
+    // Update avatar if provided and not yet set
+    if (!user.avatar_url && avatarUrl) {
+      await c.env.DB.prepare('UPDATE users SET avatar_url = ? WHERE id = ?')
+        .bind(avatarUrl, user.id)
+        .run();
+      user.avatar_url = avatarUrl;
+    }
   } else {
-    // New registration via Google
-    const userName = name?.trim() || email.split('@')[0];
+    // New registration via verified Google account
     let role: UserRole = 'member';
 
     if (body.inviteCode && body.inviteCode.trim()) {
@@ -238,7 +264,7 @@ authRoutes.post('/google', async (c) => {
       name: userName,
       email,
       role,
-      avatarUrl: avatarUrl || null,
+      avatarUrl,
       authProvider: 'google',
     });
   }

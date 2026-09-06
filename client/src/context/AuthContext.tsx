@@ -11,7 +11,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => Promise<void>;
-  loginWithGoogle: (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) => Promise<void>;
+  loginWithGoogle: (data: { credential: string; inviteCode?: string }) => Promise<void>;
   logout: () => Promise<void>;
   refreshGroup: () => Promise<void>;
   switchGroup: (groupId: string) => Promise<void>;
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = async (data: { credential?: string; email?: string; name?: string; avatarUrl?: string; inviteCode?: string }) => {
+  const loginWithGoogle = async (data: { credential: string; inviteCode?: string }) => {
     setLoading(true);
     try {
       const res = await api.auth.google(data);

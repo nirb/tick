@@ -15,6 +15,7 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
+import { Avatar } from './Avatar';
 
 interface TaskCardProps {
   task: TaskWithAssignee;
@@ -339,7 +340,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       : 'bg-white/10 text-slate-200 border-white/15'
                   }`}
                 >
-                  <span className="text-sm">{task.assignee_avatar || '👤'}</span>
+                  <Avatar url={task.assignee_avatar} name={task.assignee_name} size="xs" />
                   <span>{isAssignedToMe ? t('you') : task.assignee_name}</span>
                 </span>
               ) : (

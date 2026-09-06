@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { api } from '../lib/api';
 import { X, Copy, Check, Users, RefreshCw, LogIn, Pencil, Plus, ArrowRightLeft, LogOut } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 interface GroupModalProps {
   isOpen: boolean;
@@ -333,7 +334,7 @@ export const GroupModal: React.FC<GroupModalProps> = ({
                 className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/60 border border-white/10"
               >
                 <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                  <span className="text-xl shrink-0">{member.avatar_url || '👤'}</span>
+                  <Avatar url={member.avatar_url} name={member.name} size="md" />
                   <div className="flex-1 min-w-0">
                     {isEditingUserName && member.id === user?.id ? (
                       <form onSubmit={handleSaveUserName} className="flex items-center gap-1.5 my-0.5">

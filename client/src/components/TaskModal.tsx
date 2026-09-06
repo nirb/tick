@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, generateItemId } from '../lib/taskContent';
+import { Avatar } from './Avatar';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -377,7 +378,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
                   }`}
                 >
-                  <span className="text-base">{member.avatar_url || '👤'}</span>
+                  <Avatar url={member.avatar_url} name={member.name} size="sm" />
                   <span className="truncate">{member.name}</span>
                 </button>
               ))}

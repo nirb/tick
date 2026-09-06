@@ -24,6 +24,8 @@
     "VAPID_PRIVATE_KEY": "{\"alg\":\"ES256\",\"key_ops\":[\"sign\"],\"ext\":true,\"kty\":\"EC\",\"x\":\"ami9fpLNy9Cffm2pTVqU6PMB4R5duB4h1nN3H6i_Qbs\",\"y\":\"0BPK3Qdjc0YtC9D-ImyHVXfBlpzXgwDeRiuTHREb9qY\",\"crv\":\"P-256\",\"d\":\"SZHCZ_K3ljWNCy0M4dHGptlaR_9jXGQd7jlHStBloLY\"}",
     "VAPID_SUBJECT": "mailto:nir.bejerano@gmail.com",
     "JWT_SECRET": "tick-super-secret-family-jwt-key-2026",
-    "APP_URL": "http://localhost:5173"
+    "APP_URL": "http://localhost:5173",
+    "GOOGLE_CLIENT_ID": "580513780419-s3jrau7gc45rv5ujbgsm7a8ds1e97oso.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "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"
   }
 }

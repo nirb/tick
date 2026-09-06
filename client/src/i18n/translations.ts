@@ -156,6 +156,10 @@ export interface Translations {
   inviteCodeOptional: string;
   inviteCodePlaceholder: string;
   continueWithGoogle: string;
+  googleSetupTitle: string;
+  googleSetupDesc: string;
+  googleClientIdPlaceholder: string;
+  saveAndConnect: string;
   dontHaveAccount: string;
   alreadyHaveAccount: string;
   orDivider: string;
@@ -341,6 +345,10 @@ export const dictionaries: Record<Language, Translations> = {
     inviteCodeOptional: 'Invite Code (optional)',
     inviteCodePlaceholder: 'Enter 6-char code if joining an existing group',
     continueWithGoogle: 'Continue with Google',
+    googleSetupTitle: 'Google Sign-In Setup',
+    googleSetupDesc: 'To enable real Google authentication, enter your Google OAuth 2.0 Web Client ID.',
+    googleClientIdPlaceholder: 'e.g. 123456789-xxx.apps.googleusercontent.com',
+    saveAndConnect: 'Save & Connect',
     dontHaveAccount: "Don't have an account?",
     alreadyHaveAccount: 'Already have an account?',
     orDivider: 'or',
@@ -523,6 +531,10 @@ export const dictionaries: Record<Language, Translations> = {
     inviteCodeOptional: 'קוד הזמנה משפחתי (אופציונלי)',
     inviteCodePlaceholder: 'הזן קוד בן 6 תווים להצטרפות למשפחה קיימת',
     continueWithGoogle: 'המשך באמצעות Google',
+    googleSetupTitle: 'הגדרת התחברות עם Google',
+    googleSetupDesc: 'כדי להפעיל התחברות אמיתית ומאובטחת עם Google, יש להזין Client ID של Google Cloud.',
+    googleClientIdPlaceholder: 'לדוגמה: 123456789-xxx.apps.googleusercontent.com',
+    saveAndConnect: 'שמור והפעל',
     dontHaveAccount: 'אין לך חשבון עדיין?',
     alreadyHaveAccount: 'כבר יש לך חשבון?',
     orDivider: 'או',

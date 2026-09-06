@@ -3,6 +3,7 @@ import type { User, TaskWithAssignee } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Clock, CheckCircle2, ListTodo, UserCheck } from 'lucide-react';
+import { Avatar } from './Avatar';
 
 export type FilterTab = 'all' | 'mine' | 'due_soon' | 'completed';
 
@@ -101,7 +102,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
                   : 'bg-slate-900/60 text-slate-200 border-white/15 hover:bg-white/10'
               }`}
             >
-              <span>{member.avatar_url || '👤'}</span>
+              <Avatar url={member.avatar_url} name={member.name} size="xs" />
               <span>{member.name}</span>
             </button>
           );
