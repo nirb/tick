@@ -323,9 +323,13 @@ export async function getTasksByGroupId(
 
   query += ` ORDER BY 
     CASE t.status WHEN 'completed' THEN 2 ELSE 1 END ASC,
-    DATE(COALESCE(t.due_at, t.created_at), 'unixepoch', 'localtime') ASC,
+    CASE WHEN (t.due_at IS NULL OR t.due_at <= 0) THEN 1 ELSE 2 END ASC,
+    CASE WHEN (t.due_at IS NULL OR t.due_at <= 0) THEN
+      CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END
+    ELSE
+      t.due_at
+    END ASC,
     CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC,
-    COALESCE(t.due_at, t.created_at) ASC,
     t.created_at DESC`;
 
   const stmt = db.prepare(query).bind(...params);

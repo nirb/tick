@@ -248,32 +248,34 @@ export const App: React.FC = () => {
       return statusRank(a.status) - statusRank(b.status);
     }
 
-    // 2. Day bucket of effective date: due_at if set, otherwise created_at
-    const dateA = a.due_at !== null ? a.due_at : a.created_at;
-    const dateB = b.due_at !== null ? b.due_at : b.created_at;
+    const aHasDeadline = typeof a.due_at === 'number' && a.due_at > 0;
+    const bHasDeadline = typeof b.due_at === 'number' && b.due_at > 0;
 
-    const dA = new Date(dateA * 1000);
-    const dB = new Date(dateB * 1000);
-    const dayA = `${dA.getFullYear()}-${String(dA.getMonth() + 1).padStart(2, '0')}-${String(dA.getDate()).padStart(2, '0')}`;
-    const dayB = `${dB.getFullYear()}-${String(dB.getMonth() + 1).padStart(2, '0')}-${String(dB.getDate()).padStart(2, '0')}`;
+    // 2. Tasks without deadline come first (before tasks with deadline)
+    if (!aHasDeadline && bHasDeadline) return -1;
+    if (aHasDeadline && !bHasDeadline) return 1;
 
-    if (dayA !== dayB) {
-      return dayA.localeCompare(dayB);
-    }
-
-    // 3. Priority: urgent > high > medium > low
     const prioA = priorityRank[a.priority] ?? 3;
     const prioB = priorityRank[b.priority] ?? 3;
+
+    // 3. For tasks without deadline: sort according to task priority (urgent > high > medium > low)
+    if (!aHasDeadline && !bHasDeadline) {
+      if (prioA !== prioB) {
+        return prioA - prioB;
+      }
+      return b.created_at - a.created_at;
+    }
+
+    // 4. For tasks with deadline: sort according to deadline (earlier deadline first)
+    if (a.due_at !== b.due_at) {
+      return (a.due_at ?? 0) - (b.due_at ?? 0);
+    }
+
+    // Tie-break for same deadline: priority, then newer created first
     if (prioA !== prioB) {
       return prioA - prioB;
     }
 
-    // 4. Exact timestamp within the day and priority
-    if (dateA !== dateB) {
-      return dateA - dateB;
-    }
-
-    // 5. Tie-break: newer created first
     return b.created_at - a.created_at;
   });
 
