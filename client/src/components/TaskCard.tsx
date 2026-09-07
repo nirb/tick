@@ -94,9 +94,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const updatedItems = content.checklist.map((item, idx) =>
       idx === index
         ? {
-            ...item,
-            status: (item.status === 'done' ? 'not done' : 'done') as 'done' | 'not done',
-          }
+          ...item,
+          status: (item.status === 'done' ? 'not done' : 'done') as 'done' | 'not done',
+        }
         : item
     );
     const serialized = serializeTaskContent({
@@ -120,15 +120,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           setIsExpanded(!isExpanded);
         }
       }}
-      className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer ${
-        showMenu
-          ? 'pt-3.5 px-3.5 pb-28 sm:pt-4 sm:px-4 sm:pb-28 z-30'
-          : 'p-3.5 sm:p-4 z-0'
-      } ${
-        isCompleted
+      className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer ${showMenu
+        ? 'pt-3.5 px-3.5 pb-28 sm:pt-4 sm:px-4 sm:pb-28 z-30'
+        : 'p-3.5 sm:p-4 z-0'
+        } ${isCompleted
           ? 'border-white/5 bg-slate-900/40 opacity-60'
           : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-sky-400/50 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
-      }`}
+        }`}
     >
       <div className="flex items-start gap-3">
         {/* Checkbox - only shown when task card is open */}
@@ -139,11 +137,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               e.stopPropagation();
               onToggleStatus(task);
             }}
-            className={`w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center border transition-all shrink-0 animate-in fade-in duration-200 ${
-              isCompleted
-                ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
-                : 'border-white/30 hover:border-emerald-400 hover:bg-emerald-500/20 bg-slate-950/60 text-transparent'
-            }`}
+            className={`w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center border transition-all shrink-0 animate-in fade-in duration-200 ${isCompleted
+              ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
+              : 'border-white hover:border-emerald-400 hover:bg-emerald-500/20 bg-slate-950/60 text-transparent'
+              }`}
             aria-label={isCompleted ? t('markIncomplete') : t('markDone')}
           >
             {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
@@ -155,24 +152,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <h3
-                className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none ${
-                  isCompleted ? 'line-through text-slate-400' : 'text-white'
-                }`}
+                className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none ${isCompleted ? 'line-through text-slate-400' : 'text-white'
+                  }`}
               >
                 {task.title}
               </h3>
               <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${
-                  isExpanded ? 'rotate-180 text-sky-400' : ''
-                }`}
+                className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-sky-400' : ''
+                  }`}
               />
             </div>
 
             {/* Priority Badge */}
             <span
-              className={`px-2.5 py-0.5 rounded-full border text-xs capitalize shrink-0 font-semibold ${
-                priorityColors[task.priority] || priorityColors.medium
-              }`}
+              className={`px-2.5 py-0.5 rounded-full border text-xs capitalize shrink-0 font-semibold ${priorityColors[task.priority] || priorityColors.medium
+                }`}
             >
               {t(task.priority)}
             </span>
@@ -199,11 +193,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                               e.stopPropagation();
                               handleToggleChecklistItem(index);
                             }}
-                            className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${
-                              item.status === 'done'
-                                ? 'bg-emerald-500 border-emerald-400 text-white shadow-xs'
-                                : 'border-white/30 hover:border-sky-400 bg-slate-900 text-transparent'
-                            }`}
+                            className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${item.status === 'done'
+                              ? 'bg-emerald-500 border-emerald-400 text-white shadow-xs'
+                              : 'border-white/30 hover:border-sky-400 bg-slate-900 text-transparent'
+                              }`}
                             aria-label={item.status === 'done' ? 'Mark item incomplete' : 'Mark item complete'}
                           >
                             {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
@@ -213,13 +206,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                               e.stopPropagation();
                               handleToggleChecklistItem(index);
                             }}
-                            className={`cursor-pointer break-words flex-1 transition-colors leading-tight ${
-                              item.status === 'done'
-                                ? 'line-through text-slate-500'
-                                : isCompleted
+                            className={`cursor-pointer break-words flex-1 transition-colors leading-tight ${item.status === 'done'
+                              ? 'line-through text-slate-500'
+                              : isCompleted
                                 ? 'text-slate-400 line-through'
                                 : 'text-slate-200 hover:text-white'
-                            }`}
+                              }`}
                           >
                             {item.description}
                           </span>
@@ -244,9 +236,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </div>
                 ) : (
                   <p
-                    className={`text-xs sm:text-sm p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${
-                      isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
-                    }`}
+                    className={`text-xs sm:text-sm p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
+                      }`}
                   >
                     {content?.description}
                   </p>
@@ -259,11 +250,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className={`p-1 rounded-lg transition-colors ${
-                      showMenu
-                        ? 'text-sky-300 bg-white/15'
-                        : 'text-slate-400 hover:text-white hover:bg-white/10'
-                    }`}
+                    className={`p-1 rounded-lg transition-colors ${showMenu
+                      ? 'text-sky-300 bg-white/15'
+                      : 'text-slate-400 hover:text-white hover:bg-white/10'
+                      }`}
                     aria-label="Task options"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -279,16 +269,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         }}
                       />
                       <div className="absolute start-0 top-full mt-2 w-44 bg-slate-900 rounded-2xl shadow-2xl shadow-black border border-white/20 p-1.5 z-50 text-xs text-slate-200">
-                        <button
-                          onClick={() => {
-                            setShowMenu(false);
-                            onToggleStatus(task);
-                          }}
-                          className="w-full px-3 py-2 text-start hover:bg-white/10 rounded-xl flex items-center gap-2 text-slate-200 transition-colors font-medium"
-                        >
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />{' '}
-                          {isCompleted ? t('markIncomplete') : t('markDone')}
-                        </button>
                         <button
                           onClick={() => {
                             setShowMenu(false);
@@ -319,11 +299,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     e.stopPropagation();
                     onToggleStatus(task);
                   }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${
-                    isCompleted
-                      ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
-                      : 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${isCompleted
+                    ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
+                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25'
+                    }`}
                   aria-label={isCompleted ? t('markIncomplete') : t('markDone')}
                 >
                   <Check className="w-3 h-3 stroke-[2.5]" />
@@ -333,11 +312,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 {/* Checklist Progress Badge */}
                 {checklistStats && checklistStats.total > 0 && (
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold ${
-                      checklistStats.allDone
-                        ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
-                        : 'bg-sky-500/20 text-sky-200 border-sky-400/40'
-                    }`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold ${checklistStats.allDone
+                      ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
+                      : 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                      }`}
                   >
                     <CheckSquare className="w-3 h-3" />
                     <span>
@@ -353,19 +331,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     {task.recurrence_rule.includes('DAILY')
                       ? t('daily')
                       : task.recurrence_rule.includes('WEEKLY')
-                      ? t('weekly')
-                      : t('recurring')}
+                        ? t('weekly')
+                        : t('recurring')}
                   </span>
                 )}
 
                 {/* Due Date */}
                 {dueInfo && (
                   <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border font-semibold ${
-                      dueInfo.isOverdue
-                        ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
-                        : 'bg-white/10 text-slate-200 border-white/15'
-                    }`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border font-semibold ${dueInfo.isOverdue
+                      ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
+                      : 'bg-white/10 text-slate-200 border-white/15'
+                      }`}
                   >
                     {dueInfo.isOverdue ? (
                       <Clock className="w-3 h-3 text-rose-300" />
@@ -380,11 +357,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <div className="ms-auto flex items-center gap-2">
                   {task.assignee_name ? (
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                        isAssignedToMe
-                          ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
-                          : 'bg-white/10 text-slate-200 border-white/15'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${isAssignedToMe
+                        ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                        : 'bg-white/10 text-slate-200 border-white/15'
+                        }`}
                     >
                       <Avatar url={task.assignee_avatar} name={task.assignee_name} size="xs" />
                       <span>{isAssignedToMe ? t('you') : task.assignee_name}</span>
@@ -402,11 +378,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       }}
                       disabled={nudging || nudged}
                       title={`Send a push reminder to ${task.assignee_name}`}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${
-                        nudged
-                          ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40'
-                          : 'bg-amber-500/20 text-amber-200 border-amber-400/40 hover:bg-amber-500/30 active:scale-95 shadow-sm shadow-amber-500/10'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition-all ${nudged
+                        ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40'
+                        : 'bg-amber-500/20 text-amber-200 border-amber-400/40 hover:bg-amber-500/30 active:scale-95 shadow-sm shadow-amber-500/10'
+                        }`}
                     >
                       <BellRing className={`w-3 h-3 ${nudging ? 'animate-bounce' : ''}`} />
                       {nudged ? t('nudged') : t('nudge')}
