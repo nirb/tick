@@ -14,7 +14,7 @@ function base64UrlEncode(buffer: Uint8Array | string): string {
     .replace(/=+$/, '');
 }
 
-function base64UrlDecode(str: string): Uint8Array {
+export function base64UrlDecode(str: string): Uint8Array {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4 !== 0) {
     base64 += '=';

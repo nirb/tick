@@ -131,21 +131,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleStatus(task);
-          }}
-          className={`w-5.5 h-5.5 mt-0.5 rounded-lg flex items-center justify-center border transition-all shrink-0 ${
-            isCompleted
-              ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
-              : 'border-white/25 hover:border-sky-400 bg-slate-950/60 text-transparent'
-          }`}
-          aria-label={isCompleted ? 'Mark incomplete' : 'Mark complete'}
-        >
-          {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-        </button>
+        {/* Checkbox - only shown when task card is open */}
+        {isExpanded && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStatus(task);
+            }}
+            className={`w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center border transition-all shrink-0 animate-in fade-in duration-200 ${
+              isCompleted
+                ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
+                : 'border-white/30 hover:border-emerald-400 hover:bg-emerald-500/20 bg-slate-950/60 text-transparent'
+            }`}
+            aria-label={isCompleted ? t('markIncomplete') : t('markDone')}
+          >
+            {isCompleted && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+          </button>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
@@ -275,7 +278,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                           setShowMenu(false);
                         }}
                       />
-                      <div className="absolute start-0 top-full mt-2 w-36 bg-slate-900 rounded-2xl shadow-2xl shadow-black border border-white/20 p-1.5 z-50 text-xs text-slate-200">
+                      <div className="absolute start-0 top-full mt-2 w-44 bg-slate-900 rounded-2xl shadow-2xl shadow-black border border-white/20 p-1.5 z-50 text-xs text-slate-200">
+                        <button
+                          onClick={() => {
+                            setShowMenu(false);
+                            onToggleStatus(task);
+                          }}
+                          className="w-full px-3 py-2 text-start hover:bg-white/10 rounded-xl flex items-center gap-2 text-slate-200 transition-colors font-medium"
+                        >
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />{' '}
+                          {isCompleted ? t('markIncomplete') : t('markDone')}
+                        </button>
                         <button
                           onClick={() => {
                             setShowMenu(false);
@@ -298,6 +311,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     </>
                   )}
                 </div>
+
+                {/* Mark Done / Incomplete Action Chip */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleStatus(task);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${
+                    isCompleted
+                      ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
+                      : 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25'
+                  }`}
+                  aria-label={isCompleted ? t('markIncomplete') : t('markDone')}
+                >
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                  <span>{isCompleted ? t('markIncomplete') : t('markDone')}</span>
+                </button>
 
                 {/* Checklist Progress Badge */}
                 {checklistStats && checklistStats.total > 0 && (

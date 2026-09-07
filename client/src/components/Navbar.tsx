@@ -212,9 +212,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
         {/* Brand & Group Title */}
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-lg shadow-sky-500/25 shrink-0">
-            ✓
-          </div>
+          <img
+            src="/icons/icon-192.png"
+            alt="Tick Mascot"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-sky-500/20 shrink-0 object-cover"
+          />
 
           <div className="relative min-w-0" ref={groupMenuRef}>
             <div className="flex items-center gap-2 sm:gap-3">

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { Group, GroupMembership, User } from '../types';
 import { api, setToken } from '../lib/api';
 import { cacheMembers, getCachedMembers } from '../lib/offline';
@@ -57,68 +57,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchProfileAndGroup();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    setLoading(true);
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await api.auth.login(email, password);
+    setToken(res.token);
+    setUser(res.user);
+    setGroup(res.group);
+    if (res.groups) setGroups(res.groups);
     try {
-      const res = await api.auth.login(email, password);
-      setToken(res.token);
-      setUser(res.user);
-      setGroup(res.group);
-      if (res.groups) setGroups(res.groups);
-      try {
-        const groupData = await api.groups.getMe();
-        setMembers(groupData.members);
-        if (groupData.groups) setGroups(groupData.groups);
-        await cacheMembers(groupData.members);
-      } catch (err) {
-        console.warn('Could not fetch members on login:', err);
-      }
-    } finally {
-      setLoading(false);
+      const groupData = await api.groups.getMe();
+      setMembers(groupData.members);
+      if (groupData.groups) setGroups(groupData.groups);
+      await cacheMembers(groupData.members);
+    } catch (err) {
+      console.warn('Could not fetch members on login:', err);
     }
-  };
+  }, []);
 
-  const register = async (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => {
-    setLoading(true);
+  const register = useCallback(async (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => {
+    const res = await api.auth.register(name, email, password, groupName, inviteCode);
+    setToken(res.token);
+    setUser(res.user);
+    setGroup(res.group);
+    if (res.groups) setGroups(res.groups);
     try {
-      const res = await api.auth.register(name, email, password, groupName, inviteCode);
-      setToken(res.token);
-      setUser(res.user);
-      setGroup(res.group);
-      if (res.groups) setGroups(res.groups);
-      try {
-        const groupData = await api.groups.getMe();
-        setMembers(groupData.members);
-        if (groupData.groups) setGroups(groupData.groups);
-        await cacheMembers(groupData.members);
-      } catch (err) {
-        console.warn('Could not fetch members on register:', err);
-      }
-    } finally {
-      setLoading(false);
+      const groupData = await api.groups.getMe();
+      setMembers(groupData.members);
+      if (groupData.groups) setGroups(groupData.groups);
+      await cacheMembers(groupData.members);
+    } catch (err) {
+      console.warn('Could not fetch members on register:', err);
     }
-  };
+  }, []);
 
-  const loginWithGoogle = async (data: { credential: string; inviteCode?: string }) => {
-    setLoading(true);
+  const loginWithGoogle = useCallback(async (data: { credential: string; inviteCode?: string }) => {
+    const res = await api.auth.google(data);
+    setToken(res.token);
+    setUser(res.user);
+    setGroup(res.group);
+    if (res.groups) setGroups(res.groups);
     try {
-      const res = await api.auth.google(data);
-      setToken(res.token);
-      setUser(res.user);
-      setGroup(res.group);
-      if (res.groups) setGroups(res.groups);
-      try {
-        const groupData = await api.groups.getMe();
-        setMembers(groupData.members);
-        if (groupData.groups) setGroups(groupData.groups);
-        await cacheMembers(groupData.members);
-      } catch (err) {
-        console.warn('Could not fetch members on google login:', err);
-      }
-    } finally {
-      setLoading(false);
+      const groupData = await api.groups.getMe();
+      setMembers(groupData.members);
+      if (groupData.groups) setGroups(groupData.groups);
+      await cacheMembers(groupData.members);
+    } catch (err) {
+      console.warn('Could not fetch members on google login:', err);
     }
-  };
+  }, []);
 
   const logout = async () => {
     try {

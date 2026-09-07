@@ -292,7 +292,12 @@ export const App: React.FC = () => {
   }
 
   if (!user) {
-    return <AuthScreen onShowToast={showToast} />;
+    return (
+      <>
+        <AuthScreen onShowToast={showToast} />
+        <ToastContainer toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
+      </>
+    );
   }
 
   return (

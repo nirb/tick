@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Mail, Lock, User as UserIcon, Users, Globe, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Users, Globe, ArrowRight, CheckCircle2, RefreshCw } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -63,7 +63,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         window.google.accounts.id.initialize({
           client_id: googleClientId,
           callback: async (response: { credential?: string }) => {
-            if (!response?.credential) return;
+            if (!response?.credential) {
+              onShowToast('No Google credential returned', 'error');
+              return;
+            }
             setSubmitting(true);
             try {
               await loginWithGoogle({
@@ -72,9 +75,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
               });
               onShowToast(t('toastSignedIn'), 'success');
             } catch (err: any) {
+              console.error('Google sign-in error:', err);
               onShowToast(err.message || 'Google sign-in failed', 'error');
             } finally {
-              setSubmitting(false);
+              if (mounted) {
+                setSubmitting(false);
+              }
             }
           },
           auto_select: false,
@@ -173,10 +179,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
 
       <div className="glass max-w-md w-full p-6 sm:p-8 relative shadow-2xl bg-slate-900/80 backdrop-blur-xl border border-white/15 rounded-3xl">
         {/* Logo & Heading with Floating Animation */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white font-black text-3xl shadow-xl shadow-sky-500/30 mb-3 animate-float">
-            ✓
-          </div>
+        <div className="flex flex-col items-center text-center mb-6 w-full">
+          <img
+            src="/icons/icon-512.png"
+            alt="Tick Mascot"
+            className="w-20 h-20 rounded-3xl shadow-2xl shadow-sky-500/30 mb-3 animate-float object-cover"
+          />
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">{t('appName')}</h2>
           <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1.5 max-w-xs">
             {mode === 'login' ? t('welcomeBackDesc') : t('createAccountDesc')}
@@ -212,7 +220,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
         {/* Google Sign-In */}
         {googleClientId ? (
           <div className="w-full flex flex-col items-center gap-2">
-            <div id="googleSignInBtnContainer" className="w-full flex justify-center min-h-[44px]" />
+            <div className="w-full flex justify-center min-h-[44px] relative">
+              <div id="googleSignInBtnContainer" className="w-full flex justify-center min-h-[44px]" />
+              {submitting && (
+                <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm z-10 flex items-center justify-center rounded-full pointer-events-auto">
+                  <RefreshCw className="w-5 h-5 text-sky-400 animate-spin" />
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => {

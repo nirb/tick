@@ -52,6 +52,8 @@ export interface Translations {
   todayAt: string;
   overdue: string;
   deleteTaskConfirm: string;
+  markDone: string;
+  markIncomplete: string;
 
   // Priority
   priority: string;
@@ -248,6 +250,8 @@ export const dictionaries: Record<Language, Translations> = {
     todayAt: 'Today at {time}',
     overdue: 'Overdue',
     deleteTaskConfirm: 'Are you sure you want to delete this task?',
+    markDone: 'Mark as done',
+    markIncomplete: 'Mark incomplete',
 
     priority: 'Priority',
     low: 'Low',
@@ -434,6 +438,8 @@ export const dictionaries: Record<Language, Translations> = {
     todayAt: 'היום ב-{time}',
     overdue: 'באיחור',
     deleteTaskConfirm: 'האם אתה בטוח שברצונך למחוק משימה זו?',
+    markDone: 'סמן כבוצע',
+    markIncomplete: 'סמן כלא הושלם',
 
     priority: 'עדיפות',
     low: 'נמוכה',
