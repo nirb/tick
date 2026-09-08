@@ -11,17 +11,33 @@ import { TaskCard } from './components/TaskCard';
 import { TaskFilters, type FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
+import { GroupSelectModal } from './components/GroupSelectModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
+import { useGroupPrompt } from './hooks/useGroupPrompt';
 import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { user, group, members, loading: authLoading } = useAuth();
+  const { user, group, groups, members, loading: authLoading, switchGroup } = useAuth();
   const { showIOSGuide, setShowIOSGuide } = usePush();
   const { isInstallModalOpen, setIsInstallModalOpen } = useInstall();
   const { t } = useLanguage();
+
+  const {
+    isGroupSelectModalOpen,
+    initialSelectedGroupId,
+    initialAutoEnter,
+    handleSelectGroup,
+    handleCloseModal: handleCloseGroupSelectModal,
+  } = useGroupPrompt({
+    user,
+    group,
+    groups,
+    loading: authLoading,
+    switchGroup,
+  });
 
   const [tasks, setTasks] = useState<TaskWithAssignee[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
@@ -428,6 +444,16 @@ export const App: React.FC = () => {
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
         onShowToast={showToast}
+      />
+
+      <GroupSelectModal
+        isOpen={isGroupSelectModalOpen}
+        groups={groups}
+        currentGroupId={group?.id}
+        initialSelectedGroupId={initialSelectedGroupId}
+        initialAutoEnter={initialAutoEnter}
+        onSelectGroup={handleSelectGroup}
+        onClose={handleCloseGroupSelectModal}
       />
 
       <InstallModal

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { Group, GroupMembership, User } from '../types';
 import { api, setToken } from '../lib/api';
 import { cacheMembers, getCachedMembers } from '../lib/offline';
+import { getCookie, setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
 
 interface AuthContextType {
   user: User | null;
@@ -37,6 +38,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
       setGroup(currentGroup);
       if (userGroups) setGroups(userGroups);
+      if (currentGroup?.id && !getCookie(COOKIE_LAST_SELECTED_GROUP)) {
+        setCookie(COOKIE_LAST_SELECTED_GROUP, currentGroup.id);
+      }
 
       const groupData = await api.groups.getMe();
       setMembers(groupData.members);
@@ -63,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
     setGroup(res.group);
     if (res.groups) setGroups(res.groups);
+    setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
+    if (res.group?.id) setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
     try {
       const groupData = await api.groups.getMe();
       setMembers(groupData.members);
@@ -79,6 +85,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
     setGroup(res.group);
     if (res.groups) setGroups(res.groups);
+    setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
+    if (res.group?.id) setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
     try {
       const groupData = await api.groups.getMe();
       setMembers(groupData.members);
@@ -95,6 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
     setGroup(res.group);
     if (res.groups) setGroups(res.groups);
+    setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
+    if (res.group?.id) setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
     try {
       const groupData = await api.groups.getMe();
       setMembers(groupData.members);
@@ -140,6 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setGroup(res.group);
       if (res.groups) setGroups(res.groups);
+      setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
+      setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       if (res.members) {
         setMembers(res.members);
         await cacheMembers(res.members);
@@ -167,6 +179,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setGroup(res.group);
       if (res.groups) setGroups(res.groups);
+      setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
+      setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       setUser((prev) => (prev ? { ...prev, group_id: res.group.id, role: 'admin' } : null));
       const groupData = await api.groups.getMe();
       setMembers(groupData.members);
@@ -185,6 +199,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setGroup(res.group);
       if (res.groups) setGroups(res.groups);
+      setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
+      setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       if (res.members) {
         setMembers(res.members);
         await cacheMembers(res.members);

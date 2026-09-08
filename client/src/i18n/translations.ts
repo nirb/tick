@@ -124,6 +124,13 @@ export interface Translations {
   leaveGroup: string;
   leaveGroupConfirm: string;
 
+  // Group Select Modal
+  selectGroupModalTitle: string;
+  selectGroupModalSubtitle: string;
+  autoEnterLastGroupCheckbox: string;
+  autoEnterNoticeWeek: string;
+  confirmSelectGroup: string;
+
   // Install Modal
   installOnIphone: string;
   installOnAndroid: string;
@@ -327,6 +334,13 @@ export const dictionaries: Record<Language, Translations> = {
     leaveGroup: 'Leave Group',
     leaveGroupConfirm: 'Are you sure you want to leave this group?',
 
+    // Group Select Modal
+    selectGroupModalTitle: 'Select Group',
+    selectGroupModalSubtitle: 'Choose which group you want to view',
+    autoEnterLastGroupCheckbox: 'Automatically enter the last used group',
+    autoEnterNoticeWeek: 'We will ask again in a week',
+    confirmSelectGroup: 'Continue',
+
     installOnIphone: 'Install Tick on iPhone',
     installOnAndroid: 'Install Tick on Android',
     installOnDesktop: 'Install Tick on Desktop',
@@ -524,6 +538,13 @@ export const dictionaries: Record<Language, Translations> = {
     manageGroup: 'ניהול קבוצה',
     leaveGroup: 'עזוב קבוצה',
     leaveGroupConfirm: 'האם אתה בטוח שברצונך לעזוב קבוצה זו?',
+
+    // Group Select Modal
+    selectGroupModalTitle: 'בחירת קבוצה',
+    selectGroupModalSubtitle: 'בחר את הקבוצה שברצונך להציג',
+    autoEnterLastGroupCheckbox: 'היכנס אוטומטית לקבוצה האחרונה',
+    autoEnterNoticeWeek: 'נשאל אותך שוב בעוד שבוע',
+    confirmSelectGroup: 'המשך',
 
     installOnIphone: 'התקנת "הקרציה" באייפון',
     installOnAndroid: 'התקנת "הקרציה" באנדרואיד',
