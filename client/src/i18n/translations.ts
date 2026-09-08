@@ -50,6 +50,13 @@ export interface Translations {
   nudge: string;
   nudged: string;
   todayAt: string;
+  today: string;
+  inDays: string;
+  inOneDay: string;
+  inTwoDays: string;
+  daysAgo: string;
+  oneDayAgo: string;
+  twoDaysAgo: string;
   overdue: string;
   deleteTaskConfirm: string;
   markDone: string;
@@ -251,6 +258,13 @@ export const dictionaries: Record<Language, Translations> = {
     nudge: 'Nudge',
     nudged: 'Nudged! 🔔',
     todayAt: 'Today at {time}',
+    today: 'Today',
+    inOneDay: 'in 1 day',
+    inTwoDays: 'in 2 days',
+    inDays: 'in {days} days',
+    oneDayAgo: '1 day ago',
+    twoDaysAgo: '2 days ago',
+    daysAgo: '{days} days ago',
     overdue: 'Overdue',
     deleteTaskConfirm: 'Are you sure you want to delete this task?',
     markDone: 'Mark as done',
@@ -442,6 +456,13 @@ export const dictionaries: Record<Language, Translations> = {
     nudge: 'נדנד',
     nudged: 'נשלחה תזכורת! 🔔',
     todayAt: 'היום ב-{time}',
+    today: 'היום',
+    inOneDay: 'בעוד יום',
+    inTwoDays: 'בעוד יומיים',
+    inDays: 'בעוד {days} ימים',
+    oneDayAgo: 'לפני יום',
+    twoDaysAgo: 'לפני יומיים',
+    daysAgo: 'לפני {days} ימים',
     overdue: 'באיחור',
     deleteTaskConfirm: 'האם אתה בטוח שברצונך למחוק משימה זו?',
     markDone: 'סמן כבוצע',

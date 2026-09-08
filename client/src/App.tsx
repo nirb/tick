@@ -245,6 +245,8 @@ export const App: React.FC = () => {
     low: 4,
   };
 
+  const FIVE_DAYS_IN_SECONDS = 5 * 86400;
+
   const sortedTasks = [...filteredTasks].sort((a, b) => {
     // 1. Status: completed last
     const statusRank = (s: string) => (s === 'completed' ? 2 : 1);
@@ -255,22 +257,39 @@ export const App: React.FC = () => {
     const aHasDeadline = typeof a.due_at === 'number' && a.due_at > 0;
     const bHasDeadline = typeof b.due_at === 'number' && b.due_at > 0;
 
-    // 2. Tasks without deadline come first (before tasks with deadline)
-    if (!aHasDeadline && bHasDeadline) return -1;
-    if (aHasDeadline && !bHasDeadline) return 1;
+    // Tasks without due date OR tasks with due date in less than 4 days
+    const aInPriorityPool = !aHasDeadline || a.due_at! < now + FIVE_DAYS_IN_SECONDS;
+    const bInPriorityPool = !bHasDeadline || b.due_at! < now + FIVE_DAYS_IN_SECONDS;
+
+    // 2. Priority pool comes before tasks with distant deadlines (4+ days away)
+    if (aInPriorityPool && !bInPriorityPool) return -1;
+    if (!aInPriorityPool && bInPriorityPool) return 1;
 
     const prioA = priorityRank[a.priority] ?? 3;
     const prioB = priorityRank[b.priority] ?? 3;
 
-    // 3. For tasks without deadline: sort according to task priority (urgent > high > medium > low)
-    if (!aHasDeadline && !bHasDeadline) {
+    // 3. For tasks in the priority pool: sort according to priority (urgent > high > medium > low)
+    if (aInPriorityPool && bInPriorityPool) {
       if (prioA !== prioB) {
         return prioA - prioB;
       }
+
+      // Tie-break for same priority:
+      // Earlier due date first, then tasks without due date
+      if (aHasDeadline && bHasDeadline) {
+        if (a.due_at !== b.due_at) {
+          return (a.due_at ?? 0) - (b.due_at ?? 0);
+        }
+      } else if (aHasDeadline && !bHasDeadline) {
+        return -1;
+      } else if (!aHasDeadline && bHasDeadline) {
+        return 1;
+      }
+
       return b.created_at - a.created_at;
     }
 
-    // 4. For tasks with deadline: sort according to deadline (earlier deadline first)
+    // 4. For distant tasks (due date in 4+ days): sort by earlier due date first
     if (a.due_at !== b.due_at) {
       return (a.due_at ?? 0) - (b.due_at ?? 0);
     }

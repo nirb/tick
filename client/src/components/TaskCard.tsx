@@ -88,15 +88,36 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     if (!epoch) return null;
     const date = new Date(epoch * 1000);
     const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
     const isOverdue = epoch < Math.floor(Date.now() / 1000) && !isCompleted;
 
-    const timeStr = date.toLocaleTimeString(language === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = isToday
-      ? t('todayAt', { time: timeStr })
-      : date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' }) + ` ${timeStr}`;
+    const dateStr = date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      ...(date.getFullYear() !== now.getFullYear() ? { year: 'numeric' } : {}),
+    });
 
-    return { text: dateStr, isOverdue };
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.round((targetDate.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    let relativeStr = '';
+    if (diffDays === 0) {
+      relativeStr = t('today');
+    } else if (diffDays === 1) {
+      relativeStr = t('inOneDay');
+    } else if (diffDays === 2) {
+      relativeStr = t('inTwoDays');
+    } else if (diffDays > 2) {
+      relativeStr = t('inDays', { days: diffDays });
+    } else if (diffDays === -1) {
+      relativeStr = t('oneDayAgo');
+    } else if (diffDays === -2) {
+      relativeStr = t('twoDaysAgo');
+    } else {
+      relativeStr = t('daysAgo', { days: Math.abs(diffDays) });
+    }
+
+    return { text: `${dateStr} · ${relativeStr}`, isOverdue };
   };
 
   const dueInfo = formatDue(task.due_at);
