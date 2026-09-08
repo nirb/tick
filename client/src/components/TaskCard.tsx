@@ -72,10 +72,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const dueInfo = formatDue(task.due_at);
 
   const priorityColors = {
-    low: 'bg-slate-500/20 text-slate-200 border-slate-400/30 font-semibold',
-    medium: 'bg-sky-500/20 text-sky-200 border-sky-400/40 font-semibold',
-    high: 'bg-amber-500/20 text-amber-200 border-amber-400/40 font-semibold',
-    urgent: 'bg-rose-500/25 text-rose-200 border-rose-400/40 font-bold shadow-sm shadow-rose-500/20',
+    low: 'bg-white/15 text-white border-white/35 font-semibold',
+    medium: 'bg-blue-500/20 text-blue-200 border-blue-400/40 font-semibold',
+    high: 'bg-orange-500/20 text-orange-200 border-orange-400/40 font-semibold',
+    urgent: 'bg-red-500/25 text-red-200 border-red-400/40 font-bold shadow-sm shadow-red-500/20',
+  };
+
+  const priorityBorderClasses = {
+    low: 'border-s-4 border-s-white/80 hover:border-s-white',
+    medium: 'border-s-4 border-s-blue-400 hover:border-s-blue-300',
+    high: 'border-s-4 border-s-orange-400 hover:border-s-orange-300',
+    urgent: 'border-s-4 border-s-red-500 hover:border-s-red-400',
   };
 
   const handleNudge = async () => {
@@ -123,9 +130,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer ${showMenu
         ? 'pt-3.5 px-3.5 pb-28 sm:pt-4 sm:px-4 sm:pb-28 z-30'
         : 'p-3.5 sm:p-4 z-0'
-        } ${isCompleted
+        } ${priorityBorderClasses[task.priority] || priorityBorderClasses.medium} ${isCompleted
           ? 'border-white/5 bg-slate-900/40 opacity-60'
-          : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-sky-400/50 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
+          : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-white/25 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
         }`}
     >
       <div className="flex items-start gap-3">
@@ -163,13 +170,31 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               />
             </div>
 
-            {/* Priority Badge */}
-            <span
-              className={`px-2.5 py-0.5 rounded-full border text-xs capitalize shrink-0 font-semibold ${priorityColors[task.priority] || priorityColors.medium
-                }`}
-            >
-              {t(task.priority)}
-            </span>
+            {/* Right side of header: Priority badge when extended, Due date when closed */}
+            {isExpanded ? (
+              <span
+                className={`px-2.5 py-0.5 rounded-full border text-xs capitalize shrink-0 font-semibold ${priorityColors[task.priority] || priorityColors.medium
+                  }`}
+              >
+                {t(task.priority)}
+              </span>
+            ) : (
+              dueInfo && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-semibold shrink-0 ${dueInfo.isOverdue
+                    ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
+                    : 'bg-white/10 text-slate-200 border-white/15'
+                    }`}
+                >
+                  {dueInfo.isOverdue ? (
+                    <Clock className="w-3 h-3 text-rose-300" />
+                  ) : (
+                    <Calendar className="w-3 h-3 text-sky-400" />
+                  )}
+                  <span>{dueInfo.text}</span>
+                </span>
+              )
+            )}
           </div>
 
           {/* Expanded Section: Description/Checklist + Second Line Badges */}

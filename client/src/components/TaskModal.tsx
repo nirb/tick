@@ -188,11 +188,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
-  const priorityOptions: { value: TaskPriority; label: string; color: string }[] = [
-    { value: 'low', label: t('low'), color: 'bg-slate-500/20 text-slate-200 border-slate-400/40 font-semibold' },
-    { value: 'medium', label: t('medium'), color: 'bg-sky-500/20 text-sky-200 border-sky-400/40 font-semibold' },
-    { value: 'high', label: t('high'), color: 'bg-amber-500/20 text-amber-200 border-amber-400/40 font-semibold' },
-    { value: 'urgent', label: t('urgent'), color: 'bg-rose-500/25 text-rose-200 border-rose-400/40 font-bold' },
+  const priorityOptions: { value: TaskPriority; label: string; color: string; activeRing: string }[] = [
+    { value: 'low', label: t('low'), color: 'bg-white/15 text-white border-white/40 font-semibold', activeRing: 'ring-2 ring-white border-white' },
+    { value: 'medium', label: t('medium'), color: 'bg-blue-500/20 text-blue-200 border-blue-400/40 font-semibold', activeRing: 'ring-2 ring-blue-400 border-blue-400' },
+    { value: 'high', label: t('high'), color: 'bg-orange-500/20 text-orange-200 border-orange-400/40 font-semibold', activeRing: 'ring-2 ring-orange-400 border-orange-400' },
+    { value: 'urgent', label: t('urgent'), color: 'bg-red-500/25 text-red-200 border-red-400/40 font-bold shadow-sm shadow-red-500/20', activeRing: 'ring-2 ring-red-400 border-red-400' },
   ];
 
   return (
@@ -398,8 +398,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   onClick={() => setPriority(opt.value)}
                   className={`py-2 px-1 rounded-xl text-xs text-center border transition-all font-bold ${
                     priority === opt.value
-                      ? `${opt.color} ring-2 ring-sky-400 border-sky-400/70 shadow-sm shadow-sky-500/20`
-                      : `${opt.color} opacity-70 hover:opacity-100`
+                      ? `${opt.color} ${opt.activeRing} shadow-sm opacity-100`
+                      : `${opt.color} opacity-60 hover:opacity-100`
                   }`}
                 >
                   {opt.label}
