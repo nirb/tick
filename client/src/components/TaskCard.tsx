@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
 import { Avatar } from './Avatar';
+import { HyperlinkText } from './HyperlinkText';
 
 interface TaskCardProps {
   task: TaskWithAssignee;
@@ -238,7 +239,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                                 : 'text-slate-200 hover:text-white'
                               }`}
                           >
-                            {item.description}
+                            <HyperlinkText
+                              text={item.description}
+                              linkClassName={
+                                item.status === 'done' || isCompleted
+                                  ? 'text-sky-400/70 hover:text-sky-300'
+                                  : undefined
+                              }
+                            />
                           </span>
                         </div>
                       ))}
@@ -264,7 +272,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     className={`text-xs sm:text-sm p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
                       }`}
                   >
-                    {content?.description}
+                    <HyperlinkText
+                      text={content?.description}
+                      linkClassName={isCompleted ? 'text-sky-400/70 hover:text-sky-300' : undefined}
+                    />
                   </p>
                 )
               )}
