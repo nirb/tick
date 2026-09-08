@@ -77,6 +77,9 @@ export interface Translations {
   taskTitlePlaceholder: string;
   descriptionNotes: string;
   descriptionPlaceholder: string;
+  copyDescription: string;
+  descriptionCopied: string;
+  toastDescriptionCopied: string;
   assignTo: string;
   dueDateTime: string;
   createTask: string;
@@ -272,6 +275,8 @@ export const dictionaries: Record<Language, Translations> = {
     taskTitlePlaceholder: 'e.g. Empty dishwasher, Take out trash, Math homework',
     descriptionNotes: 'Description / Notes',
     descriptionPlaceholder: 'Any details or specific instructions...',
+    copyDescription: 'Copy description',
+    descriptionCopied: 'Description copied to clipboard',
     assignTo: 'Assign To',
     dueDateTime: 'Due Date & Time',
     createTask: 'Create Task',
@@ -383,6 +388,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastWorkingOffline: 'Working offline. Local changes will be saved.',
     toastCodeCopied: 'Invite code copied to clipboard!',
     toastLinkCopied: 'Shareable invite link copied!',
+    toastDescriptionCopied: 'Description copied to clipboard',
     toastJoinedGroup: 'Successfully joined group! 👥',
     toastGroupNameUpdated: 'Group name updated! 👥',
     toastUserNameUpdated: 'Your name has been updated! 👤',
@@ -460,6 +466,8 @@ export const dictionaries: Record<Language, Translations> = {
     taskTitlePlaceholder: 'לדוגמה: לרוקן מדיח, להוריד זבל, שיעורי מתמטיקה',
     descriptionNotes: 'תיאור / הערות',
     descriptionPlaceholder: 'פרטים נוספים או הוראות ספציפיות...',
+    copyDescription: 'העתק תיאור',
+    descriptionCopied: 'תיאור המשימה הועתק ללוח',
     assignTo: 'שיוך ל-',
     dueDateTime: 'תאריך ושעה לביצוע',
     createTask: 'צור משימה',
@@ -571,6 +579,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastWorkingOffline: 'פועל במצב לא מקוון. השינויים יישמרו מקומית.',
     toastCodeCopied: 'קוד ההזמנה הועתק ללוח!',
     toastLinkCopied: 'קישור ההזמנה הועתק!',
+    toastDescriptionCopied: 'תיאור המשימה הועתק ללוח',
     toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
     toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
     toastUserNameUpdated: 'שמך עודכן בהצלחה! 👤',

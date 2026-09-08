@@ -13,6 +13,7 @@ import {
   Calendar,
   ChevronDown,
   CheckSquare,
+  Copy,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
 import { Avatar } from './Avatar';
@@ -25,6 +26,7 @@ interface TaskCardProps {
   onEdit: (task: TaskWithAssignee) => void;
   onDelete: (taskId: string) => void;
   onUpdateDescription?: (taskId: string, description: string | null) => Promise<void>;
+  onShowToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -34,6 +36,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onEdit,
   onDelete,
   onUpdateDescription,
+  onShowToast,
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -41,8 +44,34 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [nudged, setNudged] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copiedDescription, setCopiedDescription] = useState(false);
 
   const content = parseTaskContent(task.description);
+
+  const handleCopyDescription = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!content || content.type !== 'description' || !content.description) return;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(content.description);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = content.description;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedDescription(true);
+      onShowToast?.(t('toastDescriptionCopied'), 'success');
+      setTimeout(() => setCopiedDescription(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
   const hasContent =
     content !== null &&
     ((content.type === 'description' && content.description.length > 0) ||
@@ -268,15 +297,43 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     )}
                   </div>
                 ) : (
-                  <p
-                    className={`text-xs sm:text-sm p-2.5 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
+                  <div className="relative group/desc">
+                    <p
+                      className={`text-xs sm:text-sm p-2.5 pe-8 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${
+                        isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
                       }`}
-                  >
-                    <HyperlinkText
-                      text={content?.description}
-                      linkClassName={isCompleted ? 'text-sky-400/70 hover:text-sky-300' : undefined}
-                    />
-                  </p>
+                    >
+                      <HyperlinkText
+                        text={content?.description}
+                        linkClassName={isCompleted ? 'text-sky-400/70 hover:text-sky-300' : undefined}
+                      />
+                    </p>
+                    <div className="absolute top-1.5 end-1.5 flex items-center">
+                      {copiedDescription && (
+                        <div
+                          role="status"
+                          aria-live="polite"
+                          className="absolute -top-7.5 end-0 px-2 py-0.5 rounded-lg bg-slate-900/95 border border-emerald-400/40 text-[11px] font-medium text-emerald-300 shadow-xl shadow-black/60 flex items-center gap-1 whitespace-nowrap animate-in fade-in zoom-in-95 duration-150 pointer-events-none z-20"
+                        >
+                          <Check className="w-3 h-3 text-emerald-400 stroke-[2.5]" />
+                          <span>{t('descriptionCopied')}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleCopyDescription}
+                        className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                        title={copiedDescription ? t('descriptionCopied') : t('copyDescription')}
+                        aria-label={copiedDescription ? t('descriptionCopied') : t('copyDescription')}
+                      >
+                        {copiedDescription ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )
               )}
 

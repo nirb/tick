@@ -371,6 +371,7 @@ export const App: React.FC = () => {
                 }}
                 onDelete={handleDeleteTask}
                 onUpdateDescription={handleUpdateDescription}
+                onShowToast={showToast}
               />
             ))}
           </div>
