@@ -130,7 +130,7 @@
 
 .animate-dropdown-expand {
   animation: dropdownExpand 2.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transform-origin: top;
+  transform-origin: top center;
 }
 
 @media (prefers-reduced-motion: reduce) {

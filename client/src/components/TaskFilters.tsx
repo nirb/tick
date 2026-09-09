@@ -123,7 +123,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
       {/* Expanded Options Panel (Dropdown with smooth expand animation) */}
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-40">
+        <div className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40">
           <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2.5 text-xs text-slate-100 animate-dropdown-expand">
             {/* Header */}
           <div className="px-2.5 py-1.5 border-b border-white/10 mb-1.5 flex items-center justify-between text-slate-300 font-bold">
