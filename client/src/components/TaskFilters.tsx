@@ -94,40 +94,38 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
-          isOpen
+        className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${isOpen
             ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
             : isCompleted
-            ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25'
-            : activeMember || isUnassigned
-            ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25'
-            : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
-        }`}
+              ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25'
+              : activeMember || isUnassigned
+                ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25'
+                : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+          }`}
       >
         {triggerIcon}
         <span className="truncate max-w-[70px] sm:max-w-[100px]">{triggerLabel}</span>
         <span
-          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
-            isOpen || activeMember || isUnassigned
+          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isOpen || activeMember || isUnassigned
               ? 'bg-sky-400/25 text-sky-200'
               : isCompleted
-              ? 'bg-emerald-400/25 text-emerald-200'
-              : 'bg-white/10 text-slate-300'
-          }`}
+                ? 'bg-emerald-400/25 text-emerald-200'
+                : 'bg-white/10 text-slate-300'
+            }`}
         >
           {triggerCount}
         </span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
-            isOpen ? 'rotate-180 text-white' : ''
-          }`}
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-white' : ''
+            }`}
         />
       </button>
 
       {/* Expanded Options Panel (Dropdown with smooth expand animation) */}
       {isOpen && (
-        <div className="absolute end-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2.5 z-40 text-xs text-slate-100 animate-dropdown-expand">
-          {/* Header */}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-40">
+          <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2.5 text-xs text-slate-100 animate-dropdown-expand">
+            {/* Header */}
           <div className="px-2.5 py-1.5 border-b border-white/10 mb-1.5 flex items-center justify-between text-slate-300 font-bold">
             <span className="flex items-center gap-1.5">
               <Filter className="w-3.5 h-3.5 text-sky-400" />
@@ -142,19 +140,17 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
           <button
             type="button"
             onClick={handleSelectEveryone}
-            className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-              isEveryone
+            className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${isEveryone
                 ? 'bg-gradient-to-r from-sky-500/25 to-indigo-500/25 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
                 : 'hover:bg-white/10 text-slate-200 font-medium'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
               <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                  isEveryone
+                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${isEveryone
                     ? 'bg-sky-500/20 border-sky-400/40 text-sky-300'
                     : 'bg-white/5 border-white/10 text-slate-400'
-                }`}
+                  }`}
               >
                 <Users className="w-3.5 h-3.5" />
               </div>
@@ -163,9 +159,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
             <div className="flex items-center gap-2 shrink-0">
               <span
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
-                  isEveryone ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
-                }`}
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isEveryone ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
+                  }`}
               >
                 {openTasks.length}
               </span>
@@ -193,11 +188,10 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
                       key={member.id}
                       type="button"
                       onClick={() => handleSelectMember(member.id)}
-                      className={`w-full text-start px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                        isSelected
+                      className={`w-full text-start px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition-colors ${isSelected
                           ? 'bg-gradient-to-r from-sky-500/25 to-indigo-500/25 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
                           : 'hover:bg-white/10 text-slate-200 font-medium'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
                         <Avatar url={member.avatar_url} name={member.name} size="xs" />
@@ -206,9 +200,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
                       <div className="flex items-center gap-2 shrink-0">
                         <span
-                          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
-                            isSelected ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
-                          }`}
+                          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isSelected ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
+                            }`}
                         >
                           {memberCount}
                         </span>
@@ -230,19 +223,17 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             <button
               type="button"
               onClick={handleSelectUnassigned}
-              className={`w-full text-start px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                isUnassigned
+              className={`w-full text-start px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition-colors ${isUnassigned
                   ? 'bg-gradient-to-r from-sky-500/25 to-indigo-500/25 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
                   : 'hover:bg-white/10 text-slate-200 font-medium'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                    isUnassigned
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${isUnassigned
                       ? 'bg-amber-500/20 border-amber-400/40 text-amber-300'
                       : 'bg-white/5 border-white/10 text-slate-400'
-                  }`}
+                    }`}
                 >
                   <UserX className="w-3.5 h-3.5" />
                 </div>
@@ -251,9 +242,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
               <div className="flex items-center gap-2 shrink-0">
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
-                    isUnassigned ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isUnassigned ? 'bg-sky-500/30 text-sky-200' : 'bg-white/10 text-slate-300'
+                    }`}
                 >
                   {unassignedCount}
                 </span>
@@ -271,19 +261,17 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             <button
               type="button"
               onClick={handleSelectCompleted}
-              className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                isCompleted
+              className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${isCompleted
                   ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/25 text-white font-bold border border-emerald-400/40 shadow-sm shadow-emerald-500/10'
                   : 'hover:bg-white/10 text-slate-200 font-medium'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                    isCompleted
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${isCompleted
                       ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-300'
                       : 'bg-white/5 border-white/10 text-slate-400'
-                  }`}
+                    }`}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
@@ -292,9 +280,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
               <div className="flex items-center gap-2 shrink-0">
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
-                    isCompleted ? 'bg-emerald-500/30 text-emerald-200' : 'bg-white/10 text-slate-300'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isCompleted ? 'bg-emerald-500/30 text-emerald-200' : 'bg-white/10 text-slate-300'
+                    }`}
                 >
                   {completedTasks.length}
                 </span>
@@ -307,7 +294,8 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
             </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 };

@@ -26,7 +26,6 @@ import { Avatar } from './Avatar';
 
 interface NavbarProps {
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  onCreateTask: () => void;
   onOpenGroup: () => void;
   currentTab: FilterTab;
   onTabChange: (tab: FilterTab) => void;
@@ -38,7 +37,6 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   onShowToast,
-  onCreateTask,
   onOpenGroup,
   currentTab,
   onTabChange,
@@ -254,156 +252,162 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-white/12 shadow-lg shadow-black/30">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
-        {/* Brand & Group Title */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+        {/* Mascot Logo */}
+        <button
+          type="button"
+          onClick={() => {
+            onTabChange('all');
+            onAssigneeChange('');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          aria-label={t('appName')}
+          className="shrink-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-transform active:scale-95 cursor-pointer"
+        >
           <img
             src="/icons/icon-192.png"
-            alt="Tick Mascot"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-sky-500/20 shrink-0 object-cover"
+            alt={t('appName')}
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-sky-500/20 object-cover select-none"
           />
+        </button>
 
-          <div className="relative min-w-0" ref={groupMenuRef}>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={toggleGroupMenu}
-                aria-expanded={showGroupMenu}
-                aria-haspopup="true"
-                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 max-w-full ${
-                  showGroupMenu
-                    ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
-                    : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
-                }`}
-              >
-                <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[110px] sm:max-w-[180px] md:max-w-xs">
-                  {group?.name || t('appName')}
-                </span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
-                    showGroupMenu ? 'rotate-180 text-white' : ''
-                  }`}
-                />
-              </button>
-
-              <span className="hidden md:inline text-xs text-slate-400 font-medium truncate max-w-xs">
-                {t('appTagline')}
-              </span>
-            </div>
+        {/* Group Selection */}
+        <div className="relative shrink-0" ref={groupMenuRef}>
+          <button
+            type="button"
+            onClick={toggleGroupMenu}
+            aria-expanded={showGroupMenu}
+            aria-haspopup="true"
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 max-w-full ${
+              showGroupMenu
+                ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
+                : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+            }`}
+          >
+            <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[95px] sm:max-w-[150px] md:max-w-[180px]">
+              {group?.name || t('appName')}
+            </span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+                showGroupMenu ? 'rotate-180 text-white' : ''
+              }`}
+            />
+          </button>
 
             {showGroupMenu && (
-              <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 z-40 text-xs text-slate-100 animate-in fade-in zoom-in-95">
-                <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-sky-400" />
-                    {t('myGroups')}
-                  </span>
-                  <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
-                    {displayGroups.length}
-                  </span>
-                </div>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-40">
+                <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 text-xs text-slate-100 animate-dropdown-expand">
+                  <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      {t('myGroups')}
+                    </span>
+                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
+                      {displayGroups.length}
+                    </span>
+                  </div>
 
-                {/* List of groups */}
-                <div className="max-h-52 overflow-y-auto space-y-1 my-1">
-                  {displayGroups.map((g) => {
-                    const isActive = g.group_id === group?.id;
-                    const isSwitching = switchingGroupId === g.group_id;
-                    return (
-                      <button
-                        key={g.group_id}
-                        onClick={() => handleSwitchGroup(g.group_id)}
-                        disabled={isSwitching}
-                        className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                          isActive
-                            ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
-                            : 'hover:bg-white/10 text-slate-200 font-medium'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                          {isActive ? (
-                            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                          ) : isSwitching ? (
-                            <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
-                          ) : (
-                            <div className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          <span className="truncate">{g.name}</span>
-                        </div>
-                        <span
-                          className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
-                            g.role === 'admin'
-                              ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
-                              : 'bg-white/10 text-slate-300 border-white/15'
+                  {/* List of groups */}
+                  <div className="max-h-52 overflow-y-auto space-y-1 my-1">
+                    {displayGroups.map((g) => {
+                      const isActive = g.group_id === group?.id;
+                      const isSwitching = switchingGroupId === g.group_id;
+                      return (
+                        <button
+                          key={g.group_id}
+                          onClick={() => handleSwitchGroup(g.group_id)}
+                          disabled={isSwitching}
+                          className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
+                            isActive
+                              ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
+                              : 'hover:bg-white/10 text-slate-200 font-medium'
                           }`}
                         >
-                          {g.role === 'admin' ? t('adminRole') : t('memberRole')}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                            {isActive ? (
+                              <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                            ) : isSwitching ? (
+                              <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
+                            ) : (
+                              <div className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span className="truncate">{g.name}</span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
+                              g.role === 'admin'
+                                ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
+                                : 'bg-white/10 text-slate-300 border-white/15'
+                            }`}
+                          >
+                            {g.role === 'admin' ? t('adminRole') : t('memberRole')}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                {/* Creation inline form or Action Buttons */}
-                <div className="pt-1.5 border-t border-white/10 space-y-1">
-                  {isCreatingGroup ? (
-                    <form onSubmit={handleCreateGroupSubmit} className="p-1 space-y-2">
-                      <input
-                        type="text"
-                        value={newGroupName}
-                        onChange={(e) => setNewGroupName(e.target.value)}
-                        placeholder={t('newGroupName')}
-                        maxLength={50}
-                        autoFocus
-                        disabled={creatingGroupLoading}
-                        className="w-full px-2.5 py-1 bg-slate-950/80 border border-sky-400/50 rounded-lg text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
-                      />
-                      <div className="flex items-center gap-1.5 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsCreatingGroup(false);
-                            setNewGroupName('');
-                          }}
+                  {/* Creation inline form or Action Buttons */}
+                  <div className="pt-1.5 border-t border-white/10 space-y-1">
+                    {isCreatingGroup ? (
+                      <form onSubmit={handleCreateGroupSubmit} className="p-1 space-y-2">
+                        <input
+                          type="text"
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          placeholder={t('newGroupName')}
+                          maxLength={50}
+                          autoFocus
                           disabled={creatingGroupLoading}
-                          className="px-2 py-1 text-[11px] text-slate-400 hover:text-white rounded-lg transition-colors"
-                        >
-                          {t('cancel')}
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={creatingGroupLoading || !newGroupName.trim()}
-                          className="px-2.5 py-1 text-[11px] bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
-                        >
-                          {creatingGroupLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
-                          <span>{t('create')}</span>
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => setIsCreatingGroup(true)}
-                      className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-sky-300 font-semibold transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>{t('createNewGroup')}</span>
-                    </button>
-                  )}
+                          className="w-full px-2.5 py-1 bg-slate-950/80 border border-sky-400/50 rounded-lg text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
+                        />
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCreatingGroup(false);
+                              setNewGroupName('');
+                            }}
+                            disabled={creatingGroupLoading}
+                            className="px-2 py-1 text-[11px] text-slate-400 hover:text-white rounded-lg transition-colors"
+                          >
+                            {t('cancel')}
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={creatingGroupLoading || !newGroupName.trim()}
+                            className="px-2.5 py-1 text-[11px] bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {creatingGroupLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
+                            <span>{t('create')}</span>
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setIsCreatingGroup(true)}
+                        className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-sky-300 font-semibold transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{t('createNewGroup')}</span>
+                      </button>
+                    )}
 
-                  <button
-                    onClick={() => {
-                      setShowGroupMenu(false);
-                      onOpenGroup();
-                    }}
-                    className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-slate-300 font-semibold transition-colors"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{t('manageGroup')}</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        setShowGroupMenu(false);
+                        onOpenGroup();
+                      }}
+                      className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-slate-300 font-semibold transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{t('manageGroup')}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        </div>
 
         {/* Filter Dropdown (shows only "Everyone" by default, expands on click) */}
         <div ref={filterMenuRef} className="shrink-0">
@@ -420,15 +424,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           />
         </div>
 
-        {/* Create Task Button */}
-        <button
-          onClick={onCreateTask}
-          className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 h-9 sm:h-10 glow-btn text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm shadow-sky-500/25 shrink-0"
-        >
-          <Plus className="w-4 h-4 stroke-[3]" />
-          <span className="hidden sm:inline">{t('createTask')}</span>
-        </button>
-
         {/* Menu (3 horizontal lines) */}
         <div className="relative shrink-0" ref={menuRef}>
           <button
@@ -440,7 +435,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
             {isMenuOpen && (
-              <div className="absolute end-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-in fade-in zoom-in-95 space-y-3">
+              <div className="absolute end-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-in fade-in zoom-in-95 space-y-3">
                 {/* User Profile Info */}
                 {user && (
                   <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">

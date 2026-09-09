@@ -236,7 +236,7 @@ export const dictionaries: Record<Language, Translations> = {
     gotIt: 'Got it!',
     you: 'You',
     anyone: 'Anyone',
-    everyone: 'Everyone',
+    everyone: 'All',
     unassigned: 'Unassigned',
 
     pushOn: 'Push On',
@@ -441,7 +441,7 @@ export const dictionaries: Record<Language, Translations> = {
     gotIt: 'הבנתי!',
     you: 'אתה',
     anyone: 'לכל אחד',
-    everyone: 'כולם',
+    everyone: 'הכל',
     unassigned: 'ללא שיוך',
 
     pushOn: 'התראות פעילות',

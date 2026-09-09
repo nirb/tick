@@ -340,10 +340,6 @@ export const App: React.FC = () => {
       {/* Top Navigation */}
       <Navbar
         onShowToast={showToast}
-        onCreateTask={() => {
-          setTaskToEdit(null);
-          setIsTaskModalOpen(true);
-        }}
         onOpenGroup={() => setIsGroupModalOpen(true)}
         currentTab={currentTab}
         onTabChange={setCurrentTab}
@@ -409,14 +405,14 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Floating Action Button (Mobile) */}
-      <div className="sm:hidden fixed bottom-6 end-6 z-30">
+      {/* Floating Action Button (All Screen Sizes) */}
+      <div className="fixed bottom-6 end-6 z-30">
         <button
           onClick={() => {
             setTaskToEdit(null);
             setIsTaskModalOpen(true);
           }}
-          className="w-14 h-14 rounded-full glow-btn text-white flex items-center justify-center shadow-xl shadow-sky-500/30 active:scale-95 transition-all"
+          className="w-14 h-14 rounded-full glow-btn text-white flex items-center justify-center shadow-xl shadow-sky-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer"
           aria-label={t('createTask')}
         >
           <Plus className="w-6 h-6 stroke-[3]" />
