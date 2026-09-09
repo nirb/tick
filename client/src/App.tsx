@@ -8,7 +8,7 @@ import { cacheTasks, getCachedTasks } from './lib/offline';
 import type { TaskWithAssignee, TaskPriority } from './types';
 import { Navbar } from './components/Navbar';
 import { TaskCard } from './components/TaskCard';
-import { TaskFilters, type FilterTab } from './components/TaskFilters';
+import type { FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
 import { GroupSelectModal } from './components/GroupSelectModal';
@@ -345,20 +345,16 @@ export const App: React.FC = () => {
           setIsTaskModalOpen(true);
         }}
         onOpenGroup={() => setIsGroupModalOpen(true)}
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        selectedAssignee={selectedAssignee}
+        onAssigneeChange={setSelectedAssignee}
+        members={members}
+        tasks={tasks}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 pb-24">
-        {/* Filters */}
-        <TaskFilters
-          currentTab={currentTab}
-          onTabChange={setCurrentTab}
-          selectedAssignee={selectedAssignee}
-          onAssigneeChange={setSelectedAssignee}
-          members={members}
-          tasks={tasks}
-        />
-
         {/* Task List */}
         {loadingTasks && tasks.length === 0 ? (
           <div className="py-12 flex justify-center items-center text-slate-400">

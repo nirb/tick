@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { usePush } from '../context/PushContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useInstall } from '../context/InstallContext';
-import type { GroupMembership } from '../types';
+import type { GroupMembership, User, TaskWithAssignee } from '../types';
+import { TaskFilters, type FilterTab } from './TaskFilters';
 import {
   Menu,
   X,
@@ -27,12 +28,24 @@ interface NavbarProps {
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   onCreateTask: () => void;
   onOpenGroup: () => void;
+  currentTab: FilterTab;
+  onTabChange: (tab: FilterTab) => void;
+  selectedAssignee: string;
+  onAssigneeChange: (assigneeId: string) => void;
+  members: User[];
+  tasks: TaskWithAssignee[];
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onShowToast,
   onCreateTask,
   onOpenGroup,
+  currentTab,
+  onTabChange,
+  selectedAssignee,
+  onAssigneeChange,
+  members,
+  tasks,
 }) => {
   const { user, group, groups, switchGroup, createGroup, logout, updateUserName } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
@@ -42,6 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Menu states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [creatingGroupLoading, setCreatingGroupLoading] = useState(false);
@@ -54,6 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const menuRef = useRef<HTMLDivElement>(null);
   const groupMenuRef = useRef<HTMLDivElement>(null);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -65,18 +80,47 @@ export const Navbar: React.FC<NavbarProps> = ({
         setShowGroupMenu(false);
         setIsCreatingGroup(false);
       }
+      if (filterMenuRef.current && !filterMenuRef.current.contains(target)) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+        setShowGroupMenu(false);
+        setIsCreatingGroup(false);
+        setIsFilterOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  const toggleFilterMenu = () => {
+    setIsFilterOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsMenuOpen(false);
+        setShowGroupMenu(false);
+        setIsCreatingGroup(false);
+      }
+      return next;
+    });
+  };
 
   const toggleGroupMenu = () => {
     setShowGroupMenu((prev) => {
       const next = !prev;
-      if (next) setIsMenuOpen(false);
+      if (next) {
+        setIsMenuOpen(false);
+        setIsFilterOpen(false);
+      }
       return next;
     });
     setIsCreatingGroup(false);
@@ -89,6 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (next) {
         setShowGroupMenu(false);
         setIsCreatingGroup(false);
+        setIsFilterOpen(false);
       }
       return next;
     });
@@ -221,15 +266,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative min-w-0" ref={groupMenuRef}>
             <div className="flex items-center gap-2 sm:gap-3">
               <button
+                type="button"
                 onClick={toggleGroupMenu}
-                className="group flex items-center gap-1.5 sm:gap-2 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-xl max-w-full"
+                aria-expanded={showGroupMenu}
+                aria-haspopup="true"
+                className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 max-w-full ${
+                  showGroupMenu
+                    ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
+                    : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+                }`}
               >
-                <h2 className="text-base sm:text-lg md:text-xl font-black tracking-tight gradient-text truncate max-w-[130px] sm:max-w-[200px] md:max-w-xs">
+                <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[110px] sm:max-w-[180px] md:max-w-xs">
                   {group?.name || t('appName')}
-                </h2>
+                </span>
                 <ChevronDown
-                  className={`w-4 h-4 text-slate-400 group-hover:text-white transition-transform duration-200 shrink-0 ${
-                    showGroupMenu ? 'rotate-180' : ''
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+                    showGroupMenu ? 'rotate-180 text-white' : ''
                   }`}
                 />
               </button>
@@ -353,26 +405,39 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Action Controls & Hamburger Menu */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Create Task Button */}
-          <button
-            onClick={onCreateTask}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 glow-btn text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm shadow-sky-500/25"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            <span className="hidden sm:inline">{t('createTask')}</span>
-          </button>
+        {/* Filter Dropdown (shows only "Everyone" by default, expands on click) */}
+        <div ref={filterMenuRef} className="shrink-0">
+          <TaskFilters
+            currentTab={currentTab}
+            onTabChange={onTabChange}
+            selectedAssignee={selectedAssignee}
+            onAssigneeChange={onAssigneeChange}
+            members={members}
+            tasks={tasks}
+            isOpen={isFilterOpen}
+            onToggle={toggleFilterMenu}
+            onClose={() => setIsFilterOpen(false)}
+          />
+        </div>
 
-          {/* Menu (3 horizontal lines) */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={toggleMainMenu}
-              aria-label="Menu"
-              className="p-2 sm:p-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+        {/* Create Task Button */}
+        <button
+          onClick={onCreateTask}
+          className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 h-9 sm:h-10 glow-btn text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm shadow-sky-500/25 shrink-0"
+        >
+          <Plus className="w-4 h-4 stroke-[3]" />
+          <span className="hidden sm:inline">{t('createTask')}</span>
+        </button>
+
+        {/* Menu (3 horizontal lines) */}
+        <div className="relative shrink-0" ref={menuRef}>
+          <button
+            onClick={toggleMainMenu}
+            aria-label="Menu"
+            className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
+          >
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
 
             {isMenuOpen && (
               <div className="absolute end-0 top-full mt-2 w-72 sm:w-80 bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-in fade-in zoom-in-95 space-y-3">
@@ -540,7 +605,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
         </div>
-      </div>
-    </header>
+      </header>
   );
 };
