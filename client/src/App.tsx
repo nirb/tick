@@ -254,6 +254,7 @@ export const App: React.FC = () => {
       showToast(t('toastTaskDeleted'), 'info');
       await cacheTasks(tasks.filter((t) => t.id !== taskId));
       setTaskToDelete(null);
+      setTaskToComplete(null);
     } catch (err: any) {
       setTasks(prevTasks);
       showToast(err.message || 'Failed to delete task', 'error');
@@ -489,12 +490,18 @@ export const App: React.FC = () => {
             executeToggleStatus(taskToComplete, 'completed');
           }
         }}
+        onDelete={() => {
+          if (taskToComplete) {
+            executeDeleteTask(taskToComplete.id);
+          }
+        }}
         onClose={() => {
-          if (!completingTask) {
+          if (!completingTask && !deletingTask) {
             setTaskToComplete(null);
           }
         }}
         loading={completingTask}
+        deleting={deletingTask}
       />
 
       <ConfirmDeleteModal

@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import type { TaskWithAssignee } from '../types';
-import { Check, CheckCircle2, X, RefreshCw, Repeat } from 'lucide-react';
+import { Check, CheckCircle2, X, RefreshCw, Repeat, Trash2 } from 'lucide-react';
 
 interface ConfirmCompleteModalProps {
   isOpen: boolean;
   task: TaskWithAssignee | null;
   onConfirm: () => void;
   onClose: () => void;
+  onDelete?: () => void;
   loading?: boolean;
+  deleting?: boolean;
 }
 
 export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
@@ -16,13 +18,15 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
   task,
   onConfirm,
   onClose,
+  onDelete,
   loading = false,
+  deleting = false,
 }) => {
   const { t } = useLanguage();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !loading) {
+      if (e.key === 'Escape' && !loading && !deleting) {
         onClose();
       }
     };
@@ -32,7 +36,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose, loading]);
+  }, [isOpen, onClose, loading, deleting]);
 
   if (!isOpen || !task) return null;
 
@@ -40,7 +44,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !loading) {
+        if (e.target === e.currentTarget && !loading && !deleting) {
           onClose();
         }
       }}
@@ -54,7 +58,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          disabled={loading}
+          disabled={loading || deleting}
           className="absolute top-4 end-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer"
           aria-label={t('close')}
         >
@@ -78,7 +82,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
         </div>
 
         {/* Task Title Preview Card */}
-        <div className="my-4 p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+        <div className="my-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-400 shadow-sm shadow-emerald-400/50" />
           <span className="text-sm font-bold text-white truncate text-start flex-1">
             {task.title}
@@ -87,34 +91,81 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
 
         {/* Recurring notice if applicable */}
         {task.recurrence_rule && (
-          <div className="flex items-center gap-2 text-xs text-sky-300 bg-sky-500/10 border border-sky-400/20 px-3 py-2 rounded-xl mb-4 font-medium">
+          <div className="flex items-center gap-2 text-xs text-sky-300 bg-sky-500/10 border border-sky-400/20 px-3 py-2 rounded-xl mb-3 font-medium">
             <Repeat className="w-3.5 h-3.5 shrink-0 text-sky-400" />
             <span>{t('toastTaskCompletedRecurring')}</span>
           </div>
         )}
 
+        {/* Operations Info Card */}
+        <div className="mb-4 p-3 sm:p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5 text-xs text-start">
+          <div className="flex items-start gap-2.5">
+            <div className="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <Check className="w-3 h-3 stroke-[3]" />
+            </div>
+            <div className="flex-1 leading-relaxed">
+              <span className="font-bold text-emerald-300 me-1">
+                {t('confirmCompleteBtn')}:
+              </span>
+              <span className="text-slate-300">
+                {t('confirmCompleteOpDesc')}
+              </span>
+            </div>
+          </div>
+          {onDelete && (
+            <div className="flex items-start gap-2.5 pt-2 border-t border-white/5">
+              <div className="w-5 h-5 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                <Trash2 className="w-3 h-3" />
+              </div>
+              <div className="flex-1 leading-relaxed">
+                <span className="font-bold text-rose-300 me-1">
+                  {t('delete')}:
+                </span>
+                <span className="text-slate-300">
+                  {t('confirmDeleteOpDesc')}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 mt-5">
+        <div className="flex items-center gap-2 sm:gap-2.5 mt-5">
           <button
             type="button"
             onClick={onClose}
-            disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs sm:text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-40 cursor-pointer"
+            disabled={loading || deleting}
+            className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs sm:text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-40 cursor-pointer text-center"
           >
-            {t('cancel')}
+            <span className="truncate">{t('cancel')}</span>
           </button>
+          {onDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={loading || deleting}
+              className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-40 cursor-pointer"
+            >
+              {deleting ? (
+                <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+              ) : (
+                <Trash2 className="w-4 h-4 shrink-0" />
+              )}
+              <span className="truncate">{t('delete')}</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onConfirm}
-            disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50 cursor-pointer"
+            disabled={loading || deleting}
+            className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
             ) : (
-              <Check className="w-4 h-4 stroke-[3]" />
+              <Check className="w-4 h-4 stroke-[3] shrink-0" />
             )}
-            <span>{t('confirmCompleteBtn')}</span>
+            <span className="truncate">{t('confirmCompleteBtn')}</span>
           </button>
         </div>
       </div>
