@@ -320,9 +320,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 ) : (
                   <div className="relative group/desc">
                     <p
-                      className={`text-xs sm:text-sm p-2.5 pe-8 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${
-                        isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
-                      }`}
+                      className={`text-xs sm:text-sm p-2.5 pe-8 rounded-xl bg-slate-950/50 border border-white/8 leading-relaxed whitespace-pre-line ${isCompleted ? 'text-slate-500' : 'text-slate-200 font-normal'
+                        }`}
                     >
                       <HyperlinkText
                         text={content?.description}
@@ -405,23 +404,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     </>
                   )}
                 </div>
-
-                {/* Mark Done / Incomplete Action Chip */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleStatus(task);
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${isCompleted
-                    ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400/40 shadow-xs shadow-emerald-500/20'
-                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25'
-                    }`}
-                  aria-label={isCompleted ? t('markIncomplete') : t('markDone')}
-                >
-                  <Check className="w-3 h-3 stroke-[2.5]" />
-                  <span>{isCompleted ? t('markIncomplete') : t('markDone')}</span>
-                </button>
 
                 {/* Checklist Progress Badge */}
                 {checklistStats && checklistStats.total > 0 && (
