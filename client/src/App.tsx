@@ -12,6 +12,7 @@ import type { FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
 import { GroupSelectModal } from './components/GroupSelectModal';
+import { ConfirmCompleteModal } from './components/ConfirmCompleteModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
@@ -50,6 +51,8 @@ export const App: React.FC = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
+  const [taskToComplete, setTaskToComplete] = useState<TaskWithAssignee | null>(null);
+  const [completingTask, setCompletingTask] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -149,10 +152,20 @@ export const App: React.FC = () => {
   };
 
   // Toggle Status
-  const handleToggleStatus = async (task: TaskWithAssignee) => {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+  const handleToggleStatus = (task: TaskWithAssignee) => {
+    if (task.status !== 'completed') {
+      // Require confirmation when marking task as completed
+      setTaskToComplete(task);
+    } else {
+      executeToggleStatus(task, 'pending');
+    }
+  };
+
+  const executeToggleStatus = async (task: TaskWithAssignee, targetStatus?: 'completed' | 'pending') => {
+    const newStatus = targetStatus || (task.status === 'completed' ? 'pending' : 'completed');
     const now = Math.floor(Date.now() / 1000);
 
+    setCompletingTask(true);
     // Optimistic Update
     setTasks((prev) =>
       prev.map((t) =>
@@ -177,9 +190,12 @@ export const App: React.FC = () => {
           loadTasks();
         }
       }
+      setTaskToComplete(null);
     } catch (err: any) {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
       showToast(err.message || 'Failed to update task status', 'error');
+    } finally {
+      setCompletingTask(false);
     }
   };
 
@@ -446,6 +462,22 @@ export const App: React.FC = () => {
         initialAutoEnter={initialAutoEnter}
         onSelectGroup={handleSelectGroup}
         onClose={handleCloseGroupSelectModal}
+      />
+
+      <ConfirmCompleteModal
+        isOpen={!!taskToComplete}
+        task={taskToComplete}
+        onConfirm={() => {
+          if (taskToComplete) {
+            executeToggleStatus(taskToComplete, 'completed');
+          }
+        }}
+        onClose={() => {
+          if (!completingTask) {
+            setTaskToComplete(null);
+          }
+        }}
+        loading={completingTask}
       />
 
       <InstallModal
