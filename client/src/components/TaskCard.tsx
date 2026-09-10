@@ -7,7 +7,6 @@ import {
   Clock,
   Repeat,
   BellRing,
-  MoreVertical,
   Trash2,
   Edit2,
   Calendar,
@@ -42,7 +41,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const { t, language } = useLanguage();
   const [nudging, setNudging] = useState(false);
   const [nudged, setNudged] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedDescription, setCopiedDescription] = useState(false);
 
@@ -178,10 +176,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           setIsExpanded(!isExpanded);
         }
       }}
-      className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer ${showMenu
-        ? 'pt-3.5 px-3.5 pb-28 sm:pt-4 sm:px-4 sm:pb-28 z-30'
-        : 'p-3.5 sm:p-4 z-0'
-        } ${priorityBorderClasses[task.priority] || priorityBorderClasses.medium} ${isCompleted
+      className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer p-3.5 sm:p-4 z-0 ${priorityBorderClasses[task.priority] || priorityBorderClasses.medium} ${isCompleted
           ? 'border-white/5 bg-slate-900/40 opacity-60'
           : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-white/25 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
         }`}
@@ -359,50 +354,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
               {/* Second Line: Badges and Assignee */}
               <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                {/* Menu Trigger (Delete / Edit) */}
-                <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+                {/* Action Buttons (Edit / Delete) */}
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => setShowMenu(!showMenu)}
-                    className={`p-1 rounded-lg transition-colors ${showMenu
-                      ? 'text-sky-300 bg-white/15'
-                      : 'text-slate-400 hover:text-white hover:bg-white/10'
-                      }`}
-                    aria-label="Task options"
+                    type="button"
+                    onClick={() => onEdit(task)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-sky-500/15 border border-white/10 hover:border-sky-400/30 transition-all font-medium active:scale-95 cursor-pointer text-xs"
+                    title={t('edit')}
+                    aria-label={t('edit')}
                   >
-                    <MoreVertical className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                    <span>{t('edit')}</span>
                   </button>
-
-                  {showMenu && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowMenu(false);
-                        }}
-                      />
-                      <div className="absolute start-0 top-full mt-2 w-44 bg-slate-900 rounded-2xl shadow-2xl shadow-black border border-white/20 p-1.5 z-50 text-xs text-slate-200">
-                        <button
-                          onClick={() => {
-                            setShowMenu(false);
-                            onEdit(task);
-                          }}
-                          className="w-full px-3 py-2 text-start hover:bg-white/10 rounded-xl flex items-center gap-2 text-slate-200 transition-colors font-medium"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-sky-400" /> {t('edit')}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowMenu(false);
-                            onDelete(task.id);
-                          }}
-                          className="w-full px-3 py-2 text-start hover:bg-rose-500/20 rounded-xl flex items-center gap-2 text-rose-400 transition-colors font-medium"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-400" /> {t('delete')}
-                        </button>
-                      </div>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => onDelete(task.id)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border border-white/10 hover:border-rose-400/30 transition-all font-medium active:scale-95 cursor-pointer text-xs"
+                    title={t('delete')}
+                    aria-label={t('delete')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                    <span>{t('delete')}</span>
+                  </button>
                 </div>
 
                 {/* Checklist Progress Badge */}
