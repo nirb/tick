@@ -59,6 +59,7 @@ export interface Translations {
   twoDaysAgo: string;
   overdue: string;
   deleteTaskConfirm: string;
+  deleteTaskTitle: string;
   confirmCompleteTitle: string;
   confirmCompleteMessage: string;
   confirmCompleteBtn: string;
@@ -277,6 +278,7 @@ export const dictionaries: Record<Language, Translations> = {
     daysAgo: '{days} days ago',
     overdue: 'Overdue',
     deleteTaskConfirm: 'Are you sure you want to delete this task?',
+    deleteTaskTitle: 'Delete Task?',
     confirmCompleteTitle: 'Complete Task?',
     confirmCompleteMessage: 'Are you sure you want to mark this task as completed?',
     confirmCompleteBtn: 'Complete',
@@ -485,6 +487,7 @@ export const dictionaries: Record<Language, Translations> = {
     daysAgo: 'לפני {days} ימים',
     overdue: 'באיחור',
     deleteTaskConfirm: 'האם אתה בטוח שברצונך למחוק משימה זו?',
+    deleteTaskTitle: 'מחיקת משימה?',
     confirmCompleteTitle: 'סיום משימה?',
     confirmCompleteMessage: 'האם אתה בטוח שברצונך לסמן משימה זו כהושלמה?',
     confirmCompleteBtn: 'סיום משימה',

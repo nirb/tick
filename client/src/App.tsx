@@ -13,6 +13,7 @@ import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
 import { GroupSelectModal } from './components/GroupSelectModal';
 import { ConfirmCompleteModal } from './components/ConfirmCompleteModal';
+import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
@@ -53,6 +54,8 @@ export const App: React.FC = () => {
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<TaskWithAssignee | null>(null);
   const [completingTask, setCompletingTask] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<TaskWithAssignee | null>(null);
+  const [deletingTask, setDeletingTask] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -233,15 +236,29 @@ export const App: React.FC = () => {
   };
 
   // Delete Task
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm(t('deleteTaskConfirm'))) return;
+  const handleDeleteTask = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setTaskToDelete(task);
+    } else {
+      executeDeleteTask(taskId);
+    }
+  };
+
+  const executeDeleteTask = async (taskId: string) => {
+    setDeletingTask(true);
+    const prevTasks = [...tasks];
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
     try {
       await api.tasks.delete(taskId);
       showToast(t('toastTaskDeleted'), 'info');
+      await cacheTasks(tasks.filter((t) => t.id !== taskId));
+      setTaskToDelete(null);
     } catch (err: any) {
+      setTasks(prevTasks);
       showToast(err.message || 'Failed to delete task', 'error');
-      loadTasks();
+    } finally {
+      setDeletingTask(false);
     }
   };
 
@@ -478,6 +495,22 @@ export const App: React.FC = () => {
           }
         }}
         loading={completingTask}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={!!taskToDelete}
+        taskTitle={taskToDelete?.title}
+        onConfirm={() => {
+          if (taskToDelete) {
+            executeDeleteTask(taskToDelete.id);
+          }
+        }}
+        onClose={() => {
+          if (!deletingTask) {
+            setTaskToDelete(null);
+          }
+        }}
+        loading={deletingTask}
       />
 
       <InstallModal
