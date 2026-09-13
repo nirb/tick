@@ -14,6 +14,7 @@ import { GroupModal } from './components/GroupModal';
 import { GroupSelectModal } from './components/GroupSelectModal';
 import { ConfirmCompleteModal } from './components/ConfirmCompleteModal';
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
+import { TaskPromptModal } from './components/TaskPromptModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
@@ -53,6 +54,7 @@ export const App: React.FC = () => {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<TaskWithAssignee | null>(null);
+  const [promptTask, setPromptTask] = useState<TaskWithAssignee | null>(null);
   const [completingTask, setCompletingTask] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<TaskWithAssignee | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
@@ -166,8 +168,7 @@ export const App: React.FC = () => {
       if (targetTaskId) {
         const target = tasks.find((t) => t.id === targetTaskId);
         if (target) {
-          setTaskToEdit(target);
-          setIsTaskModalOpen(true);
+          setPromptTask(target);
           cleanTaskUrl();
         } else if (!loadingTasks) {
           try {
@@ -179,8 +180,7 @@ export const App: React.FC = () => {
                   return;
                 }
               }
-              setTaskToEdit(res.task);
-              setIsTaskModalOpen(true);
+              setPromptTask(res.task);
               cleanTaskUrl();
             }
           } catch {
@@ -289,6 +289,53 @@ export const App: React.FC = () => {
     } finally {
       setCompletingTask(false);
     }
+  };
+
+  const handleSnoozeTask = async (task: TaskWithAssignee, minutes: number) => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    const baseTime = task.due_at && task.due_at > nowSec ? task.due_at : nowSec;
+    const newDueAt = baseTime + minutes * 60;
+
+    // Optimistic Update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, due_at: newDueAt } : t))
+    );
+    setPromptTask(null);
+
+    const formatDuration = (m: number) => {
+      if (m === 15) return t('snooze15m');
+      if (m === 30) return t('snooze30m');
+      if (m === 60) return t('snooze1h');
+      if (m === 120) return t('snooze2h');
+      if (m === 360) return t('snooze6h');
+      return `${m}m`;
+    };
+
+    try {
+      const updated = await api.tasks.update(task.id, { due_at: newDueAt });
+      setTasks((prev) => {
+        const nextTasks = prev.map((t) => (t.id === task.id ? updated.task : t));
+        if (group) {
+          cacheTasks(nextTasks, group.id);
+        }
+        return nextTasks;
+      });
+      showToast(t('toastTaskSnoozed', { duration: formatDuration(minutes) }), 'success');
+    } catch (err: any) {
+      setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
+      showToast(err.message || 'Failed to snooze task', 'error');
+    }
+  };
+
+  const handleCompleteFromPrompt = async (task: TaskWithAssignee) => {
+    setPromptTask(null);
+    await executeToggleStatus(task, 'completed');
+  };
+
+  const handleEditFromPrompt = (task: TaskWithAssignee) => {
+    setPromptTask(null);
+    setTaskToEdit(task);
+    setIsTaskModalOpen(true);
   };
 
   // Update Task Description / Checklist
@@ -569,6 +616,17 @@ export const App: React.FC = () => {
         initialAutoEnter={initialAutoEnter}
         onSelectGroup={handleSelectGroup}
         onClose={handleCloseGroupSelectModal}
+      />
+
+      <TaskPromptModal
+        isOpen={!!promptTask}
+        task={promptTask ? tasks.find((t) => t.id === promptTask.id) || promptTask : null}
+        onClose={() => setPromptTask(null)}
+        onComplete={handleCompleteFromPrompt}
+        onSnooze={handleSnoozeTask}
+        onEdit={handleEditFromPrompt}
+        onUpdateDescription={handleUpdateDescription}
+        completing={completingTask}
       />
 
       <ConfirmCompleteModal

@@ -118,6 +118,16 @@ export interface Translations {
   deleteItem: string;
   checklistProgress: string;
 
+  // Task Prompt / Notification Modal
+  taskDetails: string;
+  snooze: string;
+  snooze15m: string;
+  snooze30m: string;
+  snooze1h: string;
+  snooze2h: string;
+  snooze6h: string;
+  toastTaskSnoozed: string;
+
   // Group Modal
   groupTitle: string;
   editGroupName: string;
@@ -348,6 +358,15 @@ export const dictionaries: Record<Language, Translations> = {
     deleteItem: 'Delete item',
     checklistProgress: '{done} of {total} done',
 
+    taskDetails: 'Task Details',
+    snooze: 'Snooze',
+    snooze15m: '15m',
+    snooze30m: '30m',
+    snooze1h: '1h',
+    snooze2h: '2h',
+    snooze6h: '6h',
+    toastTaskSnoozed: 'Task snoozed for {duration}',
+
     groupTitle: 'Group Members',
     editGroupName: 'Edit Group Name',
     editUserName: 'Edit your name',
@@ -571,6 +590,15 @@ export const dictionaries: Record<Language, Translations> = {
     checklistItemPlaceholder: 'הוסף פריט (לחץ Enter)...',
     deleteItem: 'מחק פריט',
     checklistProgress: '{done} מתוך {total} הושלמו',
+
+    taskDetails: 'פרטי משימה',
+    snooze: 'השהה',
+    snooze15m: '15 דק׳',
+    snooze30m: '30 דק׳',
+    snooze1h: 'שעה',
+    snooze2h: 'שעתיים',
+    snooze6h: '6 שעות',
+    toastTaskSnoozed: 'המשימה נדחתה ב-{duration}',
 
     groupTitle: 'חברי הקבוצה',
     editGroupName: 'עריכת שם הקבוצה',
