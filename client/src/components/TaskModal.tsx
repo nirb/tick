@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { TaskWithAssignee, TaskPriority, User, ChecklistItem } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import {
   X,
   Calendar,
+  Clock,
   User as UserIcon,
   AlertTriangle,
   Repeat,
@@ -15,6 +16,8 @@ import {
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, generateItemId } from '../lib/taskContent';
 import { Avatar } from './Avatar';
+import { CalendarPickerModal } from './CalendarPickerModal';
+import { ClockPickerModal } from './ClockPickerModal';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -38,7 +41,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   members,
   taskToEdit,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [title, setTitle] = useState('');
   const [contentType, setContentType] = useState<'description' | 'checklist'>('description');
   const [descriptionText, setDescriptionText] = useState('');
@@ -49,6 +52,55 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [dueDateTime, setDueDateTime] = useState('');
   const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
   const [submitting, setSubmitting] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isClockOpen, setIsClockOpen] = useState(false);
+
+  const currentDate = dueDateTime ? dueDateTime.split('T')[0] : '';
+  const currentTime = dueDateTime && dueDateTime.includes('T') ? dueDateTime.split('T')[1].slice(0, 5) : '';
+
+  const formattedDisplayDate = useMemo(() => {
+    if (!currentDate) return '';
+    try {
+      const parts = currentDate.split('-');
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const dateObj = new Date(y, m, d);
+      return dateObj.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (_) {
+      return currentDate;
+    }
+  }, [currentDate, language]);
+
+  const handleDateChange = (newDate: string) => {
+    if (!newDate) {
+      setDueDateTime('');
+      return;
+    }
+    const time = currentTime || '10:00';
+    setDueDateTime(`${newDate}T${time}`);
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    if (!newTime) {
+      if (currentDate) {
+        setDueDateTime(`${currentDate}T00:00`);
+      } else {
+        setDueDateTime('');
+      }
+      return;
+    }
+    const now = new Date();
+    const y = String(now.getFullYear());
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const date = currentDate || `${y}-${m}-${d}`;
+    setDueDateTime(`${date}T${newTime}`);
+  };
 
   useEffect(() => {
     if (taskToEdit) {
@@ -408,34 +460,103 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Due Date & Recurrence Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-sky-400" /> {t('dueDateTime')}
-              </label>
-              <input
-                type="datetime-local"
-                value={dueDateTime}
-                onChange={(e) => setDueDateTime(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <Repeat className="w-3.5 h-3.5 text-indigo-400" /> {t('repeat')}
-              </label>
-              <select
-                value={recurrence}
-                onChange={(e) => setRecurrence(e.target.value as any)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs font-medium"
+          {/* Due Date & Time */}
+          <div>
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-sky-400" /> {t('dueDateTime')}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* Date Button */}
+              <button
+                type="button"
+                onClick={() => setIsCalendarOpen(true)}
+                className={`w-full px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
+                  currentDate
+                    ? 'bg-slate-950/80 border-sky-500/50 text-white shadow-sm ring-1 ring-sky-500/30'
+                    : 'bg-slate-950/70 border-white/20 text-slate-400 hover:border-white/40 hover:text-slate-200'
+                }`}
               >
-                <option value="none">{t('doesNotRepeat')}</option>
-                <option value="daily">{t('daily')}</option>
-                <option value="weekly">{t('weekly')}</option>
-                <option value="monthly">{t('monthly')}</option>
-              </select>
+                <div className="flex items-center gap-2 truncate">
+                  <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span className="truncate">
+                    {formattedDisplayDate || t('selectDate')}
+                  </span>
+                </div>
+                {currentDate && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDateChange('');
+                    }}
+                    className="p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors"
+                    title={t('clear')}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </span>
+                )}
+              </button>
+
+              {/* Time Button */}
+              <button
+                type="button"
+                onClick={() => setIsClockOpen(true)}
+                className={`w-full px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
+                  currentTime
+                    ? 'bg-slate-950/80 border-indigo-500/50 text-white shadow-sm ring-1 ring-indigo-500/30'
+                    : 'bg-slate-950/70 border-white/20 text-slate-400 hover:border-white/40 hover:text-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <Clock className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span className="truncate">
+                    {currentTime || t('selectTime')}
+                  </span>
+                </div>
+                {currentTime && (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTimeChange('');
+                    }}
+                    className="p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors"
+                    title={t('clear')}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Recurrence Selection */}
+          <div>
+            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Repeat className="w-3.5 h-3.5 text-indigo-400" /> {t('repeat')}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-950/70 rounded-xl border border-white/15">
+              {[
+                { value: 'none', label: t('doesNotRepeat') },
+                { value: 'daily', label: t('daily') },
+                { value: 'weekly', label: t('weekly') },
+                { value: 'monthly', label: t('monthly') },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setRecurrence(opt.value as any)}
+                  className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center truncate ${
+                    recurrence === opt.value
+                      ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30 ring-1 ring-sky-400 font-bold'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -457,6 +578,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </button>
           </div>
         </form>
+
+        <CalendarPickerModal
+          isOpen={isCalendarOpen}
+          value={currentDate}
+          onChange={handleDateChange}
+          onClose={() => setIsCalendarOpen(false)}
+        />
+
+        <ClockPickerModal
+          isOpen={isClockOpen}
+          value={currentTime}
+          onChange={handleTimeChange}
+          onClose={() => setIsClockOpen(false)}
+        />
       </div>
     </div>
   );

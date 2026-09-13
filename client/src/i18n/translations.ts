@@ -96,6 +96,18 @@ export interface Translations {
   toastDescriptionCopied: string;
   assignTo: string;
   dueDateTime: string;
+  dueDate: string;
+  dueTime: string;
+  selectDate: string;
+  selectTime: string;
+  clear: string;
+  done: string;
+  tomorrow: string;
+  nextWeek: string;
+  noDueDate: string;
+  noDueTime: string;
+  hours: string;
+  minutes: string;
   createTask: string;
   saveChanges: string;
   saving: string;
@@ -314,6 +326,18 @@ export const dictionaries: Record<Language, Translations> = {
     descriptionCopied: 'Description copied to clipboard',
     assignTo: 'Assign To',
     dueDateTime: 'Due Date & Time',
+    dueDate: 'Due Date',
+    dueTime: 'Due Time',
+    selectDate: 'Select Date',
+    selectTime: 'Select Time',
+    clear: 'Clear',
+    done: 'Done',
+    tomorrow: 'Tomorrow',
+    nextWeek: 'Next Week',
+    noDueDate: 'No due date',
+    noDueTime: 'No time set',
+    hours: 'Hours',
+    minutes: 'Minutes',
     createTask: 'Create Task',
     saveChanges: 'Save Changes',
     saving: 'Saving...',
@@ -526,6 +550,18 @@ export const dictionaries: Record<Language, Translations> = {
     descriptionCopied: 'תיאור המשימה הועתק ללוח',
     assignTo: 'שיוך ל-',
     dueDateTime: 'תאריך ושעה לביצוע',
+    dueDate: 'תאריך יעד',
+    dueTime: 'שעה',
+    selectDate: 'בחר תאריך',
+    selectTime: 'בחר שעה',
+    clear: 'נקה',
+    done: 'סיום',
+    tomorrow: 'מחר',
+    nextWeek: 'שבוע הבא',
+    noDueDate: 'ללא תאריך',
+    noDueTime: 'ללא שעה',
+    hours: 'שעות',
+    minutes: 'דקות',
     createTask: 'צור משימה',
     saveChanges: 'שמור שינויים',
     saving: 'שומר...',
