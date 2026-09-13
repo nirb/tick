@@ -64,6 +64,7 @@ export interface Translations {
   confirmCompleteMessage: string;
   confirmCompleteBtn: string;
   confirmCompleteOpDesc: string;
+  confirmCompleteRecurringOpDesc: string;
   confirmDeleteOpDesc: string;
   markDone: string;
   markIncomplete: string;
@@ -285,6 +286,7 @@ export const dictionaries: Record<Language, Translations> = {
     confirmCompleteMessage: 'Are you sure you want to mark this task as completed?',
     confirmCompleteBtn: 'Complete',
     confirmCompleteOpDesc: 'Task will be marked as completed and can be restored anytime.',
+    confirmCompleteRecurringOpDesc: 'Task will be marked as completed and scheduled for the next recurrence.',
     confirmDeleteOpDesc: 'Task will be permanently removed from the app and cannot be recovered.',
     markDone: 'Mark as done',
     markIncomplete: 'Mark incomplete',
@@ -496,6 +498,7 @@ export const dictionaries: Record<Language, Translations> = {
     confirmCompleteMessage: 'האם אתה בטוח שברצונך לסמן משימה זו כהושלמה?',
     confirmCompleteBtn: 'סיום משימה',
     confirmCompleteOpDesc: 'המשימה תסומן כהושלמה וניתן יהיה לשחזר אותה בכל עת.',
+    confirmCompleteRecurringOpDesc: 'המשימה תסומן כהושלמה והמופע הבא יתוזמן אוטומטית.',
     confirmDeleteOpDesc: 'המשימה תימחק לצמיתות מהאפליקציה ולא ניתן יהיה לשחזר אותה.',
     markDone: 'סמן כבוצע',
     markIncomplete: 'סמן כלא הושלם',

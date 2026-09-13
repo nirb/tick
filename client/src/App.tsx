@@ -167,20 +167,37 @@ export const App: React.FC = () => {
   const executeToggleStatus = async (task: TaskWithAssignee, targetStatus?: 'completed' | 'pending') => {
     const newStatus = targetStatus || (task.status === 'completed' ? 'pending' : 'completed');
     const now = Math.floor(Date.now() / 1000);
+    const isRecurring = Boolean(task.recurrence_rule);
 
     setCompletingTask(true);
     // Optimistic Update
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === task.id
-          ? { ...t, status: newStatus, completed_at: newStatus === 'completed' ? now : null }
-          : t
-      )
+      prev.map((t) => {
+        if (t.id !== task.id) return t;
+        if (isRecurring && newStatus === 'completed') {
+          return {
+            ...t,
+            status: 'pending',
+            completed_at: null,
+          };
+        }
+        return {
+          ...t,
+          status: newStatus,
+          completed_at: newStatus === 'completed' ? now : null,
+        };
+      })
     );
 
     try {
       const updated = await api.tasks.update(task.id, { status: newStatus });
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? updated.task : t)));
+      setTasks((prev) => {
+        const nextTasks = prev.map((t) => (t.id === task.id ? updated.task : t));
+        if (group) {
+          cacheTasks(nextTasks, group.id);
+        }
+        return nextTasks;
+      });
 
       if (newStatus === 'completed') {
         showToast(
@@ -189,9 +206,6 @@ export const App: React.FC = () => {
             : t('toastTaskCompleted'),
           'success'
         );
-        if (task.recurrence_rule) {
-          loadTasks();
-        }
       }
       setTaskToComplete(null);
     } catch (err: any) {
@@ -283,7 +297,7 @@ export const App: React.FC = () => {
         task.due_at <= now + 86400 * 2
       );
     }
-    if (currentTab === 'completed') return task.status === 'completed';
+    if (currentTab === 'completed') return task.status === 'completed' && !task.recurrence_rule;
 
     return true;
   });

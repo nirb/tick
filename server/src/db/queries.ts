@@ -309,6 +309,11 @@ export async function getTasksByGroupId(
   if (filters.status) {
     query += ' AND t.status = ?';
     params.push(filters.status);
+    if (filters.status === 'completed') {
+      query += ' AND (t.recurrence_rule IS NULL OR t.recurrence_rule = "")';
+    }
+  } else {
+    query += ' AND NOT (t.status = "completed" AND t.recurrence_rule IS NOT NULL AND t.recurrence_rule != "")';
   }
 
   if (filters.assignee_id) {
@@ -443,6 +448,79 @@ export async function updateTask(
   existingTask: TaskWithAssignee
 ): Promise<TaskWithAssignee> {
   const now = Math.floor(Date.now() / 1000);
+
+  // Handle Recurrence: If completing a recurring task, advance it in place so it is NOT saved as completed in the DB
+  if (updates.status === 'completed' && existingTask.recurrence_rule) {
+    const nextDueAt = calculateNextRecurrence(existingTask.due_at || now, existingTask.recurrence_rule);
+
+    let nextDescription = updates.description !== undefined ? updates.description : existingTask.description;
+    if (nextDescription) {
+      try {
+        const parsed = JSON.parse(nextDescription);
+        if (parsed && parsed.type === 'checklist' && Array.isArray(parsed.checklist)) {
+          parsed.checklist = parsed.checklist.map((item: any) => ({ ...item, status: 'not done' }));
+          nextDescription = JSON.stringify(parsed);
+        }
+      } catch {}
+    }
+
+    const setClauses: string[] = [
+      'status = ?',
+      'completed_at = NULL',
+      'due_at = ?',
+      'updated_at = ?',
+    ];
+    const params: (string | number | null)[] = ['pending', nextDueAt, now];
+
+    if (updates.title !== undefined) {
+      setClauses.push('title = ?');
+      params.push(updates.title);
+    }
+    if (nextDescription !== existingTask.description || updates.description !== undefined) {
+      setClauses.push('description = ?');
+      params.push(nextDescription);
+    }
+    if (updates.assignee_id !== undefined) {
+      setClauses.push('assignee_id = ?');
+      params.push(updates.assignee_id);
+    }
+    if (updates.priority !== undefined) {
+      setClauses.push('priority = ?');
+      params.push(updates.priority);
+    }
+    if (updates.recurrence_rule !== undefined) {
+      setClauses.push('recurrence_rule = ?');
+      params.push(updates.recurrence_rule);
+    }
+
+    params.push(taskId);
+
+    const batchOps: D1PreparedStatement[] = [
+      db.prepare(`UPDATE tasks SET ${setClauses.join(', ')} WHERE id = ?`).bind(...params),
+      db
+        .prepare(`
+          INSERT INTO task_activities (id, task_id, actor_id, activity_type, details, created_at)
+          VALUES (?, ?, ?, 'status_changed', ?, ?)
+        `)
+        .bind(
+          crypto.randomUUID(),
+          taskId,
+          actorId,
+          JSON.stringify({
+            note: 'Completed recurring task occurrence; rescheduled for next occurrence',
+            previous_due_at: existingTask.due_at,
+            next_due_at: nextDueAt,
+          }),
+          now
+        ),
+    ];
+
+    await db.batch(batchOps);
+
+    const updated = await getTaskById(db, taskId);
+    return updated!;
+  }
+
   const completedAt =
     updates.status === 'completed' && existingTask.status !== 'completed'
       ? now
@@ -525,48 +603,6 @@ export async function updateTask(
     );
   }
 
-  // Handle Recurrence (FR-TASK-4): If completed and recurrence_rule defined, schedule next iteration instance
-  if (updates.status === 'completed' && existingTask.status !== 'completed' && existingTask.recurrence_rule) {
-    const nextDueAt = calculateNextRecurrence(existingTask.due_at || now, existingTask.recurrence_rule);
-    if (nextDueAt) {
-      const nextTaskId = crypto.randomUUID();
-      batchOps.push(
-        db
-          .prepare(`
-            INSERT INTO tasks (
-              id, group_id, creator_id, assignee_id, title, description,
-              status, priority, due_at, recurrence_rule, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)
-          `)
-          .bind(
-            nextTaskId,
-            existingTask.group_id,
-            existingTask.creator_id,
-            existingTask.assignee_id,
-            existingTask.title,
-            existingTask.description,
-            existingTask.priority,
-            nextDueAt,
-            existingTask.recurrence_rule,
-            now,
-            now
-          ),
-        db
-          .prepare(`
-            INSERT INTO task_activities (id, task_id, actor_id, activity_type, details, created_at)
-            VALUES (?, ?, ?, 'created', ?, ?)
-          `)
-          .bind(
-            crypto.randomUUID(),
-            nextTaskId,
-            actorId,
-            JSON.stringify({ note: 'Scheduled recurring task instance', originalTaskId: taskId }),
-            now
-          )
-      );
-    }
-  }
-
   await db.batch(batchOps);
 
   const updated = await getTaskById(db, taskId);
@@ -575,18 +611,32 @@ export async function updateTask(
 
 export function calculateNextRecurrence(baseTimestamp: number, rule: string): number | null {
   const upper = rule.toUpperCase();
+  const now = Math.floor(Date.now() / 1000);
+  const base = baseTimestamp && baseTimestamp > 0 ? baseTimestamp : now;
   const daySeconds = 86400;
 
   if (upper.includes('FREQ=DAILY')) {
-    return baseTimestamp + daySeconds;
+    let next = base + daySeconds;
+    while (next <= now) {
+      next += daySeconds;
+    }
+    return next;
   }
   if (upper.includes('FREQ=WEEKLY')) {
-    return baseTimestamp + daySeconds * 7;
+    let next = base + daySeconds * 7;
+    while (next <= now) {
+      next += daySeconds * 7;
+    }
+    return next;
   }
   if (upper.includes('FREQ=MONTHLY')) {
-    return baseTimestamp + daySeconds * 30;
+    const d = new Date(base * 1000);
+    while (Math.floor(d.getTime() / 1000) <= now) {
+      d.setMonth(d.getMonth() + 1);
+    }
+    return Math.floor(d.getTime() / 1000);
   }
-  return baseTimestamp + daySeconds;
+  return Math.max(base + daySeconds, now + daySeconds);
 }
 
 export async function deleteTask(db: D1Database, id: string): Promise<boolean> {

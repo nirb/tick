@@ -32,7 +32,7 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   const { t } = useLanguage();
 
   const openTasks = tasks.filter((t) => t.status !== 'completed');
-  const completedTasks = tasks.filter((t) => t.status === 'completed');
+  const completedTasks = tasks.filter((t) => t.status === 'completed' && !t.recurrence_rule);
   const unassignedCount = openTasks.filter((t) => !t.assignee_id).length;
 
   const isEveryone = currentTab === 'all' && !selectedAssignee;

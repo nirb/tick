@@ -40,6 +40,8 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
 
   if (!isOpen || !task) return null;
 
+  const isRecurring = Boolean(task.recurrence_rule);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in"
@@ -91,9 +93,17 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
 
         {/* Recurring notice if applicable */}
         {task.recurrence_rule && (
-          <div className="flex items-center gap-2 text-xs text-sky-300 bg-sky-500/10 border border-sky-400/20 px-3 py-2 rounded-xl mb-3 font-medium">
-            <Repeat className="w-3.5 h-3.5 shrink-0 text-sky-400" />
-            <span>{t('toastTaskCompletedRecurring')}</span>
+          <div className="flex items-center gap-2 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-400/20 px-3 py-2 rounded-xl mb-3 font-medium">
+            <Repeat className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
+            <span>
+              {task.recurrence_rule.includes('DAILY')
+                ? t('daily')
+                : task.recurrence_rule.includes('WEEKLY')
+                  ? t('weekly')
+                  : task.recurrence_rule.includes('MONTHLY')
+                    ? t('monthly')
+                    : t('recurring')}
+            </span>
           </div>
         )}
 
@@ -108,11 +118,13 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
                 {t('confirmCompleteBtn')}:
               </span>
               <span className="text-slate-300">
-                {t('confirmCompleteOpDesc')}
+                {isRecurring
+                  ? t('confirmCompleteRecurringOpDesc')
+                  : t('confirmCompleteOpDesc')}
               </span>
             </div>
           </div>
-          {onDelete && (
+          {onDelete && !isRecurring && (
             <div className="flex items-start gap-2.5 pt-2 border-t border-white/5">
               <div className="w-5 h-5 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
                 <Trash2 className="w-3 h-3" />
@@ -139,7 +151,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
           >
             <span className="truncate">{t('cancel')}</span>
           </button>
-          {onDelete && (
+          {onDelete && !isRecurring && (
             <button
               type="button"
               onClick={onDelete}
