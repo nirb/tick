@@ -78,7 +78,7 @@ export async function handleScheduled(event: ScheduledEvent, env: Bindings, ctx:
       await sendPushToSubscriptions(env, subs, {
         title: 'Task Due Soon ⏰',
         body: `"${task.title}" is due in approximately ${minutesLeft} minutes!`,
-        url: `/?task=${task.id}`,
+        url: `/?group=${task.group_id}&task=${task.id}`,
         tag: `due-reminder-${task.id}`,
       });
     }

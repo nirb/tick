@@ -55,6 +55,15 @@ export function useGroupPrompt({
   const evaluateGroupPrompt = useCallback(async () => {
     if (loading || !user) return;
 
+    // If deep linking into a specific task or group (e.g. from notification), bypass prompt
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('group') || searchParams.get('task')) {
+        recordActiveImmediate();
+        return;
+      }
+    }
+
     // Requirement: "if user has only one group, don't show this popup"
     if (!groups || groups.length <= 1) {
       recordActiveImmediate();

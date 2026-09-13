@@ -10,6 +10,7 @@ import {
   getActivitiesByTaskId,
   addTaskActivity,
   getPushSubscriptionsByUser,
+  getUserGroupMembership,
 } from '../db/queries';
 import { sendPushToSubscriptions } from '../push/vapid';
 
@@ -42,8 +43,15 @@ taskRoutes.get('/:id', async (c) => {
   const taskId = c.req.param('id');
 
   const task = await getTaskById(c.env.DB, taskId);
-  if (!task || task.group_id !== jwtUser.groupId) {
+  if (!task) {
     return c.json({ error: 'Task not found' }, 404);
+  }
+
+  if (task.group_id !== jwtUser.groupId) {
+    const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, task.group_id);
+    if (!membership) {
+      return c.json({ error: 'Task not found' }, 404);
+    }
   }
 
   const activities = await getActivitiesByTaskId(c.env.DB, taskId);
@@ -91,7 +99,7 @@ taskRoutes.post('/', async (c) => {
             await sendPushToSubscriptions(c.env, subs, {
               title: 'New Task Assigned 📋',
               body: `${jwtUser.name} assigned you: "${task.title}"`,
-              url: `/?task=${task.id}`,
+              url: `/?group=${task.group_id}&task=${task.id}`,
               actions: [
                 { action: 'open', title: 'View Task' },
                 { action: 'complete', title: 'Mark Done' },
@@ -142,7 +150,7 @@ taskRoutes.patch('/:id', async (c) => {
               await sendPushToSubscriptions(c.env, creatorSubs, {
                 title: 'Task Completed! 🎉',
                 body: `${jwtUser.name} completed: "${existing.title}"`,
-                url: `/?task=${taskId}`,
+                url: `/?group=${existing.group_id}&task=${taskId}`,
               });
             }
           }
@@ -155,7 +163,7 @@ taskRoutes.patch('/:id', async (c) => {
             await sendPushToSubscriptions(c.env, newAssigneeSubs, {
               title: 'Task Reassigned to You 📋',
               body: `${jwtUser.name} assigned: "${existing.title}" to you`,
-              url: `/?task=${taskId}`,
+              url: `/?group=${existing.group_id}&task=${taskId}`,
             });
           }
         }
@@ -217,7 +225,7 @@ taskRoutes.post('/:id/nudge', async (c) => {
     pushResult = await sendPushToSubscriptions(c.env, assigneeSubs, {
       title: 'Gentle Nudge! ⏰',
       body: `${jwtUser.name} sent you a reminder for: "${task.title}"`,
-      url: `/?task=${taskId}`,
+      url: `/?group=${task.group_id}&task=${taskId}`,
       actions: [
         { action: 'open', title: 'Open Task' },
         { action: 'complete', title: 'Mark Done' },

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { Group, GroupMembership, User } from '../types';
 import { api, setToken } from '../lib/api';
 import { cacheMembers, getCachedMembers } from '../lib/offline';
-import { getCookie, setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
+import { setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
 
 interface AuthContextType {
   user: User | null;
@@ -34,12 +34,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfileAndGroup = async () => {
     try {
+      let targetGroupIdFromUrl: string | null = null;
+      if (typeof window !== 'undefined') {
+        targetGroupIdFromUrl = new URLSearchParams(window.location.search).get('group');
+      }
+
       const { user: currentUser, group: currentGroup, groups: userGroups } = await api.auth.getMe();
       setUser(currentUser);
-      setGroup(currentGroup);
       if (userGroups) setGroups(userGroups);
-      if (currentGroup?.id && !getCookie(COOKIE_LAST_SELECTED_GROUP)) {
-        setCookie(COOKIE_LAST_SELECTED_GROUP, currentGroup.id);
+
+      let activeGroup = currentGroup;
+      if (targetGroupIdFromUrl && userGroups?.some((g) => g.group_id === targetGroupIdFromUrl)) {
+        if (currentGroup?.id !== targetGroupIdFromUrl) {
+          try {
+            const switchRes = await api.groups.switch(targetGroupIdFromUrl);
+            if (switchRes.token) setToken(switchRes.token);
+            activeGroup = switchRes.group;
+            if (switchRes.groups) setGroups(switchRes.groups);
+          } catch (e) {
+            console.warn('Failed switching to target URL group on initial load:', e);
+          }
+        }
+      }
+
+      setGroup(activeGroup);
+      if (activeGroup?.id) {
+        setCookie(COOKIE_LAST_SELECTED_GROUP, activeGroup.id);
       }
 
       const groupData = await api.groups.getMe();

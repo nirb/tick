@@ -104,26 +104,101 @@ export const App: React.FC = () => {
   }, [user?.id, group?.id, loadTasks]);
 
   const cleanTaskUrl = useCallback(() => {
-    if (typeof window !== 'undefined' && window.location.search.includes('task=')) {
+    if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      url.searchParams.delete('task');
-      window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      let changed = false;
+      if (url.searchParams.has('task')) {
+        url.searchParams.delete('task');
+        changed = true;
+      }
+      if (url.searchParams.has('group')) {
+        url.searchParams.delete('group');
+        changed = true;
+      }
+      if (changed) {
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
     }
   }, []);
 
-  // Check URL query parameters for task deep linking (?task=UUID)
+  // Listen for Service Worker navigation events (when notification is clicked while app is open)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const taskId = params.get('task');
-    if (taskId && tasks.length > 0) {
-      const target = tasks.find((t) => t.id === taskId);
-      if (target) {
-        setTaskToEdit(target);
-        setIsTaskModalOpen(true);
+    if (typeof window === 'undefined' || !navigator.serviceWorker) return;
+
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NAVIGATE_TO_TARGET' && event.data?.url) {
+        const url = new URL(event.data.url, window.location.origin);
+        window.history.pushState({}, '', url.pathname + url.search);
+        window.dispatchEvent(new Event('popstate'));
       }
-      cleanTaskUrl();
-    }
-  }, [tasks, cleanTaskUrl]);
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+    };
+  }, []);
+
+  // Check URL query parameters for group & task deep linking (?group=UUID&task=UUID)
+  useEffect(() => {
+    if (authLoading || !user) return;
+
+    const handleDeepLink = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const targetGroupId = params.get('group');
+      const targetTaskId = params.get('task');
+
+      if (!targetGroupId && !targetTaskId) return;
+
+      // 1. If target group is specified and differs from current group:
+      if (targetGroupId && group?.id !== targetGroupId) {
+        if (groups.some((g) => g.group_id === targetGroupId)) {
+          try {
+            await switchGroup(targetGroupId);
+          } catch (err) {
+            console.warn('Failed to switch to target deep link group:', err);
+          }
+          return; // Once switched, group.id updates and effect runs again
+        }
+      }
+
+      // 2. If target task is specified:
+      if (targetTaskId) {
+        const target = tasks.find((t) => t.id === targetTaskId);
+        if (target) {
+          setTaskToEdit(target);
+          setIsTaskModalOpen(true);
+          cleanTaskUrl();
+        } else if (!loadingTasks) {
+          try {
+            const res = await api.tasks.get(targetTaskId);
+            if (res?.task) {
+              if (res.task.group_id && res.task.group_id !== group?.id) {
+                if (groups.some((g) => g.group_id === res.task.group_id)) {
+                  await switchGroup(res.task.group_id);
+                  return;
+                }
+              }
+              setTaskToEdit(res.task);
+              setIsTaskModalOpen(true);
+              cleanTaskUrl();
+            }
+          } catch {
+            cleanTaskUrl();
+          }
+        }
+      } else if (targetGroupId && group?.id === targetGroupId) {
+        cleanTaskUrl();
+      }
+    };
+
+    handleDeepLink();
+
+    window.addEventListener('popstate', handleDeepLink);
+    return () => {
+      window.removeEventListener('popstate', handleDeepLink);
+    };
+  }, [authLoading, user, group?.id, groups, tasks, loadingTasks, switchGroup, cleanTaskUrl]);
 
   // Handle Task Create/Update
   const handleSaveTask = async (data: {
