@@ -192,7 +192,7 @@ export const ClockPickerModal: React.FC<ClockPickerModalProps> = ({
         </div>
 
         {/* Digital Display & AM/PM */}
-        <div className="flex items-center justify-center gap-3 mb-4 bg-slate-950/60 p-2.5 rounded-2xl border border-white/10">
+        <div dir="ltr" className="flex items-center justify-center gap-3 mb-4 bg-slate-950/60 p-2.5 rounded-2xl border border-white/10">
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -247,7 +247,7 @@ export const ClockPickerModal: React.FC<ClockPickerModalProps> = ({
         </div>
 
         {/* Circular Clock Face */}
-        <div className="relative w-56 h-56 mx-auto my-2 select-none touch-none">
+        <div dir="ltr" className="relative w-56 h-56 mx-auto my-2 select-none touch-none">
           <div
             ref={dialRef}
             onPointerDown={handlePointerDown}
@@ -341,7 +341,7 @@ export const ClockPickerModal: React.FC<ClockPickerModalProps> = ({
         </div>
 
         {/* Fine-tuning and quick chips */}
-        <div className="flex items-center justify-between gap-1.5 my-3 px-1">
+        <div dir="ltr" className="flex items-center justify-between gap-1.5 my-3 px-1">
           <div className="flex items-center gap-1">
             <button
               type="button"
