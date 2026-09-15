@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { TaskWithAssignee, TaskPriority, User, ChecklistItem } from '../types';
+import type { TaskWithAssignee, TaskPriority, User, ChecklistItem, GroupMembership } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import {
   X,
@@ -13,6 +13,7 @@ import {
   Plus,
   Trash2,
   Check,
+  ChevronDown,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, generateItemId } from '../lib/taskContent';
 import { Avatar } from './Avatar';
@@ -29,8 +30,11 @@ interface TaskModalProps {
     priority: TaskPriority;
     due_at?: number | null;
     recurrence_rule?: string | null;
+    group_id?: string;
   }) => Promise<void>;
   members: User[];
+  groups?: GroupMembership[];
+  currentGroupId?: string;
   taskToEdit?: TaskWithAssignee | null;
 }
 
@@ -39,6 +43,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onSubmit,
   members,
+  groups,
+  currentGroupId,
   taskToEdit,
 }) => {
   const { t, language } = useLanguage();
@@ -51,6 +57,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDateTime, setDueDateTime] = useState('');
   const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
+  const [selectedTaskGroupId, setSelectedTaskGroupId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
@@ -71,7 +78,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         month: 'short',
         day: 'numeric',
       });
-    } catch (_) {
+    } catch {
       return currentDate;
     }
   }, [currentDate, language]);
@@ -105,6 +112,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   useEffect(() => {
     if (taskToEdit) {
       setTitle(taskToEdit.title);
+      setSelectedTaskGroupId(taskToEdit.group_id);
       const parsed = parseTaskContent(taskToEdit.description);
       if (parsed?.type === 'checklist') {
         setContentType('checklist');
@@ -137,6 +145,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       else setRecurrence('none');
     } else {
       setTitle('');
+      setSelectedTaskGroupId(
+        currentGroupId && currentGroupId !== 'ALL_GROUPS'
+          ? currentGroupId
+          : groups && groups.length > 0
+          ? groups[0].group_id
+          : ''
+      );
       setContentType('description');
       setDescriptionText('');
       setChecklistItems([]);
@@ -146,7 +161,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setDueDateTime('');
       setRecurrence('none');
     }
-  }, [taskToEdit, isOpen]);
+  }, [taskToEdit, isOpen, currentGroupId, groups]);
 
   if (!isOpen) return null;
 
@@ -232,6 +247,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         priority,
         due_at: dueAt,
         recurrence_rule: recurrenceRule,
+        group_id: selectedTaskGroupId || undefined,
       });
 
       onClose();
@@ -263,6 +279,29 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Group Selector when user belongs to multiple groups and creating new task */}
+          {groups && groups.length > 1 && !taskToEdit && (
+            <div>
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
+                {t('groupLabel')}
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedTaskGroupId}
+                  onChange={(e) => setSelectedTaskGroupId(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-sm font-medium transition-all appearance-none cursor-pointer"
+                >
+                  {groups.map((g) => (
+                    <option key={g.group_id} value={g.group_id} className="bg-slate-900 text-white">
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">

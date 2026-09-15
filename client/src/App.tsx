@@ -23,7 +23,7 @@ import { useGroupPrompt } from './hooks/useGroupPrompt';
 import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { user, group, groups, members, loading: authLoading, switchGroup } = useAuth();
+  const { user, group, groups, members, loading: authLoading, isAllGroups, switchGroup } = useAuth();
   const { showIOSGuide, setShowIOSGuide } = usePush();
   const { isInstallModalOpen, setIsInstallModalOpen } = useInstall();
   const { t } = useLanguage();
@@ -73,22 +73,27 @@ export const App: React.FC = () => {
 
   // Load Tasks
   const loadTasks = useCallback(async () => {
-    if (!user || !group) return;
+    if (!user || (!group && !isAllGroups)) return;
     setLoadingTasks(true);
+    const cacheKey = isAllGroups ? 'ALL_GROUPS' : group?.id;
     try {
-      const res = await api.tasks.list();
+      const res = await api.tasks.list({ all_groups: isAllGroups });
       setTasks(res.tasks);
-      await cacheTasks(res.tasks, group.id);
+      if (cacheKey) {
+        await cacheTasks(res.tasks, cacheKey);
+      }
     } catch {
       // Offline fallback
-      const cached = await getCachedTasks(group.id);
-      if (cached) {
-        setTasks(cached);
+      if (cacheKey) {
+        const cached = await getCachedTasks(cacheKey);
+        if (cached) {
+          setTasks(cached);
+        }
       }
     } finally {
       setLoadingTasks(false);
     }
-  }, [user, group]);
+  }, [user, group, isAllGroups]);
 
   // Auto-reload tasks when connectivity restores
   useEffect(() => {
@@ -103,10 +108,10 @@ export const App: React.FC = () => {
   }, [loadTasks]);
 
   useEffect(() => {
-    if (user && group) {
+    if (user && (group || isAllGroups)) {
       loadTasks();
     }
-  }, [user?.id, group?.id, loadTasks]);
+  }, [user?.id, group?.id, isAllGroups, loadTasks]);
 
   const cleanTaskUrl = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -209,15 +214,16 @@ export const App: React.FC = () => {
 
   // Reset due task check when switching groups
   useEffect(() => {
-    if (group?.id && group.id !== prevGroupIdRef.current) {
-      prevGroupIdRef.current = group.id;
+    const currentScope = isAllGroups ? 'ALL_GROUPS' : group?.id;
+    if (currentScope && currentScope !== prevGroupIdRef.current) {
+      prevGroupIdRef.current = currentScope;
       hasCheckedDueTasksRef.current = false;
     }
-  }, [group?.id]);
+  }, [group?.id, isAllGroups]);
 
   // Check for due tasks when user opens the app normally (not from a notification)
   useEffect(() => {
-    if (authLoading || !user || !group || loadingTasks || tasks.length === 0) return;
+    if (authLoading || !user || (!group && !isAllGroups) || loadingTasks || tasks.length === 0) return;
     if (hasCheckedDueTasksRef.current) return;
 
     // Check if URL has a specific task target (deep link from notification)
@@ -241,7 +247,7 @@ export const App: React.FC = () => {
       setDueTaskQueue(queue);
       setInitialQueueTotal(queue.length);
     }
-  }, [authLoading, user, group?.id, loadingTasks, tasks]);
+  }, [authLoading, user, group?.id, isAllGroups, loadingTasks, tasks]);
 
   // Clean up completed/deleted tasks from due task queue
   useEffect(() => {
@@ -262,6 +268,7 @@ export const App: React.FC = () => {
     priority: TaskPriority;
     due_at?: number | null;
     recurrence_rule?: string | null;
+    group_id?: string;
   }) => {
     if (taskToEdit) {
       const updated = await api.tasks.update(taskToEdit.id, data);
@@ -270,8 +277,10 @@ export const App: React.FC = () => {
     } else {
       const created = await api.tasks.create(data);
       const assignee = members.find((m) => m.id === data.assignee_id);
+      const groupName = groups.find((g) => g.group_id === (data.group_id || group?.id))?.name || null;
       const newTask: TaskWithAssignee = {
         ...created.task,
+        group_name: groupName,
         assignee_name: assignee?.name || null,
         assignee_avatar: assignee?.avatar_url || null,
         creator_name: user?.name || null,
@@ -279,7 +288,10 @@ export const App: React.FC = () => {
       setTasks((prev) => [newTask, ...prev]);
       showToast(t('toastTaskCreated'), 'success');
     }
-    await cacheTasks(tasks);
+    const cacheKey = isAllGroups ? 'ALL_GROUPS' : group?.id;
+    if (cacheKey) {
+      await cacheTasks(tasks, cacheKey);
+    }
     setTaskToEdit(null);
   };
 
@@ -665,6 +677,8 @@ export const App: React.FC = () => {
         }}
         onSubmit={handleSaveTask}
         members={members}
+        groups={groups}
+        currentGroupId={isAllGroups ? 'ALL_GROUPS' : group?.id}
         taskToEdit={taskToEdit}
       />
 
@@ -677,7 +691,7 @@ export const App: React.FC = () => {
       <GroupSelectModal
         isOpen={isGroupSelectModalOpen}
         groups={groups}
-        currentGroupId={group?.id}
+        currentGroupId={isAllGroups ? 'ALL_GROUPS' : group?.id}
         initialSelectedGroupId={initialSelectedGroupId}
         initialAutoEnter={initialAutoEnter}
         onSelectGroup={handleSelectGroup}

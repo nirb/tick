@@ -100,7 +100,9 @@ export function useGroupPrompt({
     const isWithinWeek = promptTime > 0 && Date.now() - promptTime < ONE_WEEK_MS;
 
     const targetGroupId =
-      lastGroupId && groups.some((g) => g.group_id === lastGroupId)
+      lastGroupId === 'ALL_GROUPS'
+        ? 'ALL_GROUPS'
+        : lastGroupId && groups.some((g) => g.group_id === lastGroupId)
         ? lastGroupId
         : group?.id || groups[0]?.group_id;
 
@@ -108,7 +110,13 @@ export function useGroupPrompt({
     // If auto-enter is checked AND less than a week has passed:
     // Automatically enter the last used group, do NOT show popup.
     if (autoEnter && isWithinWeek && targetGroupId) {
-      if (group?.id !== targetGroupId) {
+      if (targetGroupId === 'ALL_GROUPS') {
+        try {
+          await switchGroup('ALL_GROUPS');
+        } catch (err) {
+          console.warn('Failed auto-entering ALL_GROUPS:', err);
+        }
+      } else if (group?.id !== targetGroupId) {
         try {
           await switchGroup(targetGroupId);
         } catch (err) {
@@ -196,9 +204,7 @@ export function useGroupPrompt({
     setCookie(COOKIE_LAST_GROUP_PROMPT_TIME, now);
     setCookie(COOKIE_LAST_ACTIVE_TIME, now);
 
-    if (groupId !== group?.id) {
-      await switchGroup(groupId);
-    }
+    await switchGroup(groupId);
     setIsModalOpen(false);
   };
 

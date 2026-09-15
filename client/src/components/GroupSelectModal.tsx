@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import type { GroupMembership } from '../types';
-import { Users, Check, ArrowRight, RefreshCw, X } from 'lucide-react';
+import { Users, Check, ArrowRight, RefreshCw, X, Layers } from 'lucide-react';
 
 interface GroupSelectModalProps {
   isOpen: boolean;
@@ -29,7 +29,9 @@ const GroupSelectModalContent: React.FC<GroupSelectModalProps> = ({
   const { t } = useLanguage();
   const fallbackId = currentGroupId || (groups.length > 0 ? groups[0].group_id : '');
   const validInitial =
-    initialSelectedGroupId && groups.some((g) => g.group_id === initialSelectedGroupId)
+    initialSelectedGroupId === 'ALL_GROUPS' && groups.length > 1
+      ? 'ALL_GROUPS'
+      : initialSelectedGroupId && groups.some((g) => g.group_id === initialSelectedGroupId)
       ? initialSelectedGroupId
       : fallbackId;
 
@@ -86,6 +88,54 @@ const GroupSelectModalContent: React.FC<GroupSelectModalProps> = ({
 
         {/* Groups Selection List */}
         <div className="space-y-2 mt-5 mb-5 max-h-64 overflow-y-auto pe-1">
+          {groups.length > 1 && (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => setSelectedGroupId('ALL_GROUPS')}
+              className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-start ${
+                selectedGroupId === 'ALL_GROUPS'
+                  ? 'bg-sky-500/20 border-sky-400/60 shadow-md shadow-sky-500/10 ring-1 ring-sky-400/40'
+                  : 'bg-slate-950/60 border-white/10 hover:border-white/20 hover:bg-slate-950/80'
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
+                    selectedGroupId === 'ALL_GROUPS'
+                      ? 'bg-sky-400/20 border-sky-400/40 text-sky-300'
+                      : 'bg-white/5 border-white/10 text-slate-400'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-white truncate">{t('allGroups')}</p>
+                    {currentGroupId === 'ALL_GROUPS' && (
+                      <span className="text-[10px] text-sky-300 font-medium px-1.5 py-0.2 bg-sky-500/10 rounded border border-sky-400/30">
+                        {t('you')}
+                      </span>
+                    )}
+                  </div>
+                  <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full border mt-1 bg-white/10 text-slate-300 border-white/15">
+                    {t('allGroupsCount', { count: groups.length })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="shrink-0 ms-3">
+                {selectedGroupId === 'ALL_GROUPS' ? (
+                  <div className="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center shadow-sm shadow-sky-500/50">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-full border border-slate-600/70" />
+                )}
+              </div>
+            </button>
+          )}
+
           {groups.map((g) => {
             const isSelected = g.group_id === selectedGroupId;
             const isCurrent = g.group_id === currentGroupId;

@@ -3,6 +3,7 @@ import { Bindings, JWTPayload, TaskPriority, TaskStatus } from '../types';
 import { authMiddleware } from '../auth';
 import {
   getTasksByGroupId,
+  getTasksForUserAllGroups,
   getTaskById,
   createTask,
   updateTask,
@@ -21,12 +22,22 @@ export const taskRoutes = new Hono<{
 
 taskRoutes.use('*', authMiddleware);
 
-// GET /api/tasks - Lists group tasks (filters: status, assignee, priority)
+// GET /api/tasks - Lists group tasks (filters: status, assignee, priority, all_groups)
 taskRoutes.get('/', async (c) => {
   const jwtUser = c.get('user');
   const status = c.req.query('status');
   const assigneeId = c.req.query('assignee_id');
   const priority = c.req.query('priority');
+  const allGroups = c.req.query('all_groups') === 'true' || c.req.query('group_id') === 'all';
+
+  if (allGroups) {
+    const tasks = await getTasksForUserAllGroups(c.env.DB, jwtUser.sub, {
+      status,
+      assignee_id: assigneeId,
+      priority,
+    });
+    return c.json({ tasks });
+  }
 
   const tasks = await getTasksByGroupId(c.env.DB, jwtUser.groupId, {
     status,
@@ -68,16 +79,26 @@ taskRoutes.post('/', async (c) => {
     priority?: TaskPriority;
     due_at?: number | null;
     recurrence_rule?: string | null;
+    group_id?: string;
   }>();
 
   if (!body.title || !body.title.trim()) {
     return c.json({ error: 'Title is required' }, 400);
   }
 
+  let targetGroupId = jwtUser.groupId;
+  if (body.group_id && body.group_id !== jwtUser.groupId) {
+    const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, body.group_id);
+    if (!membership) {
+      return c.json({ error: 'You are not a member of this group' }, 403);
+    }
+    targetGroupId = body.group_id;
+  }
+
   const task = await createTask(
     c.env.DB,
     {
-      groupId: jwtUser.groupId,
+      groupId: targetGroupId,
       creatorId: jwtUser.sub,
       assigneeId: body.assignee_id,
       title: body.title.trim(),
@@ -122,8 +143,15 @@ taskRoutes.patch('/:id', async (c) => {
   const taskId = c.req.param('id');
 
   const existing = await getTaskById(c.env.DB, taskId);
-  if (!existing || existing.group_id !== jwtUser.groupId) {
+  if (!existing) {
     return c.json({ error: 'Task not found' }, 404);
+  }
+
+  if (existing.group_id !== jwtUser.groupId) {
+    const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, existing.group_id);
+    if (!membership) {
+      return c.json({ error: 'Task not found' }, 404);
+    }
   }
 
   const body = await c.req.json<{
@@ -182,8 +210,15 @@ taskRoutes.delete('/:id', async (c) => {
   const taskId = c.req.param('id');
 
   const existing = await getTaskById(c.env.DB, taskId);
-  if (!existing || existing.group_id !== jwtUser.groupId) {
+  if (!existing) {
     return c.json({ error: 'Task not found' }, 404);
+  }
+
+  if (existing.group_id !== jwtUser.groupId) {
+    const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, existing.group_id);
+    if (!membership) {
+      return c.json({ error: 'Task not found' }, 404);
+    }
   }
 
   await deleteTask(c.env.DB, taskId);
@@ -196,8 +231,15 @@ taskRoutes.post('/:id/nudge', async (c) => {
   const taskId = c.req.param('id');
 
   const task = await getTaskById(c.env.DB, taskId);
-  if (!task || task.group_id !== jwtUser.groupId) {
+  if (!task) {
     return c.json({ error: 'Task not found' }, 404);
+  }
+
+  if (task.group_id !== jwtUser.groupId) {
+    const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, task.group_id);
+    if (!membership) {
+      return c.json({ error: 'Task not found' }, 404);
+    }
   }
 
   if (!task.assignee_id) {

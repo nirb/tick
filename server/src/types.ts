@@ -63,6 +63,7 @@ export interface TaskWithAssignee extends Task {
   assignee_name?: string | null;
   assignee_avatar?: string | null;
   creator_name?: string | null;
+  group_name?: string | null;
 }
 
 export interface PushSubscriptionRow {

@@ -13,6 +13,7 @@ import {
   ChevronDown,
   CheckSquare,
   Copy,
+  Users,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
 import { Avatar } from './Avatar';
@@ -37,7 +38,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onUpdateDescription,
   onShowToast,
 }) => {
-  const { user } = useAuth();
+  const { user, isAllGroups } = useAuth();
   const { t, language } = useLanguage();
   const [nudging, setNudging] = useState(false);
   const [nudged, setNudged] = useState(false);
@@ -210,6 +211,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               >
                 {task.title}
               </h3>
+              {isAllGroups && task.group_name && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 shrink-0 max-w-[90px] truncate">
+                  {task.group_name}
+                </span>
+              )}
               <ChevronDown
                 className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-sky-400' : ''
                   }`}
@@ -402,6 +408,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       : task.recurrence_rule.includes('WEEKLY')
                         ? t('weekly')
                         : t('recurring')}
+                  </span>
+                )}
+
+                {/* Group Badge */}
+                {isAllGroups && task.group_name && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-200 border border-cyan-400/30 font-semibold text-xs">
+                    <Users className="w-3 h-3 text-cyan-400" />
+                    <span>{task.group_name}</span>
                   </span>
                 )}
 

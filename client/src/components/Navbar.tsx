@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Users,
   Settings,
+  Layers,
 } from 'lucide-react';
 import { Avatar } from './Avatar';
 
@@ -45,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   members,
   tasks,
 }) => {
-  const { user, group, groups, switchGroup, createGroup, logout, updateUserName } = useAuth();
+  const { user, group, groups, isAllGroups, switchGroup, createGroup, logout, updateUserName } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
   const { language, toggleLanguage, t } = useLanguage();
   const { isInstalled, promptInstall } = useInstall();
@@ -153,7 +154,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       : [];
 
   const handleSwitchGroup = async (groupId: string) => {
-    if (groupId === group?.id) {
+    if ((groupId === 'ALL_GROUPS' && isAllGroups) || (groupId === group?.id && !isAllGroups)) {
       setShowGroupMenu(false);
       return;
     }
@@ -285,7 +286,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }`}
           >
             <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[95px] sm:max-w-[150px] md:max-w-[180px]">
-              {group?.name || t('appName')}
+              {isAllGroups ? t('allGroups') : group?.name || t('appName')}
             </span>
             <ChevronDown
               className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
@@ -309,8 +310,35 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                   {/* List of groups */}
                   <div className="max-h-52 overflow-y-auto space-y-1 my-1">
+                    {displayGroups.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchGroup('ALL_GROUPS')}
+                        disabled={switchingGroupId === 'ALL_GROUPS'}
+                        className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
+                          isAllGroups
+                            ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
+                            : 'hover:bg-white/10 text-slate-200 font-medium'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                          {isAllGroups ? (
+                            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                          ) : switchingGroupId === 'ALL_GROUPS' ? (
+                            <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
+                          ) : (
+                            <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className="truncate">{t('allGroups')}</span>
+                        </div>
+                        <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
+                          {displayGroups.length}
+                        </span>
+                      </button>
+                    )}
+
                     {displayGroups.map((g) => {
-                      const isActive = g.group_id === group?.id;
+                      const isActive = !isAllGroups && g.group_id === group?.id;
                       const isSwitching = switchingGroupId === g.group_id;
                       return (
                         <button

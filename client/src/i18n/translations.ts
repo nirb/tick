@@ -134,6 +134,7 @@ export interface Translations {
   toastTaskSnoozed: string;
 
   // Group Modal
+  groupLabel: string;
   groupTitle: string;
   editGroupName: string;
   editUserName: string;
@@ -164,6 +165,9 @@ export interface Translations {
   autoEnterLastGroupCheckbox: string;
   autoEnterNoticeWeek: string;
   confirmSelectGroup: string;
+  allGroups: string;
+  allGroupsSubtitle: string;
+  allGroupsCount: string;
 
   // Install Modal
   installOnIphone: string;
@@ -377,6 +381,7 @@ export const dictionaries: Record<Language, Translations> = {
     nextTask: 'Next',
     toastTaskSnoozed: 'Task snoozed for {duration}',
 
+    groupLabel: 'Group',
     groupTitle: 'Group Members',
     editGroupName: 'Edit Group Name',
     editUserName: 'Edit your name',
@@ -407,6 +412,9 @@ export const dictionaries: Record<Language, Translations> = {
     autoEnterLastGroupCheckbox: 'Automatically enter the last used group',
     autoEnterNoticeWeek: 'We will ask again in a week',
     confirmSelectGroup: 'Continue',
+    allGroups: 'All Groups',
+    allGroupsSubtitle: 'View tasks from all your groups',
+    allGroupsCount: '{count} groups',
 
     installOnIphone: 'Install Tick on iPhone',
     installOnAndroid: 'Install Tick on Android',
@@ -615,6 +623,7 @@ export const dictionaries: Record<Language, Translations> = {
     nextTask: 'הבא',
     toastTaskSnoozed: 'המשימה נדחתה ב-{duration}',
 
+    groupLabel: 'קבוצה',
     groupTitle: 'חברי הקבוצה',
     editGroupName: 'עריכת שם הקבוצה',
     editUserName: 'עריכת שמך',
@@ -645,6 +654,9 @@ export const dictionaries: Record<Language, Translations> = {
     autoEnterLastGroupCheckbox: 'היכנס אוטומטית לקבוצה האחרונה',
     autoEnterNoticeWeek: 'נשאל אותך שוב בעוד שבוע',
     confirmSelectGroup: 'המשך',
+    allGroups: 'כל הקבוצות',
+    allGroupsSubtitle: 'הצגת משימות מכל הקבוצות שלך',
+    allGroupsCount: '{count} קבוצות',
 
     installOnIphone: 'התקנת "הקרציה" באייפון',
     installOnAndroid: 'התקנת "הקרציה" באנדרואיד',

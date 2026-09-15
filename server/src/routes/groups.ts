@@ -9,6 +9,7 @@ import {
   getGroupByInviteCode,
   updateGroupName,
   getUserGroups,
+  getAllUserGroupsMembers,
   addUserToGroup,
   getUserGroupMembership,
   setUserActiveGroup,
@@ -27,6 +28,13 @@ groupRoutes.get('/', async (c) => {
   const jwtUser = c.get('user');
   const groups = await getUserGroups(c.env.DB, jwtUser.sub);
   return c.json({ groups });
+});
+
+// GET /api/groups/all-members - Lists members across all user groups
+groupRoutes.get('/all-members', async (c) => {
+  const jwtUser = c.get('user');
+  const members = await getAllUserGroupsMembers(c.env.DB, jwtUser.sub);
+  return c.json({ members });
 });
 
 // GET /api/groups/me - Fetches active user group, members, and all user groups

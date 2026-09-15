@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { Group, GroupMembership, User } from '../types';
 import { api, setToken } from '../lib/api';
 import { cacheMembers, getCachedMembers } from '../lib/offline';
-import { setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
+import { setCookie, getCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +10,8 @@ interface AuthContextType {
   groups: GroupMembership[];
   members: User[];
   loading: boolean;
+  isAllGroups: boolean;
+  selectedGroupId: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, groupName?: string, inviteCode?: string) => Promise<void>;
   loginWithGoogle: (data: { credential: string; inviteCode?: string }) => Promise<void>;
@@ -30,7 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [group, setGroup] = useState<Group | null>(null);
   const [groups, setGroups] = useState<GroupMembership[]>([]);
   const [members, setMembers] = useState<User[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    return getCookie(COOKIE_LAST_SELECTED_GROUP) || null;
+  });
   const [loading, setLoading] = useState(true);
+
+  const isAllGroups = selectedGroupId === 'ALL_GROUPS' && groups.length > 1;
 
   const fetchProfileAndGroup = async () => {
     try {
@@ -58,20 +65,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setGroup(activeGroup);
-      if (activeGroup?.id) {
-        setCookie(COOKIE_LAST_SELECTED_GROUP, activeGroup.id);
-      }
 
-      const groupData = await api.groups.getMe();
-      setMembers(groupData.members);
-      if (groupData.groups) setGroups(groupData.groups);
-      await cacheMembers(groupData.members);
+      const lastStoredGroup = getCookie(COOKIE_LAST_SELECTED_GROUP);
+      if (lastStoredGroup === 'ALL_GROUPS' && userGroups && userGroups.length > 1 && !targetGroupIdFromUrl) {
+        setSelectedGroupId('ALL_GROUPS');
+        try {
+          const allMembersRes = await api.groups.getAllMembers();
+          if (allMembersRes.members && allMembersRes.members.length > 0) {
+            setMembers(allMembersRes.members);
+            await cacheMembers(allMembersRes.members, 'ALL_GROUPS');
+          } else {
+            const groupData = await api.groups.getMe();
+            setMembers(groupData.members);
+          }
+        } catch {
+          const groupData = await api.groups.getMe();
+          setMembers(groupData.members);
+        }
+      } else {
+        if (activeGroup?.id) {
+          setSelectedGroupId(activeGroup.id);
+          setCookie(COOKIE_LAST_SELECTED_GROUP, activeGroup.id);
+        }
+        const groupData = await api.groups.getMe();
+        setMembers(groupData.members);
+        if (groupData.groups) setGroups(groupData.groups);
+        await cacheMembers(groupData.members, activeGroup?.id);
+      }
     } catch {
       const cached = await getCachedMembers();
       if (cached) setMembers(cached);
       setUser(null);
       setGroup(null);
       setGroups([]);
+      setSelectedGroupId(null);
     } finally {
       setLoading(false);
     }
@@ -146,6 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setGroup(null);
     setGroups([]);
     setMembers([]);
+    setSelectedGroupId(null);
   };
 
   const refreshGroup = async () => {
@@ -162,6 +190,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchGroup = async (groupId: string) => {
+    if (groupId === 'ALL_GROUPS') {
+      setSelectedGroupId('ALL_GROUPS');
+      setCookie(COOKIE_LAST_SELECTED_GROUP, 'ALL_GROUPS');
+      setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
+      try {
+        const res = await api.groups.getAllMembers();
+        if (res.members && res.members.length > 0) {
+          setMembers(res.members);
+          await cacheMembers(res.members, 'ALL_GROUPS');
+        }
+      } catch (err) {
+        console.warn('Failed fetching all members on switch to ALL_GROUPS:', err);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await api.groups.switch(groupId);
@@ -169,12 +213,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.token);
       }
       setGroup(res.group);
+      setSelectedGroupId(res.group.id);
       if (res.groups) setGroups(res.groups);
       setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       if (res.members) {
         setMembers(res.members);
-        await cacheMembers(res.members);
+        await cacheMembers(res.members, res.group.id);
       }
       setUser((prev) => {
         if (!prev) return null;
@@ -198,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.token);
       }
       setGroup(res.group);
+      setSelectedGroupId(res.group.id);
       if (res.groups) setGroups(res.groups);
       setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
@@ -218,6 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.token);
       }
       setGroup(res.group);
+      setSelectedGroupId(res.group.id);
       if (res.groups) setGroups(res.groups);
       setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
@@ -247,6 +294,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(res.token);
       }
       setGroup(res.group);
+      setSelectedGroupId(res.group?.id || null);
       if (res.groups) setGroups(res.groups);
       setUser((prev) => {
         if (!prev) return null;
@@ -290,6 +338,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         groups,
         members,
         loading,
+        isAllGroups,
+        selectedGroupId,
         login,
         register,
         loginWithGoogle,

@@ -99,6 +99,44 @@ export async function getGroupMembers(db: D1Database, groupId: string): Promise<
   return legacy;
 }
 
+export async function getAllUserGroupsMembers(db: D1Database, userId: string): Promise<User[]> {
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT DISTINCT u.id, gm.group_id, u.name, u.email, gm.role, u.avatar_url, gm.joined_at as created_at
+         FROM users u
+         JOIN group_members gm ON u.id = gm.user_id
+         WHERE gm.group_id IN (
+           SELECT group_id FROM group_members WHERE user_id = ?
+           UNION
+           SELECT group_id FROM users WHERE id = ?
+         )
+         ORDER BY u.name ASC`
+      )
+      .bind(userId, userId)
+      .all<User>();
+
+    if (results && results.length > 0) {
+      return results;
+    }
+  } catch {
+    // Fallback if group_members query fails
+  }
+
+  const { results: fallback } = await db
+    .prepare(
+      `SELECT DISTINCT u.id, u.group_id, u.name, u.email, u.role, u.avatar_url, u.created_at
+       FROM users u
+       WHERE u.group_id IN (
+         SELECT group_id FROM users WHERE id = ?
+       )
+       ORDER BY u.name ASC`
+    )
+    .bind(userId)
+    .all<User>();
+  return fallback || [];
+}
+
 export async function getUserGroups(db: D1Database, userId: string): Promise<GroupMembership[]> {
   try {
     const { results } = await db
@@ -297,14 +335,78 @@ export async function getTasksByGroupId(
       t.status, t.priority, t.due_at, t.completed_at, t.recurrence_rule,
       t.created_at, t.updated_at,
       u.name as assignee_name, u.avatar_url as assignee_avatar,
-      c.name as creator_name
+      c.name as creator_name,
+      g.name as group_name
     FROM tasks t
     LEFT JOIN users u ON t.assignee_id = u.id
     LEFT JOIN users c ON t.creator_id = c.id
+    LEFT JOIN groups g ON t.group_id = g.id
     WHERE t.group_id = ?
   `;
 
   const params: (string | number)[] = [groupId];
+
+  if (filters.status) {
+    query += ' AND t.status = ?';
+    params.push(filters.status);
+    if (filters.status === 'completed') {
+      query += ' AND (t.recurrence_rule IS NULL OR t.recurrence_rule = "")';
+    }
+  } else {
+    query += ' AND NOT (t.status = "completed" AND t.recurrence_rule IS NOT NULL AND t.recurrence_rule != "")';
+  }
+
+  if (filters.assignee_id) {
+    query += ' AND t.assignee_id = ?';
+    params.push(filters.assignee_id);
+  }
+
+  if (filters.priority) {
+    query += ' AND t.priority = ?';
+    params.push(filters.priority);
+  }
+
+  query += ` ORDER BY 
+    CASE t.status WHEN 'completed' THEN 2 ELSE 1 END ASC,
+    CASE WHEN (t.due_at IS NULL OR t.due_at <= 0) THEN 1 ELSE 2 END ASC,
+    CASE WHEN (t.due_at IS NULL OR t.due_at <= 0) THEN
+      CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END
+    ELSE
+      t.due_at
+    END ASC,
+    CASE t.priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC,
+    t.created_at DESC`;
+
+  const stmt = db.prepare(query).bind(...params);
+  const { results } = await stmt.all<TaskWithAssignee>();
+  return results;
+}
+
+export async function getTasksForUserAllGroups(
+  db: D1Database,
+  userId: string,
+  filters: { status?: string; assignee_id?: string; priority?: string } = {}
+): Promise<TaskWithAssignee[]> {
+  let query = `
+    SELECT 
+      t.id, t.group_id, t.creator_id, t.assignee_id, t.title, t.description,
+      t.status, t.priority, t.due_at, t.completed_at, t.recurrence_rule,
+      t.created_at, t.updated_at,
+      u.name as assignee_name, u.avatar_url as assignee_avatar,
+      c.name as creator_name,
+      g.name as group_name
+    FROM tasks t
+    LEFT JOIN users u ON t.assignee_id = u.id
+    LEFT JOIN users c ON t.creator_id = c.id
+    LEFT JOIN groups g ON t.group_id = g.id
+    WHERE t.group_id IN (
+      SELECT group_id FROM group_members WHERE user_id = ?
+      UNION
+      SELECT group_id FROM users WHERE id = ?
+    )
+  `;
+
+  const params: (string | number)[] = [userId, userId];
 
   if (filters.status) {
     query += ' AND t.status = ?';
@@ -350,10 +452,12 @@ export async function getTaskById(db: D1Database, id: string): Promise<TaskWithA
         t.status, t.priority, t.due_at, t.completed_at, t.recurrence_rule,
         t.created_at, t.updated_at,
         u.name as assignee_name, u.avatar_url as assignee_avatar,
-        c.name as creator_name
+        c.name as creator_name,
+        g.name as group_name
       FROM tasks t
       LEFT JOIN users u ON t.assignee_id = u.id
       LEFT JOIN users c ON t.creator_id = c.id
+      LEFT JOIN groups g ON t.group_id = g.id
       WHERE t.id = ?
     `)
     .bind(id)

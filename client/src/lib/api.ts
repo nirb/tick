@@ -1,4 +1,4 @@
-import type { Group, GroupMembership, Task, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
+import type { Group, GroupMembership, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -111,14 +111,17 @@ export const api = {
       request<{ success: boolean; token: string; group: Group; groups: GroupMembership[] }>(`/api/groups/${groupId}/leave`, {
         method: 'POST',
       }),
+
+    getAllMembers: () => request<{ members: User[] }>('/api/groups/all-members'),
   },
 
   tasks: {
-    list: (filters: { status?: string; assignee_id?: string; priority?: string } = {}) => {
+    list: (filters: { status?: string; assignee_id?: string; priority?: string; all_groups?: boolean } = {}) => {
       const params = new URLSearchParams();
       if (filters.status) params.set('status', filters.status);
       if (filters.assignee_id) params.set('assignee_id', filters.assignee_id);
       if (filters.priority) params.set('priority', filters.priority);
+      if (filters.all_groups) params.set('all_groups', 'true');
       const query = params.toString() ? `?${params.toString()}` : '';
       return request<{ tasks: TaskWithAssignee[] }>(`/api/tasks${query}`);
     },
@@ -132,8 +135,9 @@ export const api = {
       priority?: TaskPriority;
       due_at?: number | null;
       recurrence_rule?: string | null;
+      group_id?: string;
     }) =>
-      request<{ task: Task }>('/api/tasks', {
+      request<{ task: TaskWithAssignee }>('/api/tasks', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
