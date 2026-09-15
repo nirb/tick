@@ -25,6 +25,10 @@ interface TaskPromptModalProps {
   onSnooze: (task: TaskWithAssignee, minutes: number) => void;
   onEdit?: (task: TaskWithAssignee) => void;
   onUpdateDescription?: (taskId: string, newDescription: string | null) => void;
+  onSkip?: () => void;
+  onDismissAll?: () => void;
+  queueIndex?: number;
+  queueTotal?: number;
   completing?: boolean;
 }
 
@@ -36,6 +40,10 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
   onSnooze,
   onEdit,
   onUpdateDescription,
+  onSkip,
+  onDismissAll,
+  queueIndex,
+  queueTotal,
   completing = false,
 }) => {
   const { t, language } = useLanguage();
@@ -161,14 +169,23 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-9 h-9 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30 shadow-md shadow-sky-500/20">
-            <Bell className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 id="task-prompt-title" className="text-base font-bold text-white leading-tight">
-              {t('taskDetails')}
-            </h2>
+        <div className="flex items-center justify-between mb-4 pe-8">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30 shadow-md shadow-sky-500/20">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 id="task-prompt-title" className="text-base font-bold text-white leading-tight">
+                  {queueTotal && queueTotal > 1 ? t('dueTasksPrompt') : t('taskDetails')}
+                </h2>
+                {queueTotal && queueTotal > 1 && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/25 text-sky-300 border border-sky-400/40">
+                    {t('taskProgress', { current: queueIndex || 1, total: queueTotal })}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -320,8 +337,8 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
           <span>{completing ? t('saving') : t('markDone')}</span>
         </button>
 
-        {/* Secondary Actions: Edit & Cancel */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+        {/* Secondary Actions: Edit & Skip / Cancel / Dismiss All */}
+        <div className="flex items-center justify-between pt-2 border-t border-white/10 gap-2">
           <button
             type="button"
             onClick={() => onEdit?.(task)}
@@ -331,13 +348,25 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
             <span>{t('edit')}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
-          >
-            {t('cancel')}
-          </button>
+          <div className="flex items-center gap-2">
+            {queueTotal && queueTotal > 1 && onSkip && (
+              <button
+                type="button"
+                onClick={onSkip}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors border border-white/10"
+              >
+                {t('skip')}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onDismissAll || onClose}
+              className="px-3.5 py-1.5 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
+            >
+              {queueTotal && queueTotal > 1 ? t('dismissAll') : t('cancel')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

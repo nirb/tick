@@ -120,12 +120,17 @@ export interface Translations {
 
   // Task Prompt / Notification Modal
   taskDetails: string;
+  dueTasksPrompt: string;
+  taskProgress: string;
   snooze: string;
   snooze15m: string;
   snooze30m: string;
   snooze1h: string;
   snooze2h: string;
   snooze6h: string;
+  skip: string;
+  dismissAll: string;
+  nextTask: string;
   toastTaskSnoozed: string;
 
   // Group Modal
@@ -359,12 +364,17 @@ export const dictionaries: Record<Language, Translations> = {
     checklistProgress: '{done} of {total} done',
 
     taskDetails: 'Task Details',
+    dueTasksPrompt: 'Due Tasks',
+    taskProgress: '{current} of {total}',
     snooze: 'Snooze',
     snooze15m: '15m',
     snooze30m: '30m',
     snooze1h: '1h',
     snooze2h: '2h',
     snooze6h: '6h',
+    skip: 'Skip',
+    dismissAll: 'Dismiss All',
+    nextTask: 'Next',
     toastTaskSnoozed: 'Task snoozed for {duration}',
 
     groupTitle: 'Group Members',
@@ -592,12 +602,17 @@ export const dictionaries: Record<Language, Translations> = {
     checklistProgress: '{done} מתוך {total} הושלמו',
 
     taskDetails: 'פרטי משימה',
+    dueTasksPrompt: 'משימות לביצוע',
+    taskProgress: '{current} מתוך {total}',
     snooze: 'השהה',
     snooze15m: '15 דק׳',
     snooze30m: '30 דק׳',
     snooze1h: 'שעה',
     snooze2h: 'שעתיים',
     snooze6h: '6 שעות',
+    skip: 'דלג',
+    dismissAll: 'סגור הכל',
+    nextTask: 'הבא',
     toastTaskSnoozed: 'המשימה נדחתה ב-{duration}',
 
     groupTitle: 'חברי הקבוצה',

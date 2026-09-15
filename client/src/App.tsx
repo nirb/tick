@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePush } from './context/PushContext';
 import { useLanguage } from './context/LanguageContext';
@@ -54,7 +54,10 @@ export const App: React.FC = () => {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<TaskWithAssignee | null>(null);
-  const [promptTask, setPromptTask] = useState<TaskWithAssignee | null>(null);
+  const [dueTaskQueue, setDueTaskQueue] = useState<string[]>([]);
+  const [initialQueueTotal, setInitialQueueTotal] = useState<number>(0);
+  const hasCheckedDueTasksRef = useRef<boolean>(false);
+  const prevGroupIdRef = useRef<string | null>(null);
   const [completingTask, setCompletingTask] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<TaskWithAssignee | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
@@ -166,9 +169,11 @@ export const App: React.FC = () => {
 
       // 2. If target task is specified:
       if (targetTaskId) {
+        hasCheckedDueTasksRef.current = true;
         const target = tasks.find((t) => t.id === targetTaskId);
         if (target) {
-          setPromptTask(target);
+          setDueTaskQueue([target.id]);
+          setInitialQueueTotal(1);
           cleanTaskUrl();
         } else if (!loadingTasks) {
           try {
@@ -180,7 +185,9 @@ export const App: React.FC = () => {
                   return;
                 }
               }
-              setPromptTask(res.task);
+              setTasks((prev) => (prev.some((t) => t.id === res.task.id) ? prev : [...prev, res.task]));
+              setDueTaskQueue([res.task.id]);
+              setInitialQueueTotal(1);
               cleanTaskUrl();
             }
           } catch {
@@ -199,6 +206,53 @@ export const App: React.FC = () => {
       window.removeEventListener('popstate', handleDeepLink);
     };
   }, [authLoading, user, group?.id, groups, tasks, loadingTasks, switchGroup, cleanTaskUrl]);
+
+  // Reset due task check when switching groups
+  useEffect(() => {
+    if (group?.id && group.id !== prevGroupIdRef.current) {
+      prevGroupIdRef.current = group.id;
+      hasCheckedDueTasksRef.current = false;
+    }
+  }, [group?.id]);
+
+  // Check for due tasks when user opens the app normally (not from a notification)
+  useEffect(() => {
+    if (authLoading || !user || !group || loadingTasks || tasks.length === 0) return;
+    if (hasCheckedDueTasksRef.current) return;
+
+    // Check if URL has a specific task target (deep link from notification)
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('task')) return;
+
+    hasCheckedDueTasksRef.current = true;
+
+    const now = Math.floor(Date.now() / 1000);
+    const due = tasks
+      .filter((t) => t.status !== 'completed' && typeof t.due_at === 'number' && t.due_at <= now)
+      .sort((a, b) => {
+        const isMine = (t: TaskWithAssignee) => (t.assignee_id === user.id ? 0 : !t.assignee_id ? 1 : 2);
+        const mineDiff = isMine(a) - isMine(b);
+        if (mineDiff !== 0) return mineDiff;
+        return (a.due_at ?? 0) - (b.due_at ?? 0);
+      });
+
+    if (due.length > 0) {
+      const queue = due.slice(0, 5).map((t) => t.id);
+      setDueTaskQueue(queue);
+      setInitialQueueTotal(queue.length);
+    }
+  }, [authLoading, user, group?.id, loadingTasks, tasks]);
+
+  // Clean up completed/deleted tasks from due task queue
+  useEffect(() => {
+    if (dueTaskQueue.length > 0) {
+      const currentId = dueTaskQueue[0];
+      const task = tasks.find((t) => t.id === currentId);
+      if (!task || task.status === 'completed') {
+        setDueTaskQueue((prev) => prev.slice(1));
+      }
+    }
+  }, [tasks, dueTaskQueue]);
 
   // Handle Task Create/Update
   const handleSaveTask = async (data: {
@@ -300,7 +354,7 @@ export const App: React.FC = () => {
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, due_at: newDueAt } : t))
     );
-    setPromptTask(null);
+    setDueTaskQueue((prev) => prev.slice(1));
 
     const formatDuration = (m: number) => {
       if (m === 15) return t('snooze15m');
@@ -328,12 +382,20 @@ export const App: React.FC = () => {
   };
 
   const handleCompleteFromPrompt = async (task: TaskWithAssignee) => {
-    setPromptTask(null);
+    setDueTaskQueue((prev) => prev.slice(1));
     await executeToggleStatus(task, 'completed');
   };
 
+  const handleSkipFromPrompt = () => {
+    setDueTaskQueue((prev) => prev.slice(1));
+  };
+
+  const handleDismissAllPrompt = () => {
+    setDueTaskQueue([]);
+  };
+
   const handleEditFromPrompt = (task: TaskWithAssignee) => {
-    setPromptTask(null);
+    setDueTaskQueue([]);
     setTaskToEdit(task);
     setIsTaskModalOpen(true);
   };
@@ -488,6 +550,10 @@ export const App: React.FC = () => {
     return b.created_at - a.created_at;
   });
 
+  const currentPromptTaskId = dueTaskQueue[0] || null;
+  const currentPromptTask = currentPromptTaskId ? tasks.find((t) => t.id === currentPromptTaskId) || null : null;
+  const queueIndex = initialQueueTotal > 0 ? Math.max(1, initialQueueTotal - dueTaskQueue.length + 1) : 1;
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-transparent flex items-center justify-center text-white">
@@ -619,12 +685,16 @@ export const App: React.FC = () => {
       />
 
       <TaskPromptModal
-        isOpen={!!promptTask}
-        task={promptTask ? tasks.find((t) => t.id === promptTask.id) || promptTask : null}
-        onClose={() => setPromptTask(null)}
+        isOpen={!!currentPromptTask}
+        task={currentPromptTask}
+        onClose={handleDismissAllPrompt}
         onComplete={handleCompleteFromPrompt}
         onSnooze={handleSnoozeTask}
         onEdit={handleEditFromPrompt}
+        onSkip={handleSkipFromPrompt}
+        onDismissAll={handleDismissAllPrompt}
+        queueIndex={queueIndex}
+        queueTotal={initialQueueTotal}
         onUpdateDescription={handleUpdateDescription}
         completing={completingTask}
       />
