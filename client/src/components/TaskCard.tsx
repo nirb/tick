@@ -238,11 +238,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       title={dueInfo.relativeText}
                     >
                       <span className="truncate">{dueInfo.relativeText}</span>
-                      {dueInfo.isOverdue ? (
-                        <Clock className="w-3 h-3 text-rose-300 shrink-0" />
-                      ) : (
-                        <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
-                      )}
                     </span>
                   )
                 )}
