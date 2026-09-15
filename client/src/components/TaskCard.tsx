@@ -182,8 +182,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         }
       }}
       className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer p-3.5 sm:p-4 z-0 ${priorityBorderClasses[task.priority] || priorityBorderClasses.medium} ${isCompleted
-          ? 'border-white/5 bg-slate-900/40 opacity-60'
-          : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-white/25 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
+        ? 'border-white/5 bg-slate-900/40 opacity-60'
+        : 'bg-slate-900/65 backdrop-blur-md border-white/12 hover:border-white/25 hover:bg-slate-900/80 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40'
         }`}
     >
       <div className="flex items-start gap-3">
@@ -237,12 +237,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         }`}
                       title={dueInfo.relativeText}
                     >
+                      <span className="truncate">{dueInfo.relativeText}</span>
                       {dueInfo.isOverdue ? (
                         <Clock className="w-3 h-3 text-rose-300 shrink-0" />
                       ) : (
                         <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
                       )}
-                      <span className="truncate">{dueInfo.relativeText}</span>
                     </span>
                   )
                 )}
