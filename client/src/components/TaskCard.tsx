@@ -208,37 +208,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0 grid grid-cols-4 items-center gap-2">
-              {isAllGroups && task.group_name ? (
-                <div className="col-span-3 grid grid-cols-4 items-center gap-1.5 min-w-0">
-                  <div className="col-span-3 flex items-center min-w-0">
-                    <h3
-                      className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
-                        }`}
-                    >
-                      {task.title}
-                    </h3>
-                  </div>
-                  <span
-                    className="col-span-1 inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 min-w-0"
-                    title={task.group_name}
-                  >
-                    <span className="truncate">{task.group_name}</span>
-                  </span>
-                </div>
-              ) : (
-                <div className="col-span-3 flex items-center min-w-0">
-                  <h3
-                    className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
-                      }`}
-                  >
-                    {task.title}
-                  </h3>
-                </div>
-              )}
+            <div className="flex-1 min-w-0 grid grid-cols-10 items-center gap-2">
+              {/* Task name: 50% in all groups (or 70% in single group) */}
+              <div className={`${isAllGroups && task.group_name ? 'col-span-5' : 'col-span-7'} flex items-center min-w-0`}>
+                <h3
+                  className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
+                    }`}
+                >
+                  {task.title}
+                </h3>
+              </div>
 
-              {/* Right side of header: Priority badge when extended, Due date when closed, or empty 25% spacer to keep alignment */}
-              <div className="col-span-1 min-w-0 flex justify-end">
+              {/* Middle: Priority badge when open, "in x days" when closed (30%) */}
+              <div className="col-span-3 min-w-0 flex items-center justify-center">
                 {isExpanded ? (
                   <span
                     className={`inline-flex items-center justify-center w-full px-2 py-0.5 rounded-full border text-xs capitalize font-semibold min-w-0 ${priorityColors[task.priority] || priorityColors.medium
@@ -265,6 +247,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   )
                 )}
               </div>
+
+              {/* Group Name: 20% */}
+              {isAllGroups && task.group_name && (
+                <div className="col-span-2 min-w-0 flex items-center justify-center">
+                  <span
+                    className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 max-w-full min-w-0"
+                    title={task.group_name}
+                  >
+                    <span className="truncate">{task.group_name}</span>
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Expand / Collapse Arrow at the end of the row */}
