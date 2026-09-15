@@ -116,7 +116,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       relativeStr = t('daysAgo', { days: Math.abs(diffDays) });
     }
 
-    return { text: `${dateStr} · ${relativeStr}`, isOverdue };
+    return {
+      relativeText: relativeStr,
+      fullText: `${dateStr} · ${relativeStr}`,
+      isOverdue,
+    };
   };
 
   const dueInfo = formatDue(task.due_at);
@@ -203,50 +207,71 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              <h3
-                className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none ${isCompleted ? 'line-through text-slate-400' : 'text-white'
-                  }`}
-              >
-                {task.title}
-              </h3>
-              {isAllGroups && task.group_name && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 shrink-0 max-w-[90px] truncate">
-                  {task.group_name}
-                </span>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0 grid grid-cols-4 items-center gap-2">
+              {isAllGroups && task.group_name ? (
+                <div className="col-span-3 grid grid-cols-4 items-center gap-1.5 min-w-0">
+                  <span
+                    className="col-span-1 inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 min-w-0"
+                    title={task.group_name}
+                  >
+                    <span className="truncate">{task.group_name}</span>
+                  </span>
+                  <div className="col-span-3 flex items-center min-w-0">
+                    <h3
+                      className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
+                        }`}
+                    >
+                      {task.title}
+                    </h3>
+                  </div>
+                </div>
+              ) : (
+                <div className="col-span-3 flex items-center min-w-0">
+                  <h3
+                    className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
+                      }`}
+                  >
+                    {task.title}
+                  </h3>
+                </div>
               )}
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-sky-400' : ''
-                  }`}
-              />
+
+              {/* Right side of header: Priority badge when extended, Due date when closed, or empty 25% spacer to keep alignment */}
+              <div className="col-span-1 min-w-0 flex justify-end">
+                {isExpanded ? (
+                  <span
+                    className={`inline-flex items-center justify-center w-full px-2 py-0.5 rounded-full border text-xs capitalize font-semibold min-w-0 ${priorityColors[task.priority] || priorityColors.medium
+                      }`}
+                  >
+                    <span className="truncate">{t(task.priority)}</span>
+                  </span>
+                ) : (
+                  dueInfo && (
+                    <span
+                      className={`inline-flex items-center justify-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-semibold w-full min-w-0 ${dueInfo.isOverdue
+                        ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
+                        : 'bg-white/10 text-slate-200 border-white/15'
+                        }`}
+                      title={dueInfo.relativeText}
+                    >
+                      {dueInfo.isOverdue ? (
+                        <Clock className="w-3 h-3 text-rose-300 shrink-0" />
+                      ) : (
+                        <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
+                      )}
+                      <span className="truncate">{dueInfo.relativeText}</span>
+                    </span>
+                  )
+                )}
+              </div>
             </div>
 
-            {/* Right side of header: Priority badge when extended, Due date when closed */}
-            {isExpanded ? (
-              <span
-                className={`px-2.5 py-0.5 rounded-full border text-xs capitalize shrink-0 font-semibold ${priorityColors[task.priority] || priorityColors.medium
-                  }`}
-              >
-                {t(task.priority)}
-              </span>
-            ) : (
-              dueInfo && (
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-semibold shrink-0 ${dueInfo.isOverdue
-                    ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
-                    : 'bg-white/10 text-slate-200 border-white/15'
-                    }`}
-                >
-                  {dueInfo.isOverdue ? (
-                    <Clock className="w-3 h-3 text-rose-300" />
-                  ) : (
-                    <Calendar className="w-3 h-3 text-sky-400" />
-                  )}
-                  <span>{dueInfo.text}</span>
-                </span>
-              )
-            )}
+            {/* Expand / Collapse Arrow at the end of the row */}
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-sky-400' : ''
+                }`}
+            />
           </div>
 
           {/* Expanded Section: Description/Checklist + Second Line Badges */}
@@ -432,7 +457,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     ) : (
                       <Calendar className="w-3 h-3 text-sky-400" />
                     )}
-                    {dueInfo.text}
+                    {dueInfo.fullText}
                   </span>
                 )}
 
