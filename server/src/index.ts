@@ -77,7 +77,7 @@ export async function handleScheduled(event: ScheduledEvent, env: Bindings, ctx:
 
       await sendPushToSubscriptions(env, subs, {
         title: `${task.title} needs your attention`,
-        body: `Click to open Tick App`,
+        body: `Click to open the Tick App and complete the task`,
         url: `/?group=${task.group_id}&task=${task.id}`,
         tag: `due-reminder-${task.id}`,
       });
