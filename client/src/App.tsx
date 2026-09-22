@@ -20,6 +20,7 @@ import { InstallBanner } from './components/InstallBanner';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { useGroupPrompt } from './hooks/useGroupPrompt';
+import { getCookie, COOKIE_LAST_SELECTED_GROUP } from './lib/cookies';
 import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -58,6 +59,51 @@ export const App: React.FC = () => {
   const [initialQueueTotal, setInitialQueueTotal] = useState<number>(0);
   const hasCheckedDueTasksRef = useRef<boolean>(false);
   const prevGroupIdRef = useRef<string | null>(null);
+  const notificationPrevGroupRef = useRef<string | null>(null);
+  const hadDueTasksRef = useRef<boolean>(false);
+
+  // Restore previous group if saved in sessionStorage from cold start
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('tick_notification_prev_group');
+      if (stored) {
+        notificationPrevGroupRef.current = stored;
+      }
+    }
+  }, []);
+
+  const restorePreviousGroupAfterNotification = useCallback(async () => {
+    const prevGroup =
+      notificationPrevGroupRef.current ||
+      (typeof window !== 'undefined' ? sessionStorage.getItem('tick_notification_prev_group') : null);
+
+    notificationPrevGroupRef.current = null;
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('tick_notification_prev_group');
+    }
+
+    if (!prevGroup) return;
+
+    const currentScope = isAllGroups ? 'ALL_GROUPS' : group?.id;
+    if (prevGroup !== currentScope) {
+      try {
+        await switchGroup(prevGroup);
+      } catch (err) {
+        console.warn('Failed restoring previous group after notification:', err);
+      }
+    }
+  }, [group?.id, isAllGroups, switchGroup]);
+
+  // When due tasks prompt queue finishes, restore previous group if this was a notification
+  useEffect(() => {
+    if (dueTaskQueue.length > 0) {
+      hadDueTasksRef.current = true;
+    } else if (hadDueTasksRef.current && !isTaskModalOpen && !taskToEdit) {
+      hadDueTasksRef.current = false;
+      restorePreviousGroupAfterNotification();
+    }
+  }, [dueTaskQueue.length, isTaskModalOpen, taskToEdit, restorePreviousGroupAfterNotification]);
+
   const [completingTask, setCompletingTask] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<TaskWithAssignee | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
@@ -138,6 +184,20 @@ export const App: React.FC = () => {
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === 'NAVIGATE_TO_TARGET' && event.data?.url) {
         const url = new URL(event.data.url, window.location.origin);
+        if (url.searchParams.has('task')) {
+          if (!notificationPrevGroupRef.current && typeof window !== 'undefined') {
+            const stored = sessionStorage.getItem('tick_notification_prev_group');
+            if (stored) {
+              notificationPrevGroupRef.current = stored;
+            } else {
+              const currentScope = isAllGroups ? 'ALL_GROUPS' : (group?.id || getCookie(COOKIE_LAST_SELECTED_GROUP));
+              if (currentScope) {
+                notificationPrevGroupRef.current = currentScope;
+                sessionStorage.setItem('tick_notification_prev_group', currentScope);
+              }
+            }
+          }
+        }
         window.history.pushState({}, '', url.pathname + url.search);
         window.dispatchEvent(new Event('popstate'));
       }
@@ -147,7 +207,7 @@ export const App: React.FC = () => {
     return () => {
       navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
     };
-  }, []);
+  }, [group?.id, isAllGroups]);
 
   // Check URL query parameters for group & task deep linking (?group=UUID&task=UUID)
   useEffect(() => {
@@ -159,6 +219,22 @@ export const App: React.FC = () => {
       const targetTaskId = params.get('task');
 
       if (!targetGroupId && !targetTaskId) return;
+
+      // Preserve previous group before any notification switch occurs
+      if (targetTaskId && !notificationPrevGroupRef.current) {
+        const stored = typeof window !== 'undefined' ? sessionStorage.getItem('tick_notification_prev_group') : null;
+        if (stored) {
+          notificationPrevGroupRef.current = stored;
+        } else {
+          const currentScope = isAllGroups ? 'ALL_GROUPS' : (group?.id || getCookie(COOKIE_LAST_SELECTED_GROUP));
+          if (currentScope) {
+            notificationPrevGroupRef.current = currentScope;
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('tick_notification_prev_group', currentScope);
+            }
+          }
+        }
+      }
 
       // 1. If target group is specified and differs from current group:
       if (targetGroupId && group?.id !== targetGroupId) {
@@ -197,6 +273,7 @@ export const App: React.FC = () => {
             }
           } catch {
             cleanTaskUrl();
+            restorePreviousGroupAfterNotification();
           }
         }
       } else if (targetGroupId && group?.id === targetGroupId) {
@@ -210,7 +287,7 @@ export const App: React.FC = () => {
     return () => {
       window.removeEventListener('popstate', handleDeepLink);
     };
-  }, [authLoading, user, group?.id, groups, tasks, loadingTasks, switchGroup, cleanTaskUrl]);
+  }, [authLoading, user, group?.id, groups, tasks, loadingTasks, switchGroup, cleanTaskUrl, isAllGroups, restorePreviousGroupAfterNotification]);
 
   // Reset due task check when switching groups
   useEffect(() => {
@@ -293,6 +370,7 @@ export const App: React.FC = () => {
       await cacheTasks(tasks, cacheKey);
     }
     setTaskToEdit(null);
+    restorePreviousGroupAfterNotification();
   };
 
   // Toggle Status
@@ -404,6 +482,7 @@ export const App: React.FC = () => {
 
   const handleDismissAllPrompt = () => {
     setDueTaskQueue([]);
+    restorePreviousGroupAfterNotification();
   };
 
   const handleEditFromPrompt = (task: TaskWithAssignee) => {
@@ -674,6 +753,7 @@ export const App: React.FC = () => {
           setIsTaskModalOpen(false);
           setTaskToEdit(null);
           cleanTaskUrl();
+          restorePreviousGroupAfterNotification();
         }}
         onSubmit={handleSaveTask}
         members={members}

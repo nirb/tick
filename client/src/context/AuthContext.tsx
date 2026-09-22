@@ -42,13 +42,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfileAndGroup = async () => {
     try {
       let targetGroupIdFromUrl: string | null = null;
+      let targetTaskIdFromUrl: string | null = null;
       if (typeof window !== 'undefined') {
-        targetGroupIdFromUrl = new URLSearchParams(window.location.search).get('group');
+        const searchParams = new URLSearchParams(window.location.search);
+        targetGroupIdFromUrl = searchParams.get('group');
+        targetTaskIdFromUrl = searchParams.get('task');
       }
 
       const { user: currentUser, group: currentGroup, groups: userGroups } = await api.auth.getMe();
       setUser(currentUser);
       if (userGroups) setGroups(userGroups);
+
+      const lastStoredGroup = getCookie(COOKIE_LAST_SELECTED_GROUP);
+      const prevScope = lastStoredGroup || currentGroup?.id;
+
+      // If deep linking into a notification task, preserve the user's previously selected group
+      if (targetTaskIdFromUrl && prevScope && typeof window !== 'undefined') {
+        sessionStorage.setItem('tick_notification_prev_group', prevScope);
+      }
 
       let activeGroup = currentGroup;
       if (targetGroupIdFromUrl && userGroups?.some((g) => g.group_id === targetGroupIdFromUrl)) {
@@ -66,7 +77,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setGroup(activeGroup);
 
-      const lastStoredGroup = getCookie(COOKIE_LAST_SELECTED_GROUP);
       if (lastStoredGroup === 'ALL_GROUPS' && userGroups && userGroups.length > 1 && !targetGroupIdFromUrl) {
         setSelectedGroupId('ALL_GROUPS');
         try {
@@ -85,7 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         if (activeGroup?.id) {
           setSelectedGroupId(activeGroup.id);
-          setCookie(COOKIE_LAST_SELECTED_GROUP, activeGroup.id);
+          if (!targetTaskIdFromUrl) {
+            setCookie(COOKIE_LAST_SELECTED_GROUP, activeGroup.id);
+          }
         }
         const groupData = await api.groups.getMe();
         setMembers(groupData.members);
@@ -190,9 +202,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchGroup = async (groupId: string) => {
+    const isNotificationActive =
+      typeof window !== 'undefined' && sessionStorage.getItem('tick_notification_prev_group') !== null;
+
     if (groupId === 'ALL_GROUPS') {
       setSelectedGroupId('ALL_GROUPS');
-      setCookie(COOKIE_LAST_SELECTED_GROUP, 'ALL_GROUPS');
+      if (!isNotificationActive) {
+        setCookie(COOKIE_LAST_SELECTED_GROUP, 'ALL_GROUPS');
+      }
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       try {
         const res = await api.groups.getAllMembers();
@@ -215,7 +232,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setGroup(res.group);
       setSelectedGroupId(res.group.id);
       if (res.groups) setGroups(res.groups);
-      setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
+      if (!isNotificationActive) {
+        setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
+      }
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       if (res.members) {
         setMembers(res.members);
