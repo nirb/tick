@@ -6,7 +6,6 @@ import { useInstall } from '../context/InstallContext';
 import type { GroupMembership, User, TaskWithAssignee } from '../types';
 import { TaskFilters, type FilterTab } from './TaskFilters';
 import {
-  Menu,
   X,
   Bell,
   BellOff,
@@ -254,216 +253,34 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-white/12 shadow-lg shadow-black/30">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
-        {/* Mascot Logo */}
-        <button
-          type="button"
-          onClick={() => {
-            onTabChange('all');
-            onAssigneeChange('');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          aria-label={t('appName')}
-          className="shrink-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 transition-transform active:scale-95 cursor-pointer"
-        >
-          <img
-            src="/icons/icon-192.png"
-            alt={t('appName')}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-sky-500/20 object-cover select-none"
-          />
-        </button>
-
-        {/* Group Selection */}
-        <div className="relative shrink-0" ref={groupMenuRef}>
-          <button
-            type="button"
-            onClick={toggleGroupMenu}
-            aria-expanded={showGroupMenu}
-            aria-haspopup="true"
-            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 max-w-full ${
-              showGroupMenu
-                ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
-                : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
-            }`}
-          >
-            <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[95px] sm:max-w-[150px] md:max-w-[180px]">
-              {isAllGroups ? t('allGroups') : group?.name || t('appName')}
-            </span>
-            <ChevronDown
-              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
-                showGroupMenu ? 'rotate-180 text-white' : ''
+        {/* Start side: Menu (Tick Image Toggle Button) */}
+        <div className="flex-1 flex items-center justify-start min-w-0">
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              type="button"
+              onClick={toggleMainMenu}
+              aria-label={t('appName')}
+              aria-expanded={isMenuOpen}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border transition-all active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 relative shrink-0 shadow-md ${
+                isMenuOpen
+                  ? 'border-sky-400 ring-2 ring-sky-400/40 shadow-sky-500/20'
+                  : 'border-white/15 hover:border-white/30 shadow-black/20 hover:scale-105'
               }`}
-            />
-          </button>
-
-            {showGroupMenu && (
-              <div className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40">
-                <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 text-xs text-slate-100 animate-dropdown-expand">
-                  <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
-                    <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-sky-400" />
-                      {t('myGroups')}
-                    </span>
-                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
-                      {displayGroups.length}
-                    </span>
-                  </div>
-
-                  {/* List of groups */}
-                  <div className="max-h-52 overflow-y-auto space-y-1 my-1">
-                    {displayGroups.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleSwitchGroup('ALL_GROUPS')}
-                        disabled={switchingGroupId === 'ALL_GROUPS'}
-                        className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                          isAllGroups
-                            ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
-                            : 'hover:bg-white/10 text-slate-200 font-medium'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                          {isAllGroups ? (
-                            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                          ) : switchingGroupId === 'ALL_GROUPS' ? (
-                            <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
-                          ) : (
-                            <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          )}
-                          <span className="truncate">{t('allGroups')}</span>
-                        </div>
-                        <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
-                          {displayGroups.length}
-                        </span>
-                      </button>
-                    )}
-
-                    {displayGroups.map((g) => {
-                      const isActive = !isAllGroups && g.group_id === group?.id;
-                      const isSwitching = switchingGroupId === g.group_id;
-                      return (
-                        <button
-                          key={g.group_id}
-                          onClick={() => handleSwitchGroup(g.group_id)}
-                          disabled={isSwitching}
-                          className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
-                            isActive
-                              ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
-                              : 'hover:bg-white/10 text-slate-200 font-medium'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                            {isActive ? (
-                              <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                            ) : isSwitching ? (
-                              <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
-                            ) : (
-                              <div className="w-3.5 h-3.5 shrink-0" />
-                            )}
-                            <span className="truncate">{g.name}</span>
-                          </div>
-                          <span
-                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
-                              g.role === 'admin'
-                                ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
-                                : 'bg-white/10 text-slate-300 border-white/15'
-                            }`}
-                          >
-                            {g.role === 'admin' ? t('adminRole') : t('memberRole')}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Creation inline form or Action Buttons */}
-                  <div className="pt-1.5 border-t border-white/10 space-y-1">
-                    {isCreatingGroup ? (
-                      <form onSubmit={handleCreateGroupSubmit} className="p-1 space-y-2">
-                        <input
-                          type="text"
-                          value={newGroupName}
-                          onChange={(e) => setNewGroupName(e.target.value)}
-                          placeholder={t('newGroupName')}
-                          maxLength={50}
-                          autoFocus
-                          disabled={creatingGroupLoading}
-                          className="w-full px-2.5 py-1 bg-slate-950/80 border border-sky-400/50 rounded-lg text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
-                        />
-                        <div className="flex items-center gap-1.5 justify-end">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsCreatingGroup(false);
-                              setNewGroupName('');
-                            }}
-                            disabled={creatingGroupLoading}
-                            className="px-2 py-1 text-[11px] text-slate-400 hover:text-white rounded-lg transition-colors"
-                          >
-                            {t('cancel')}
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={creatingGroupLoading || !newGroupName.trim()}
-                            className="px-2.5 py-1 text-[11px] bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
-                          >
-                            {creatingGroupLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
-                            <span>{t('create')}</span>
-                          </button>
-                        </div>
-                      </form>
-                    ) : (
-                      <button
-                        onClick={() => setIsCreatingGroup(true)}
-                        className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-sky-300 font-semibold transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>{t('createNewGroup')}</span>
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        setShowGroupMenu(false);
-                        onOpenGroup();
-                      }}
-                      className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-slate-300 font-semibold transition-colors"
-                    >
-                      <Settings className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{t('manageGroup')}</span>
-                    </button>
-                  </div>
+            >
+              <img
+                src="/icons/icon-192.png"
+                alt={t('appName')}
+                className="w-full h-full object-cover select-none"
+              />
+              {isMenuOpen && (
+                <div className="absolute inset-0 bg-slate-950/60 flex items-center justify-center text-white backdrop-blur-[1px]">
+                  <X className="w-5 h-5 stroke-[2.5]" />
                 </div>
-              </div>
-            )}
-          </div>
-
-        {/* Filter Dropdown (shows only "Everyone" by default, expands on click) */}
-        <div ref={filterMenuRef} className="shrink-0">
-          <TaskFilters
-            currentTab={currentTab}
-            onTabChange={onTabChange}
-            selectedAssignee={selectedAssignee}
-            onAssigneeChange={onAssigneeChange}
-            members={members}
-            tasks={tasks}
-            isOpen={isFilterOpen}
-            onToggle={toggleFilterMenu}
-            onClose={() => setIsFilterOpen(false)}
-          />
-        </div>
-
-        {/* Menu (3 horizontal lines) */}
-        <div className="relative shrink-0" ref={menuRef}>
-          <button
-            onClick={toggleMainMenu}
-            aria-label="Menu"
-            className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+              )}
+            </button>
 
             {isMenuOpen && (
-              <div className="absolute end-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-in fade-in zoom-in-95 space-y-3">
+              <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-dropdown-expand space-y-3">
                 {/* User Profile Info */}
                 {user && (
                   <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
@@ -628,6 +445,191 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
         </div>
-      </header>
+
+        {/* Center: Group Selection */}
+        <div className="shrink-0 flex items-center justify-center px-1">
+          <div className="relative shrink-0" ref={groupMenuRef}>
+          <button
+            type="button"
+            onClick={toggleGroupMenu}
+            aria-expanded={showGroupMenu}
+            aria-haspopup="true"
+            className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 max-w-full ${
+              showGroupMenu
+                ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
+                : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+            }`}
+          >
+            <span className="text-xs sm:text-sm font-bold tracking-tight gradient-text truncate max-w-[95px] sm:max-w-[150px] md:max-w-[180px]">
+              {isAllGroups ? t('allGroups') : group?.name || t('appName')}
+            </span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+                showGroupMenu ? 'rotate-180 text-white' : ''
+              }`}
+            />
+          </button>
+
+            {showGroupMenu && (
+              <div className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40">
+                <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 text-xs text-slate-100 animate-dropdown-expand">
+                  <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      {t('myGroups')}
+                    </span>
+                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
+                      {displayGroups.length}
+                    </span>
+                  </div>
+
+                  {/* List of groups */}
+                  <div className="max-h-52 overflow-y-auto space-y-1 my-1">
+                    {displayGroups.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleSwitchGroup('ALL_GROUPS')}
+                        disabled={switchingGroupId === 'ALL_GROUPS'}
+                        className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
+                          isAllGroups
+                            ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
+                            : 'hover:bg-white/10 text-slate-200 font-medium'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                          {isAllGroups ? (
+                            <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                          ) : switchingGroupId === 'ALL_GROUPS' ? (
+                            <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
+                          ) : (
+                            <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          )}
+                          <span className="truncate">{t('allGroups')}</span>
+                        </div>
+                        <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-300 font-bold">
+                          {displayGroups.length}
+                        </span>
+                      </button>
+                    )}
+
+                    {displayGroups.map((g) => {
+                      const isActive = !isAllGroups && g.group_id === group?.id;
+                      const isSwitching = switchingGroupId === g.group_id;
+                      return (
+                        <button
+                          key={g.group_id}
+                          onClick={() => handleSwitchGroup(g.group_id)}
+                          disabled={isSwitching}
+                          className={`w-full text-start px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 transition-colors ${
+                            isActive
+                              ? 'bg-sky-500/20 text-white font-bold border border-sky-400/40 shadow-sm shadow-sky-500/10'
+                              : 'hover:bg-white/10 text-slate-200 font-medium'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                            {isActive ? (
+                              <Check className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                            ) : isSwitching ? (
+                              <RefreshCw className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
+                            ) : (
+                              <div className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span className="truncate">{g.name}</span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize shrink-0 border ${
+                              g.role === 'admin'
+                                ? 'bg-indigo-500/25 text-indigo-200 border-indigo-400/40'
+                                : 'bg-white/10 text-slate-300 border-white/15'
+                            }`}
+                          >
+                            {g.role === 'admin' ? t('adminRole') : t('memberRole')}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Creation inline form or Action Buttons */}
+                  <div className="pt-1.5 border-t border-white/10 space-y-1">
+                    {isCreatingGroup ? (
+                      <form onSubmit={handleCreateGroupSubmit} className="p-1 space-y-2">
+                        <input
+                          type="text"
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          placeholder={t('newGroupName')}
+                          maxLength={50}
+                          autoFocus
+                          disabled={creatingGroupLoading}
+                          className="w-full px-2.5 py-1 bg-slate-950/80 border border-sky-400/50 rounded-lg text-white text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
+                        />
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsCreatingGroup(false);
+                              setNewGroupName('');
+                            }}
+                            disabled={creatingGroupLoading}
+                            className="px-2 py-1 text-[11px] text-slate-400 hover:text-white rounded-lg transition-colors"
+                          >
+                            {t('cancel')}
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={creatingGroupLoading || !newGroupName.trim()}
+                            className="px-2.5 py-1 text-[11px] bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {creatingGroupLoading && <RefreshCw className="w-3 h-3 animate-spin" />}
+                            <span>{t('create')}</span>
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => setIsCreatingGroup(true)}
+                        className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-sky-300 font-semibold transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>{t('createNewGroup')}</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setShowGroupMenu(false);
+                        onOpenGroup();
+                      }}
+                      className="w-full text-start px-2.5 py-1.5 hover:bg-white/10 rounded-lg flex items-center gap-2 text-slate-300 font-semibold transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{t('manageGroup')}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* End side: Filter */}
+        <div className="flex-1 flex items-center justify-end min-w-0">
+          <div ref={filterMenuRef} className="shrink-0">
+            <TaskFilters
+              currentTab={currentTab}
+              onTabChange={onTabChange}
+              selectedAssignee={selectedAssignee}
+              onAssigneeChange={onAssigneeChange}
+              members={members}
+              tasks={tasks}
+              isOpen={isFilterOpen}
+              onToggle={toggleFilterMenu}
+              onClose={() => setIsFilterOpen(false)}
+            />
+          </div>
+        </div>
+      </div>
+    </header>
   );
 };

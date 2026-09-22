@@ -88,42 +88,62 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
 
   return (
     <div className="relative">
-      {/* Trigger Button in Navbar (Shows only "Everyone" by default) */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${isOpen
-            ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
-            : isCompleted
-              ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25'
-              : activeMember || isUnassigned
-                ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25'
-                : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+      {/* Trigger Button in Navbar: Shows Filter icon if Everyone is selected; otherwise shows the selected user */}
+      {isEveryone ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          aria-label={t('filterBy')}
+          className={`h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-xl border transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 shrink-0 ${
+            isOpen
+              ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
+              : 'bg-white/5 border-white/12 text-slate-300 hover:bg-white/10 hover:border-white/20 hover:text-white'
           }`}
-      >
-        {triggerIcon}
-        <span className="truncate max-w-[70px] sm:max-w-[100px]">{triggerLabel}</span>
-        <span
-          className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${isOpen || activeMember || isUnassigned
-              ? 'bg-sky-400/25 text-sky-200'
-              : isCompleted
-                ? 'bg-emerald-400/25 text-emerald-200'
-                : 'bg-white/10 text-slate-300'
-            }`}
         >
-          {triggerCount}
-        </span>
-        <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-white' : ''
+          <Filter className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-colors ${isOpen ? 'text-sky-300' : 'text-slate-300'}`} />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-10 rounded-xl border text-xs font-bold transition-all select-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
+            isOpen
+              ? 'bg-sky-500/20 border-sky-400/50 text-white ring-2 ring-sky-400/30 shadow-md shadow-sky-500/10'
+              : isCompleted
+                ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/25'
+                : activeMember || isUnassigned
+                  ? 'bg-sky-500/15 border-sky-400/40 text-sky-200 hover:bg-sky-500/25'
+                  : 'bg-white/5 border-white/12 text-slate-200 hover:bg-white/10 hover:border-white/20'
+          }`}
+        >
+          {triggerIcon}
+          <span className="truncate max-w-[70px] sm:max-w-[100px]">{triggerLabel}</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none min-w-[18px] text-center ${
+              isOpen || activeMember || isUnassigned
+                ? 'bg-sky-400/25 text-sky-200'
+                : isCompleted
+                  ? 'bg-emerald-400/25 text-emerald-200'
+                  : 'bg-white/10 text-slate-300'
             }`}
-        />
-      </button>
+          >
+            {triggerCount}
+          </span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              isOpen ? 'rotate-180 text-white' : ''
+            }`}
+          />
+        </button>
+      )}
 
-      {/* Expanded Options Panel (Dropdown with smooth expand animation) */}
+      {/* Expanded Options Panel (Aligned to filter button) */}
       {isOpen && (
-        <div className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40">
+        <div className="absolute end-0 top-full mt-2 z-40">
           <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2.5 text-xs text-slate-100 animate-dropdown-expand">
             {/* Header */}
           <div className="px-2.5 py-1.5 border-b border-white/10 mb-1.5 flex items-center justify-between text-slate-300 font-bold">
