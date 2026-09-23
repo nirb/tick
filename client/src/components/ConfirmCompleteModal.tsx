@@ -7,6 +7,7 @@ interface ConfirmCompleteModalProps {
   isOpen: boolean;
   task: TaskWithAssignee | null;
   onConfirm: () => void;
+  onCompleteStopRecurrence?: () => void;
   onClose: () => void;
   onDelete?: () => void;
   loading?: boolean;
@@ -17,6 +18,7 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
   isOpen,
   task,
   onConfirm,
+  onCompleteStopRecurrence,
   onClose,
   onDelete,
   loading = false,
@@ -68,118 +70,204 @@ export const ConfirmCompleteModal: React.FC<ConfirmCompleteModalProps> = ({
         </button>
 
         {/* Icon & Title */}
-        <div className="text-center mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 mx-auto mb-3">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="text-center mb-3">
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-3 border ${
+              isRecurring
+                ? 'bg-indigo-500/20 border-indigo-400/40 text-indigo-400 shadow-indigo-500/20'
+                : 'bg-emerald-500/20 border-emerald-400/40 text-emerald-400 shadow-emerald-500/20'
+            }`}
+          >
+            {isRecurring ? <Repeat className="w-6 h-6" /> : <CheckCircle2 className="w-6 h-6" />}
           </div>
           <h3
             id="confirm-complete-title"
             className="text-lg sm:text-xl font-black text-white tracking-tight"
           >
-            {t('confirmCompleteTitle')}
+            {isRecurring ? t('confirmCompleteRecurringTitle') : t('confirmCompleteTitle')}
           </h3>
           <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">
-            {t('confirmCompleteMessage')}
+            {isRecurring ? t('confirmCompleteRecurringMessage') : t('confirmCompleteMessage')}
           </p>
         </div>
 
         {/* Task Title Preview Card */}
-        <div className="my-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
-          <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+        <div className="my-3 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+          <div
+            className={`w-2.5 h-2.5 rounded-full shrink-0 shadow-sm ${
+              isRecurring
+                ? 'bg-indigo-400 shadow-indigo-400/50'
+                : 'bg-emerald-400 shadow-emerald-400/50'
+            }`}
+          />
           <span className="text-sm font-bold text-white truncate text-start flex-1">
             {task.title}
           </span>
-        </div>
-
-        {/* Recurring notice if applicable */}
-        {task.recurrence_rule && (
-          <div className="flex items-center gap-2 text-xs text-indigo-300 bg-indigo-500/10 border border-indigo-400/20 px-3 py-2 rounded-xl mb-3 font-medium">
-            <Repeat className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
-            <span>
+          {task.recurrence_rule && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 shrink-0">
               {task.recurrence_rule.includes('DAILY')
                 ? t('daily')
                 : task.recurrence_rule.includes('WEEKLY')
-                  ? t('weekly')
-                  : task.recurrence_rule.includes('MONTHLY')
-                    ? t('monthly')
-                    : t('recurring')}
+                ? t('weekly')
+                : task.recurrence_rule.includes('MONTHLY')
+                ? t('monthly')
+                : t('recurring')}
             </span>
-          </div>
-        )}
-
-        {/* Operations Info Card */}
-        <div className="mb-4 p-3 sm:p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5 text-xs text-start">
-          <div className="flex items-start gap-2.5">
-            <div className="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-              <Check className="w-3 h-3 stroke-[3]" />
-            </div>
-            <div className="flex-1 leading-relaxed">
-              <span className="font-bold text-emerald-300 me-1">
-                {t('confirmCompleteBtn')}:
-              </span>
-              <span className="text-slate-300">
-                {isRecurring
-                  ? t('confirmCompleteRecurringOpDesc')
-                  : t('confirmCompleteOpDesc')}
-              </span>
-            </div>
-          </div>
-          {onDelete && !isRecurring && (
-            <div className="flex items-start gap-2.5 pt-2 border-t border-white/5">
-              <div className="w-5 h-5 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
-                <Trash2 className="w-3 h-3" />
-              </div>
-              <div className="flex-1 leading-relaxed">
-                <span className="font-bold text-rose-300 me-1">
-                  {t('delete')}:
-                </span>
-                <span className="text-slate-300">
-                  {t('confirmDeleteOpDesc')}
-                </span>
-              </div>
-            </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 sm:gap-2.5 mt-5">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading || deleting}
-            className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs sm:text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-40 cursor-pointer text-center"
-          >
-            <span className="truncate">{t('cancel')}</span>
-          </button>
-          {onDelete && !isRecurring && (
+        {isRecurring ? (
+          /* Recurring Task: 3 distinct choices + Cancel */
+          <div className="space-y-2.5 mt-4">
+            {/* Option 1: Complete this occurrence (advance to next) */}
             <button
               type="button"
-              onClick={onDelete}
+              onClick={onConfirm}
               disabled={loading || deleting}
-              className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-40 cursor-pointer"
+              className="w-full text-start p-3 sm:p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-[0.99] transition-all flex items-start gap-3 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50"
             >
-              {deleting ? (
-                <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
-              ) : (
-                <Trash2 className="w-4 h-4 shrink-0" />
-              )}
-              <span className="truncate">{t('delete')}</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-400/30 group-hover:scale-105 transition-transform">
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Repeat className="w-4 h-4" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
+                  {t('completeThisOccurrence')}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                  {t('completeThisOccurrenceDesc')}
+                </div>
+              </div>
             </button>
-          )}
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading || deleting}
-            className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
-            ) : (
-              <Check className="w-4 h-4 stroke-[3] shrink-0" />
+
+            {/* Option 2: Mark as completed (will not show again in the future) */}
+            <button
+              type="button"
+              onClick={onCompleteStopRecurrence}
+              disabled={loading || deleting}
+              className="w-full text-start p-3 sm:p-3.5 rounded-2xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 active:scale-[0.99] transition-all flex items-start gap-3 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-50"
+            >
+              <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 mt-0.5 border border-sky-400/30 group-hover:scale-105 transition-transform">
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs sm:text-sm font-bold text-white group-hover:text-sky-300 transition-colors">
+                  {t('markCompletedNoFuture')}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                  {t('markCompletedNoFutureDesc')}
+                </div>
+              </div>
+            </button>
+
+            {/* Option 3: Delete the task (will not move to completed tasks) */}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={loading || deleting}
+                className="w-full text-start p-3 sm:p-3.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.99] transition-all flex items-start gap-3 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-50"
+              >
+                <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5 border border-rose-400/30 group-hover:scale-105 transition-transform">
+                  {deleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs sm:text-sm font-bold text-white group-hover:text-rose-300 transition-colors">
+                    {t('deleteTaskNoCompleted')}
+                  </div>
+                  <div className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                    {t('deleteTaskNoCompletedDesc')}
+                  </div>
+                </div>
+              </button>
             )}
-            <span className="truncate">{t('confirmCompleteBtn')}</span>
-          </button>
-        </div>
+
+            {/* Cancel Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading || deleting}
+                className="w-full py-2.5 rounded-xl border border-white/12 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs sm:text-sm font-bold transition-all disabled:opacity-40 cursor-pointer"
+              >
+                {t('cancel')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Non-recurring task: existing confirmation layout */
+          <>
+            <div className="mb-4 p-3 sm:p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5 text-xs text-start">
+              <div className="flex items-start gap-2.5">
+                <div className="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                </div>
+                <div className="flex-1 leading-relaxed">
+                  <span className="font-bold text-emerald-300 me-1">
+                    {t('confirmCompleteBtn')}:
+                  </span>
+                  <span className="text-slate-300">
+                    {t('confirmCompleteOpDesc')}
+                  </span>
+                </div>
+              </div>
+              {onDelete && (
+                <div className="flex items-start gap-2.5 pt-2 border-t border-white/5">
+                  <div className="w-5 h-5 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Trash2 className="w-3 h-3" />
+                  </div>
+                  <div className="flex-1 leading-relaxed">
+                    <span className="font-bold text-rose-300 me-1">
+                      {t('delete')}:
+                    </span>
+                    <span className="text-slate-300">
+                      {t('confirmDeleteOpDesc')}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-2.5 mt-5">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading || deleting}
+                className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs sm:text-sm font-bold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-40 cursor-pointer text-center"
+              >
+                <span className="truncate">{t('cancel')}</span>
+              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  disabled={loading || deleting}
+                  className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 hover:text-rose-200 text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 disabled:opacity-40 cursor-pointer"
+                >
+                  {deleting ? (
+                    <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                  ) : (
+                    <Trash2 className="w-4 h-4 shrink-0" />
+                  )}
+                  <span className="truncate">{t('delete')}</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onConfirm}
+                disabled={loading || deleting}
+                className="flex-1 min-w-0 px-2.5 sm:px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  <Check className="w-4 h-4 stroke-[3] shrink-0" />
+                )}
+                <span className="truncate">{t('confirmCompleteBtn')}</span>
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

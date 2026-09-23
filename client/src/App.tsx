@@ -401,10 +401,14 @@ export const App: React.FC = () => {
     }
   };
 
-  const executeToggleStatus = async (task: TaskWithAssignee, targetStatus?: 'completed' | 'pending') => {
+  const executeToggleStatus = async (
+    task: TaskWithAssignee,
+    targetStatus?: 'completed' | 'pending',
+    stopRecurrence: boolean = false
+  ) => {
     const newStatus = targetStatus || (task.status === 'completed' ? 'pending' : 'completed');
     const now = Math.floor(Date.now() / 1000);
-    const isRecurring = Boolean(task.recurrence_rule);
+    const isRecurring = Boolean(task.recurrence_rule) && !stopRecurrence;
 
     setCompletingTask(true);
     // Optimistic Update
@@ -422,12 +426,20 @@ export const App: React.FC = () => {
           ...t,
           status: newStatus,
           completed_at: newStatus === 'completed' ? now : null,
+          recurrence_rule: stopRecurrence ? null : t.recurrence_rule,
         };
       })
     );
 
     try {
-      const updated = await api.tasks.update(task.id, { status: newStatus });
+      const updatePayload: { status: 'completed' | 'pending'; recurrence_rule?: null } = {
+        status: newStatus,
+      };
+      if (stopRecurrence) {
+        updatePayload.recurrence_rule = null;
+      }
+
+      const updated = await api.tasks.update(task.id, updatePayload);
       setTasks((prev) => {
         const nextTasks = prev.map((t) => (t.id === task.id ? updated.task : t));
         if (group) {
@@ -438,7 +450,7 @@ export const App: React.FC = () => {
 
       if (newStatus === 'completed') {
         showToast(
-          task.recurrence_rule
+          isRecurring
             ? t('toastTaskCompletedRecurring')
             : t('toastTaskCompleted'),
           'success'
@@ -898,7 +910,12 @@ export const App: React.FC = () => {
         task={taskToComplete}
         onConfirm={() => {
           if (taskToComplete) {
-            executeToggleStatus(taskToComplete, 'completed');
+            executeToggleStatus(taskToComplete, 'completed', false);
+          }
+        }}
+        onCompleteStopRecurrence={() => {
+          if (taskToComplete) {
+            executeToggleStatus(taskToComplete, 'completed', true);
           }
         }}
         onDelete={() => {

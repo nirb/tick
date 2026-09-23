@@ -553,8 +553,11 @@ export async function updateTask(
 ): Promise<TaskWithAssignee> {
   const now = Math.floor(Date.now() / 1000);
 
+  const isPermanentCompletion = updates.status === 'completed' && updates.recurrence_rule === null;
+
   // Handle Recurrence: If completing a recurring task, advance it in place so it is NOT saved as completed in the DB
-  if (updates.status === 'completed' && existingTask.recurrence_rule) {
+  // unless explicitly requested to stop recurrence (recurrence_rule === null) to permanently mark as completed
+  if (updates.status === 'completed' && existingTask.recurrence_rule && !isPermanentCompletion) {
     const nextDueAt = calculateNextRecurrence(existingTask.due_at || now, existingTask.recurrence_rule);
 
     let nextDescription = updates.description !== undefined ? updates.description : existingTask.description;

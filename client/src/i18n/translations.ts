@@ -73,6 +73,14 @@ export interface Translations {
   confirmCompleteOpDesc: string;
   confirmCompleteRecurringOpDesc: string;
   confirmDeleteOpDesc: string;
+  completeThisOccurrence: string;
+  completeThisOccurrenceDesc: string;
+  markCompletedNoFuture: string;
+  markCompletedNoFutureDesc: string;
+  deleteTaskNoCompleted: string;
+  deleteTaskNoCompletedDesc: string;
+  confirmCompleteRecurringTitle: string;
+  confirmCompleteRecurringMessage: string;
   markDone: string;
   markIncomplete: string;
 
@@ -332,6 +340,14 @@ export const dictionaries: Record<Language, Translations> = {
     confirmCompleteOpDesc: 'Task will be marked as completed and can be restored anytime.',
     confirmCompleteRecurringOpDesc: 'Task will be marked as completed and scheduled for the next recurrence.',
     confirmDeleteOpDesc: 'Task will be permanently removed from the app and cannot be recovered.',
+    completeThisOccurrence: 'Complete this occurrence',
+    completeThisOccurrenceDesc: 'Next occurrence will be scheduled automatically',
+    markCompletedNoFuture: 'Mark as completed',
+    markCompletedNoFutureDesc: 'Will not show again in the future (moves to completed tasks)',
+    deleteTaskNoCompleted: 'Delete task',
+    deleteTaskNoCompletedDesc: 'Will not move to completed tasks (permanently removed)',
+    confirmCompleteRecurringTitle: 'Complete Recurring Task',
+    confirmCompleteRecurringMessage: 'Choose how you want to handle this recurring task:',
     markDone: 'Mark as done',
     markIncomplete: 'Mark incomplete',
 
@@ -580,6 +596,14 @@ export const dictionaries: Record<Language, Translations> = {
     confirmCompleteOpDesc: 'המשימה תסומן כהושלמה וניתן יהיה לשחזר אותה בכל עת.',
     confirmCompleteRecurringOpDesc: 'המשימה תסומן כהושלמה והמופע הבא יתוזמן אוטומטית.',
     confirmDeleteOpDesc: 'המשימה תימחק לצמיתות מהאפליקציה ולא ניתן יהיה לשחזר אותה.',
+    completeThisOccurrence: 'סיים מופע זה',
+    completeThisOccurrenceDesc: 'המופע הבא יתוזמן באופן אוטומטי',
+    markCompletedNoFuture: 'סמן כהושלם',
+    markCompletedNoFutureDesc: 'לא יופיע שוב בעתיד (עובר למשימות שהושלמו)',
+    deleteTaskNoCompleted: 'מחק משימה',
+    deleteTaskNoCompletedDesc: 'לא יעבור למשימות שהושלמו (יימחק לצמיתות)',
+    confirmCompleteRecurringTitle: 'סיום משימה חוזרת',
+    confirmCompleteRecurringMessage: 'בחר כיצד ברצונך לטפל במשימה זו:',
     markDone: 'סמן כבוצע',
     markIncomplete: 'סמן כלא הושלם',
 
