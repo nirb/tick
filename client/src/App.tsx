@@ -17,11 +17,12 @@ import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
 import { TaskPromptModal } from './components/TaskPromptModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
+import { CalendarDayView } from './components/CalendarDayView';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { useGroupPrompt } from './hooks/useGroupPrompt';
-import { getCookie, COOKIE_LAST_SELECTED_GROUP } from './lib/cookies';
-import { Plus, CheckCircle, RefreshCw } from 'lucide-react';
+import { getCookie, setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_VIEW_TYPE, type ViewType } from './lib/cookies';
+import { Plus, CheckCircle, RefreshCw, Calendar as CalendarIcon, ChevronUp } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { user, group, groups, members, loading: authLoading, isAllGroups, switchGroup } = useAuth();
@@ -49,6 +50,23 @@ export const App: React.FC = () => {
   // Filter States
   const [currentTab, setCurrentTab] = useState<FilterTab>('all');
   const [selectedAssignee, setSelectedAssignee] = useState<string>('');
+
+  // View Type (default will be 2 - Calendar view, saved in cookies)
+  const [viewType, setViewType] = useState<ViewType>(() => {
+    const saved = getCookie(COOKIE_VIEW_TYPE);
+    if (saved === 'list' || saved === 'calendar') {
+      return saved;
+    }
+    return 'calendar';
+  });
+
+  const handleViewTypeChange = (newView: ViewType) => {
+    setViewType(newView);
+    setCookie(COOKIE_VIEW_TYPE, newView);
+  };
+
+  // View 1 Enhancement: show future tasks (> 5 days due)
+  const [showFutureTasks, setShowFutureTasks] = useState(false);
 
   // Modals & UI States
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -641,6 +659,22 @@ export const App: React.FC = () => {
     return b.created_at - a.created_at;
   });
 
+  // View 1 (List view) enhancement: hide tasks with > 5 days due
+  const fiveDaysDate = new Date();
+  fiveDaysDate.setDate(fiveDaysDate.getDate() + 5);
+  fiveDaysDate.setHours(23, 59, 59, 999);
+  const fiveDaysCutoff = Math.floor(fiveDaysDate.getTime() / 1000);
+
+  const isMoreThanFiveDaysDue = (t: TaskWithAssignee) =>
+    t.status !== 'completed' &&
+    typeof t.due_at === 'number' &&
+    t.due_at > fiveDaysCutoff;
+
+  const hiddenFutureTasksCount = sortedTasks.filter(isMoreThanFiveDaysDue).length;
+  const displayedTasks = showFutureTasks
+    ? sortedTasks
+    : sortedTasks.filter((t) => !isMoreThanFiveDaysDue(t));
+
   const currentPromptTaskId = dueTaskQueue[0] || null;
   const currentPromptTask = currentPromptTaskId ? tasks.find((t) => t.id === currentPromptTaskId) || null : null;
   const queueIndex = initialQueueTotal > 0 ? Math.max(1, initialQueueTotal - dueTaskQueue.length + 1) : 1;
@@ -674,46 +708,86 @@ export const App: React.FC = () => {
         onAssigneeChange={setSelectedAssignee}
         members={members}
         tasks={tasks}
+        viewType={viewType}
+        onViewTypeChange={handleViewTypeChange}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 pb-24">
-        {/* Task List */}
+        {/* Task List / Calendar View */}
         {loadingTasks && tasks.length === 0 ? (
           <div className="py-12 flex justify-center items-center text-slate-400">
             <RefreshCw className="w-6 h-6 animate-spin text-sky-400" />
           </div>
-        ) : sortedTasks.length === 0 ? (
-          <div className="glass rounded-3xl p-8 sm:p-12 text-center border border-white/15 mt-4 bg-slate-900/60 backdrop-blur-md">
-            <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-sky-500/20">
-              <CheckCircle className="w-8 h-8" />
+        ) : viewType === 'calendar' ? (
+          <CalendarDayView
+            tasks={filteredTasks}
+            currentTab={currentTab}
+            showFutureTasks={showFutureTasks}
+            onToggleShowFutureTasks={() => setShowFutureTasks((prev) => !prev)}
+            onToggleStatus={handleToggleStatus}
+            onNudge={handleNudge}
+            onEdit={(tCard) => {
+              setTaskToEdit(tCard);
+              setIsTaskModalOpen(true);
+            }}
+            onDelete={handleDeleteTask}
+            onUpdateDescription={handleUpdateDescription}
+            onShowToast={showToast}
+            onOpenCreateTask={() => {
+              setTaskToEdit(null);
+              setIsTaskModalOpen(true);
+            }}
+          />
+        ) : displayedTasks.length === 0 ? (
+          <div className="space-y-4">
+            <div className="glass rounded-3xl p-8 sm:p-12 text-center border border-white/15 mt-4 bg-slate-900/60 backdrop-blur-md">
+              <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-sky-500/20">
+                <CheckCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-base font-bold text-white">
+                {currentTab === 'completed'
+                  ? t('noCompletedTasks')
+                  : t('allCaughtUp')}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-xs mx-auto">
+                {currentTab === 'completed'
+                  ? t('noCompletedDesc')
+                  : t('allCaughtUpDesc')}
+              </p>
+              {currentTab !== 'completed' && (
+                <button
+                  onClick={() => {
+                    setTaskToEdit(null);
+                    setIsTaskModalOpen(true);
+                  }}
+                  className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-200 text-xs font-bold rounded-xl transition-all shadow-sm shadow-sky-500/20 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{t('createFirstTask')}</span>
+                </button>
+              )}
             </div>
-            <h3 className="text-base font-bold text-white">
-              {currentTab === 'completed'
-                ? t('noCompletedTasks')
-                : t('allCaughtUp')}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-xs mx-auto">
-              {currentTab === 'completed'
-                ? t('noCompletedDesc')
-                : t('allCaughtUpDesc')}
-            </p>
-            {currentTab !== 'completed' && (
-              <button
-                onClick={() => {
-                  setTaskToEdit(null);
-                  setIsTaskModalOpen(true);
-                }}
-                className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-200 text-xs font-bold rounded-xl transition-all shadow-sm shadow-sky-500/20"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>{t('createFirstTask')}</span>
-              </button>
+
+            {hiddenFutureTasksCount > 0 && (
+              <div className="pt-2 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowFutureTasks(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/12 text-slate-200 text-xs font-bold transition-all hover:border-white/25 active:scale-95 shadow-md shadow-black/20 cursor-pointer"
+                >
+                  <CalendarIcon className="w-4 h-4 text-sky-400" />
+                  <span>{t('showFutureTasks')}</span>
+                  <span className="bg-sky-500/20 text-sky-300 border border-sky-400/30 px-1.5 py-0.5 rounded-full text-[10px]">
+                    {hiddenFutureTasksCount}
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         ) : (
           <div className="space-y-3">
-            {sortedTasks.map((task) => (
+            {displayedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -728,6 +802,32 @@ export const App: React.FC = () => {
                 onShowToast={showToast}
               />
             ))}
+
+            {/* Show / Hide Future Tasks Button */}
+            {hiddenFutureTasksCount > 0 && (
+              <div className="pt-2 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowFutureTasks((prev) => !prev)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/12 text-slate-200 text-xs font-bold transition-all hover:border-white/25 active:scale-95 shadow-md shadow-black/20 cursor-pointer"
+                >
+                  {showFutureTasks ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 text-sky-400" />
+                      <span>{t('hideFutureTasks')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CalendarIcon className="w-4 h-4 text-sky-400" />
+                      <span>{t('showFutureTasks')}</span>
+                      <span className="bg-sky-500/20 text-sky-300 border border-sky-400/30 px-1.5 py-0.5 rounded-full text-[10px]">
+                        {hiddenFutureTasksCount}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>

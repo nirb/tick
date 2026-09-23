@@ -21,7 +21,10 @@ import {
   Users,
   Settings,
   Layers,
+  Calendar,
+  List,
 } from 'lucide-react';
+import type { ViewType } from '../lib/cookies';
 import { Avatar } from './Avatar';
 
 interface NavbarProps {
@@ -33,6 +36,8 @@ interface NavbarProps {
   onAssigneeChange: (assigneeId: string) => void;
   members: User[];
   tasks: TaskWithAssignee[];
+  viewType: ViewType;
+  onViewTypeChange: (viewType: ViewType) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -44,6 +49,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onAssigneeChange,
   members,
   tasks,
+  viewType,
+  onViewTypeChange,
 }) => {
   const { user, group, groups, isAllGroups, switchGroup, createGroup, logout, updateUserName } = useAuth();
   const { isSubscribed, subscribe, unsubscribe, sendTestNotification, loading: pushLoading } = usePush();
@@ -348,6 +355,40 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Menu Items */}
                 <div className="space-y-1">
+                  {/* View Mode Switcher */}
+                  <div className="p-1 rounded-xl bg-white/5 border border-white/10 flex items-center gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onViewTypeChange('calendar');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        viewType === 'calendar'
+                          ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{t('viewCalendar')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onViewTypeChange('list');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        viewType === 'list'
+                          ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30'
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <List className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{t('viewList')}</span>
+                    </button>
+                  </div>
+
                   {/* Language Switcher */}
                   <button
                     onClick={() => {

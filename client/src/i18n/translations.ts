@@ -46,6 +46,13 @@ export interface Translations {
   completed: string;
   filterBy: string;
 
+  // Views
+  viewMode: string;
+  viewList: string;
+  viewCalendar: string;
+  showFutureTasks: string;
+  hideFutureTasks: string;
+
   // Task Cards
   nudge: string;
   nudged: string;
@@ -300,6 +307,12 @@ export const dictionaries: Record<Language, Translations> = {
     completed: 'Completed',
     filterBy: 'Filter by:',
 
+    viewMode: 'View',
+    viewList: 'List View',
+    viewCalendar: 'Calendar View',
+    showFutureTasks: 'Show future tasks',
+    hideFutureTasks: 'Hide future tasks',
+
     nudge: 'Nudge',
     nudged: 'Nudged! 🔔',
     todayAt: 'Today at {time}',
@@ -541,6 +554,12 @@ export const dictionaries: Record<Language, Translations> = {
     dueSoon: 'בקרוב',
     completed: 'הושלמו',
     filterBy: 'סנן לפי:',
+
+    viewMode: 'תצוגה',
+    viewList: 'תצוגת רשימה',
+    viewCalendar: 'תצוגת לוח שנה',
+    showFutureTasks: 'הצג משימות עתידיות',
+    hideFutureTasks: 'הסתר משימות עתידיות',
 
     nudge: 'נדנד',
     nudged: 'נשלחה תזכורת! 🔔',

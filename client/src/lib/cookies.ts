@@ -6,6 +6,9 @@ export const COOKIE_LAST_SELECTED_GROUP = 'last_selected_group';
 export const COOKIE_AUTOMATICALLY_SHOW_GROUP = 'automaticaly_show_group';
 export const COOKIE_LAST_GROUP_PROMPT_TIME = 'last_group_prompt_time';
 export const COOKIE_LAST_ACTIVE_TIME = 'tick_last_active_time';
+export const COOKIE_VIEW_TYPE = 'tick_view_type';
+
+export type ViewType = 'list' | 'calendar';
 
 export const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 export const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;

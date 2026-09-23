@@ -21,6 +21,7 @@ import { HyperlinkText } from './HyperlinkText';
 
 interface TaskCardProps {
   task: TaskWithAssignee;
+  hideDueBadge?: boolean;
   onToggleStatus: (task: TaskWithAssignee) => void;
   onNudge: (taskId: string) => Promise<void>;
   onEdit: (task: TaskWithAssignee) => void;
@@ -31,6 +32,7 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  hideDueBadge = false,
   onToggleStatus,
   onNudge,
   onEdit,
@@ -116,9 +118,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       relativeStr = t('daysAgo', { days: Math.abs(diffDays) });
     }
 
+    const hasSpecificTime = date.getHours() !== 0 || date.getMinutes() !== 0;
+    const timeStr = hasSpecificTime
+      ? date.toLocaleTimeString(language === 'he' ? 'he-IL' : 'en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })
+      : '';
+    const fullDateText = hasSpecificTime ? `${dateStr} ${timeStr}` : dateStr;
+
     return {
       relativeText: relativeStr,
-      fullText: `${dateStr} · ${relativeStr}`,
+      fullText: hideDueBadge ? fullDateText : `${fullDateText} · ${relativeStr}`,
       isOverdue,
     };
   };
@@ -219,9 +231,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 </h3>
               </div>
 
-              {/* Middle: Priority badge when open, "in x days" when closed (30%) */}
+              {/* Middle: Priority badge when open (or when hideDueBadge is true), "in x days" when closed in list view (30%) */}
               <div className="col-span-3 min-w-0 flex items-center justify-center">
-                {isExpanded ? (
+                {isExpanded || hideDueBadge ? (
                   <span
                     className={`inline-flex items-center justify-center w-full px-2 py-0.5 rounded-full border text-xs capitalize font-semibold min-w-0 ${priorityColors[task.priority] || priorityColors.medium
                       }`}
