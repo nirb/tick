@@ -16,7 +16,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, generateItemId } from '../lib/taskContent';
-import { Avatar } from './Avatar';
 import { CalendarPickerModal } from './CalendarPickerModal';
 import { ClockPickerModal } from './ClockPickerModal';
 import { api } from '../lib/api';
@@ -372,11 +371,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   };
 
-  const priorityOptions: { value: TaskPriority; label: string; color: string; activeRing: string }[] = [
-    { value: 'low', label: t('low'), color: 'bg-white/15 text-white border-white/40 font-semibold', activeRing: 'ring-2 ring-white border-white' },
-    { value: 'medium', label: t('medium'), color: 'bg-blue-500/20 text-blue-200 border-blue-400/40 font-semibold', activeRing: 'ring-2 ring-blue-400 border-blue-400' },
-    { value: 'high', label: t('high'), color: 'bg-orange-500/20 text-orange-200 border-orange-400/40 font-semibold', activeRing: 'ring-2 ring-orange-400 border-orange-400' },
-    { value: 'urgent', label: t('urgent'), color: 'bg-red-500/25 text-red-200 border-red-400/40 font-bold shadow-sm shadow-red-500/20', activeRing: 'ring-2 ring-red-400 border-red-400' },
+  const priorityOptions: { value: TaskPriority; label: string; icon: string }[] = [
+    { value: 'low', label: t('low'), icon: '⚪' },
+    { value: 'medium', label: t('medium'), icon: '🔵' },
+    { value: 'high', label: t('high'), icon: '🟠' },
+    { value: 'urgent', label: t('urgent'), icon: '🔴' },
   ];
 
   return (
@@ -395,42 +394,59 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Group Selector when user belongs to multiple groups and creating new task */}
-          {groups && groups.length > 1 && !taskToEdit && (
-            <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
-                {t('groupLabel')}
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedTaskGroupId}
-                  onChange={(e) => setSelectedTaskGroupId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-sm font-medium transition-all appearance-none cursor-pointer"
-                >
-                  {groups.map((g) => (
-                    <option key={g.group_id} value={g.group_id} className="bg-slate-900 text-white">
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute end-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              </div>
-            </div>
-          )}
+          {/* Row 1: Group (4/12) & Task Title (8/12) */}
+          <div className="grid grid-cols-12 gap-3">
+            {groups && groups.length > 1 ? (
+              <>
+                <div className="col-span-4">
+                  <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 truncate">
+                    {t('groupLabel')}
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedTaskGroupId}
+                      onChange={(e) => setSelectedTaskGroupId(e.target.value)}
+                      className="w-full h-10 px-3 pe-8 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all appearance-none cursor-pointer"
+                    >
+                      {groups.map((g) => (
+                        <option key={g.group_id} value={g.group_id} className="bg-slate-900 text-white">
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
 
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
-              {t('taskTitle')}
-            </label>
-            <input
-              type="text"
-              required
-              placeholder={t('taskTitlePlaceholder')}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-sm font-medium transition-all"
-            />
+                <div className="col-span-8">
+                  <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 truncate">
+                    {t('taskTitle')}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={t('taskTitlePlaceholder')}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full h-10 px-3.5 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="col-span-12">
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 truncate">
+                  {t('taskTitle')}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={t('taskTitlePlaceholder')}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full h-10 px-3.5 py-2 rounded-xl bg-slate-950/70 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all"
+                />
+              </div>
+            )}
           </div>
 
           {/* Task Content: Toggle between Description / Notes & Checklist */}
@@ -555,90 +571,102 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             )}
           </div>
 
-          {/* Assignee Selection - Only show when group has more than 1 member */}
-          {modalMembers && modalMembers.length > 1 && (
-            <div>
-              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <UserIcon className="w-3.5 h-3.5 text-sky-400" /> {t('assignTo')}
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAssigneeId('')}
-                  className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
-                    assigneeId === ''
-                      ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
-                      : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
-                  }`}
-                >
-                  <span className="text-base">👤</span>
-                  <span className="truncate">{t('anyone')}</span>
-                </button>
-
-                {modalMembers.map((member) => (
-                  <button
-                    key={member.id}
-                    type="button"
-                    onClick={() => setAssigneeId(member.id)}
-                    className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
-                      assigneeId === member.id
-                        ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
-                        : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
-                    }`}
+          {/* Row 2: Assign To (6/12) & Priority (6/12) */}
+          {modalMembers && modalMembers.length > 1 ? (
+            <div className="grid grid-cols-12 gap-3">
+              {/* Assignee Selection (6/12) */}
+              <div className="col-span-6">
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                  <UserIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span className="truncate">{t('assignTo')}</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                    className="w-full h-10 px-3 pe-8 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all appearance-none cursor-pointer"
                   >
-                    <Avatar url={member.avatar_url} name={member.name} size="sm" />
-                    <span className="truncate">{member.name}</span>
-                  </button>
-                ))}
+                    <option value="" className="bg-slate-900 text-white">
+                      👤 {t('anyone')}
+                    </option>
+                    {modalMembers.map((member) => (
+                      <option key={member.id} value={member.id} className="bg-slate-900 text-white">
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Priority Dropdown (6/12) */}
+              <div className="col-span-6">
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">{t('priority')}</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                    className="w-full h-10 px-3 pe-8 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all appearance-none cursor-pointer"
+                  >
+                    {priorityOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                        {opt.icon} {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-12 gap-3">
+              {/* Priority only (6/12) when 1 member in private group */}
+              <div className="col-span-6">
+                <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">{t('priority')}</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as TaskPriority)}
+                    className="w-full h-10 px-3 pe-8 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs sm:text-sm font-medium transition-all appearance-none cursor-pointer"
+                  >
+                    {priorityOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value} className="bg-slate-900 text-white">
+                        {opt.icon} {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
             </div>
           )}
 
-          {/* Priority */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> {t('priority')}
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {priorityOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setPriority(opt.value)}
-                  className={`py-2 px-1 rounded-xl text-xs text-center border transition-all font-bold ${
-                    priority === opt.value
-                      ? `${opt.color} ${opt.activeRing} shadow-sm opacity-100`
-                      : `${opt.color} opacity-60 hover:opacity-100`
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Due Date & Time */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-sky-400" /> {t('dueDateTime')}
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* Date Button */}
+          {/* Row 3: Due Date (4/12), Due Time (4/12), Repeat (4/12) */}
+          <div className="grid grid-cols-12 gap-3">
+            {/* Date Button (4/12) */}
+            <div className="col-span-4">
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span className="truncate">{t('dueDate')}</span>
+              </label>
               <button
                 type="button"
                 onClick={() => setIsCalendarOpen(true)}
-                className={`w-full px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
+                className={`w-full h-10 px-2.5 sm:px-3 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
                   currentDate
                     ? 'bg-slate-950/80 border-sky-500/50 text-white shadow-sm ring-1 ring-sky-500/30'
                     : 'bg-slate-950/70 border-white/20 text-slate-400 hover:border-white/40 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 truncate">
-                  <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
-                  <span className="truncate">
-                    {formattedDisplayDate || t('selectDate')}
-                  </span>
-                </div>
+                <span className="truncate">
+                  {formattedDisplayDate || t('selectDate')}
+                </span>
                 {currentDate && (
                   <span
                     role="button"
@@ -647,30 +675,33 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       e.stopPropagation();
                       handleDateChange('');
                     }}
-                    className="p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors"
+                    className="p-1 -me-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors shrink-0"
                     title={t('clear')}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3" />
                   </span>
                 )}
               </button>
+            </div>
 
-              {/* Time Button */}
+            {/* Time Button (4/12) */}
+            <div className="col-span-4">
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                <Clock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="truncate">{t('dueTime')}</span>
+              </label>
               <button
                 type="button"
                 onClick={() => setIsClockOpen(true)}
-                className={`w-full px-3 py-2.5 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
+                className={`w-full h-10 px-2.5 sm:px-3 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
                   currentTime
                     ? 'bg-slate-950/80 border-indigo-500/50 text-white shadow-sm ring-1 ring-indigo-500/30'
                     : 'bg-slate-950/70 border-white/20 text-slate-400 hover:border-white/40 hover:text-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-2 truncate">
-                  <Clock className="w-4 h-4 text-indigo-400 shrink-0" />
-                  <span className="truncate" dir={currentTime ? 'ltr' : undefined}>
-                    {currentTime || t('selectTime')}
-                  </span>
-                </div>
+                <span className="truncate" dir={currentTime ? 'ltr' : undefined}>
+                  {currentTime || t('selectTime')}
+                </span>
                 {currentTime && (
                   <span
                     role="button"
@@ -679,41 +710,42 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                       e.stopPropagation();
                       handleTimeChange('');
                     }}
-                    className="p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors"
+                    className="p-1 -me-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors shrink-0"
                     title={t('clear')}
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3 h-3" />
                   </span>
                 )}
               </button>
             </div>
-          </div>
 
-          {/* Recurrence Selection */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <Repeat className="w-3.5 h-3.5 text-indigo-400" /> {t('repeat')}
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-950/70 rounded-xl border border-white/15">
-              {[
-                { value: 'none', label: t('doesNotRepeat') },
-                { value: 'daily', label: t('daily') },
-                { value: 'weekly', label: t('weekly') },
-                { value: 'monthly', label: t('monthly') },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleRecurrenceChange(opt.value as any)}
-                  className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center truncate ${
-                    recurrence === opt.value
-                      ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30 ring-1 ring-sky-400 font-bold'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
+            {/* Repeat Dropdown (4/12) */}
+            <div className="col-span-4">
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 truncate">
+                <Repeat className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="truncate">{t('repeat')}</span>
+              </label>
+              <div className="relative">
+                <select
+                  value={recurrence}
+                  onChange={(e) => handleRecurrenceChange(e.target.value as any)}
+                  className="w-full h-10 px-2.5 sm:px-3 pe-7 rounded-xl bg-slate-950/70 border border-white/20 text-white focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 text-xs font-medium transition-all appearance-none cursor-pointer"
                 >
-                  {opt.label}
-                </button>
-              ))}
+                  <option value="none" className="bg-slate-900 text-white">
+                    {t('doesNotRepeat')}
+                  </option>
+                  <option value="daily" className="bg-slate-900 text-white">
+                    {t('daily')}
+                  </option>
+                  <option value="weekly" className="bg-slate-900 text-white">
+                    {t('weekly')}
+                  </option>
+                  <option value="monthly" className="bg-slate-900 text-white">
+                    {t('monthly')}
+                  </option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
