@@ -486,8 +486,15 @@ export async function createTask(
   const priority = data.priority || 'medium';
   const assigneeId = data.assigneeId || null;
   const description = data.description || null;
-  const dueAt = data.dueAt || null;
   const recurrenceRule = data.recurrenceRule || null;
+  let dueAt = data.dueAt || null;
+
+  if (recurrenceRule && !dueAt) {
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(9, 0, 0, 0);
+    dueAt = Math.floor(nextDay.getTime() / 1000);
+  }
 
   // Batch insert: Task + Initial Activity
   await db.batch([
@@ -558,7 +565,7 @@ export async function updateTask(
   // Handle Recurrence: If completing a recurring task, advance it in place so it is NOT saved as completed in the DB
   // unless explicitly requested to stop recurrence (recurrence_rule === null) to permanently mark as completed
   if (updates.status === 'completed' && existingTask.recurrence_rule && !isPermanentCompletion) {
-    const nextDueAt = calculateNextRecurrence(existingTask.due_at || now, existingTask.recurrence_rule);
+    const nextDueAt = calculateNextRecurrence(existingTask.due_at || 0, existingTask.recurrence_rule);
 
     let nextDescription = updates.description !== undefined ? updates.description : existingTask.description;
     if (nextDescription) {
@@ -634,6 +641,18 @@ export async function updateTask(
       : updates.status && updates.status !== 'completed'
       ? null
       : existingTask.completed_at;
+
+  const effectiveRecurrenceRule =
+    updates.recurrence_rule !== undefined ? updates.recurrence_rule : existingTask.recurrence_rule;
+  const effectiveDueAt =
+    updates.due_at !== undefined ? updates.due_at : existingTask.due_at;
+
+  if (effectiveRecurrenceRule && !effectiveDueAt) {
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(9, 0, 0, 0);
+    updates.due_at = Math.floor(nextDay.getTime() / 1000);
+  }
 
   const setClauses: string[] = ['updated_at = ?'];
   const params: (string | number | null)[] = [now];
@@ -719,7 +738,16 @@ export async function updateTask(
 export function calculateNextRecurrence(baseTimestamp: number, rule: string): number | null {
   const upper = rule.toUpperCase();
   const now = Math.floor(Date.now() / 1000);
-  const base = baseTimestamp && baseTimestamp > 0 ? baseTimestamp : now;
+  let base = baseTimestamp;
+  if (!base || base <= 0) {
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(9, 0, 0, 0);
+    base = Math.floor(nextDay.getTime() / 1000);
+    if (base > now) {
+      return base;
+    }
+  }
   const daySeconds = 86400;
 
   if (upper.includes('FREQ=DAILY')) {

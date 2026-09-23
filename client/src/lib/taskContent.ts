@@ -94,6 +94,7 @@ export function serializeTaskContent(content: TaskContent | null): string | null
   if (content.type === 'checklist') {
     const cleanItems = content.checklist
       .map((item) => ({
+        id: item.id || generateItemId(),
         status: (item.status === 'done' ? 'done' : 'not done') as ChecklistItemStatus,
         description: item.description.trim(),
       }))

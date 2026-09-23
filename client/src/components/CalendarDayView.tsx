@@ -120,21 +120,22 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
 
       const groupTasks = groupsMap.get(dateKey) || [];
 
-      // Sort tasks within this day
+      // Sort tasks within this day according to priority
       groupTasks.sort((a, b) => {
         const statusRank = (s: string) => (s === 'completed' ? 2 : 1);
         if (statusRank(a.status) !== statusRank(b.status)) {
           return statusRank(a.status) - statusRank(b.status);
         }
 
+        // Priority first (urgent > high > medium > low)
+        const prioA = priorityRank[a.priority] ?? 3;
+        const prioB = priorityRank[b.priority] ?? 3;
+        if (prioA !== prioB) return prioA - prioB;
+
         // Specific due times if set
         if (a.due_at && b.due_at && a.due_at !== b.due_at) {
           return a.due_at - b.due_at;
         }
-
-        const prioA = priorityRank[a.priority] ?? 3;
-        const prioB = priorityRank[b.priority] ?? 3;
-        if (prioA !== prioB) return prioA - prioB;
 
         return b.created_at - a.created_at;
       });

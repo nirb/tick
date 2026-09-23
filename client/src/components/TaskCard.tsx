@@ -46,31 +46,49 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [nudged, setNudged] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [copiedDescription, setCopiedDescription] = useState(false);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
 
   const content = parseTaskContent(task.description);
+
+  const copyToClipboard = async (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  };
 
   const handleCopyDescription = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!content || content.type !== 'description' || !content.description) return;
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(content.description);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = content.description;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+      await copyToClipboard(content.description);
       setCopiedDescription(true);
       onShowToast?.(t('toastDescriptionCopied'), 'success');
       setTimeout(() => setCopiedDescription(false), 2000);
     } catch (err) {
       console.error('Failed to copy text:', err);
+    }
+  };
+
+  const handleCopyChecklistItem = async (e: React.MouseEvent, itemId: string, text: string) => {
+    e.stopPropagation();
+    if (!text) return;
+    try {
+      await copyToClipboard(text);
+      setCopiedItemId(itemId);
+      onShowToast?.(t('toastItemCopied'), 'success');
+      setTimeout(() => setCopiedItemId((curr) => (curr === itemId ? null : curr)), 2000);
+    } catch (err) {
+      console.error('Failed to copy item text:', err);
     }
   };
   const hasContent =
@@ -164,14 +182,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const handleToggleChecklistItem = (index: number) => {
     if (!content || content.type !== 'checklist') return;
-    const updatedItems = content.checklist.map((item, idx) =>
-      idx === index
-        ? {
-          ...item,
-          status: (item.status === 'done' ? 'not done' : 'done') as 'done' | 'not done',
-        }
-        : item
-    );
+    const targetItem = content.checklist[index];
+    if (!targetItem) return;
+
+    const nextStatus = targetItem.status === 'done' ? 'not done' : 'done';
+    const toggledItem = { ...targetItem, status: nextStatus as 'done' | 'not done' };
+
+    let updatedItems: typeof content.checklist;
+    if (nextStatus === 'done') {
+      updatedItems = [
+        ...content.checklist.filter((_, idx) => idx !== index),
+        toggledItem,
+      ];
+    } else {
+      updatedItems = content.checklist.map((item, idx) =>
+        idx === index ? toggledItem : item
+      );
+    }
+
     const serialized = serializeTaskContent({
       type: 'checklist',
       checklist: updatedItems,
@@ -285,48 +313,65 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 content?.type === 'checklist' ? (
                   <div className="p-3 rounded-xl bg-slate-950/60 border border-white/10 space-y-2">
                     <div className="space-y-1.5">
-                      {content.checklist.map((item, index) => (
-                        <div
-                          key={item.id || index}
-                          className="flex items-center gap-2.5 text-xs sm:text-sm group/item select-none"
-                        >
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleChecklistItem(index);
-                            }}
-                            className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${item.status === 'done'
-                              ? 'bg-emerald-500 border-emerald-400 text-white shadow-xs'
-                              : 'border-white/30 hover:border-sky-400 bg-slate-900 text-transparent'
-                              }`}
-                            aria-label={item.status === 'done' ? 'Mark item incomplete' : 'Mark item complete'}
+                      {content.checklist.map((item, index) => {
+                        const itemId = item.id || String(index);
+                        const isItemCopied = copiedItemId === itemId;
+                        return (
+                          <div
+                            key={itemId}
+                            className="flex items-center gap-2.5 text-xs sm:text-sm group/item select-none"
                           >
-                            {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
-                          </button>
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleChecklistItem(index);
-                            }}
-                            className={`cursor-pointer break-words flex-1 transition-colors leading-tight ${item.status === 'done'
-                              ? 'line-through text-slate-500'
-                              : isCompleted
-                                ? 'text-slate-400 line-through'
-                                : 'text-slate-200 hover:text-white'
-                              }`}
-                          >
-                            <HyperlinkText
-                              text={item.description}
-                              linkClassName={
-                                item.status === 'done' || isCompleted
-                                  ? 'text-sky-400/70 hover:text-sky-300'
-                                  : undefined
-                              }
-                            />
-                          </span>
-                        </div>
-                      ))}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleChecklistItem(index);
+                              }}
+                              className={`w-4 h-4 rounded border flex items-center justify-center transition-all shrink-0 ${item.status === 'done'
+                                ? 'bg-emerald-500 border-emerald-400 text-white shadow-xs'
+                                : 'border-white/30 hover:border-sky-400 bg-slate-900 text-transparent'
+                                }`}
+                              aria-label={item.status === 'done' ? 'Mark item incomplete' : 'Mark item complete'}
+                            >
+                              {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
+                            </button>
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleChecklistItem(index);
+                              }}
+                              className={`cursor-pointer break-words flex-1 transition-colors leading-tight ${item.status === 'done'
+                                ? 'line-through text-slate-500'
+                                : isCompleted
+                                  ? 'text-slate-400 line-through'
+                                  : 'text-slate-200 hover:text-white'
+                                }`}
+                            >
+                              <HyperlinkText
+                                text={item.description}
+                                linkClassName={
+                                  item.status === 'done' || isCompleted
+                                    ? 'text-sky-400/70 hover:text-sky-300'
+                                    : undefined
+                                }
+                              />
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleCopyChecklistItem(e, itemId, item.description)}
+                              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all shrink-0"
+                              title={isItemCopied ? t('itemCopied') : t('copyItem')}
+                              aria-label={isItemCopied ? t('itemCopied') : t('copyItem')}
+                            >
+                              {isItemCopied ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {/* Progress bar inside expanded view */}

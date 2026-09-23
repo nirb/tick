@@ -83,18 +83,61 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     }
   }, [currentDate, language]);
 
+  const getNextDay9AMString = () => {
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(9, 0, 0, 0);
+    const y = nextDay.getFullYear();
+    const m = String(nextDay.getMonth() + 1).padStart(2, '0');
+    const d = String(nextDay.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}T09:00`;
+  };
+
+  const handleRecurrenceChange = (newRecurrence: 'none' | 'daily' | 'weekly' | 'monthly') => {
+    setRecurrence(newRecurrence);
+    if (newRecurrence !== 'none') {
+      if (!dueDateTime) {
+        setDueDateTime(getNextDay9AMString());
+      } else {
+        const parts = dueDateTime.split('T');
+        const hasDate = Boolean(parts[0]);
+        const hasTime = Boolean(parts[1]) && parts[1] !== '00:00';
+        if (!hasDate && !hasTime) {
+          setDueDateTime(getNextDay9AMString());
+        } else if (!hasDate) {
+          const nextDay = new Date();
+          nextDay.setDate(nextDay.getDate() + 1);
+          const y = nextDay.getFullYear();
+          const m = String(nextDay.getMonth() + 1).padStart(2, '0');
+          const d = String(nextDay.getDate()).padStart(2, '0');
+          setDueDateTime(`${y}-${m}-${d}T${parts[1] || '09:00'}`);
+        } else if (!hasTime) {
+          setDueDateTime(`${parts[0]}T09:00`);
+        }
+      }
+    }
+  };
+
   const handleDateChange = (newDate: string) => {
     if (!newDate) {
-      setDueDateTime('');
+      if (recurrence !== 'none') {
+        setDueDateTime(getNextDay9AMString());
+      } else {
+        setDueDateTime('');
+      }
       return;
     }
-    const time = currentTime || '10:00';
+    const defaultTime = recurrence !== 'none' ? '09:00' : '10:00';
+    const time = currentTime || defaultTime;
     setDueDateTime(`${newDate}T${time}`);
   };
 
   const handleTimeChange = (newTime: string) => {
     if (!newTime) {
-      if (currentDate) {
+      if (recurrence !== 'none') {
+        const date = currentDate || getNextDay9AMString().split('T')[0];
+        setDueDateTime(`${date}T09:00`);
+      } else if (currentDate) {
         setDueDateTime(`${currentDate}T00:00`);
       } else {
         setDueDateTime('');
@@ -135,6 +178,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         const tzOffset = d.getTimezoneOffset() * 60000;
         const localISOTime = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
         setDueDateTime(localISOTime);
+      } else if (taskToEdit.recurrence_rule) {
+        setDueDateTime(getNextDay9AMString());
       } else {
         setDueDateTime('');
       }
@@ -185,11 +230,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   };
 
   const handleToggleChecklistItemStatus = (id: string) => {
-    setChecklistItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: item.status === 'done' ? 'not done' : 'done' } : item
-      )
-    );
+    setChecklistItems((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (!target) return prev;
+      const nextStatus = target.status === 'done' ? 'not done' : 'done';
+      const updatedItem = { ...target, status: nextStatus as 'done' | 'not done' };
+      if (nextStatus === 'done') {
+        return [...prev.filter((item) => item.id !== id), updatedItem];
+      }
+      return prev.map((item) => (item.id === id ? updatedItem : item));
+    });
   };
 
   const handleDeleteChecklistItem = (id: string) => {
@@ -202,15 +252,38 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
     setSubmitting(true);
     try {
-      let dueAt: number | null = null;
-      if (dueDateTime) {
-        dueAt = Math.floor(new Date(dueDateTime).getTime() / 1000);
-      }
-
       let recurrenceRule: string | null = null;
       if (recurrence === 'daily') recurrenceRule = 'FREQ=DAILY';
       else if (recurrence === 'weekly') recurrenceRule = 'FREQ=WEEKLY';
       else if (recurrence === 'monthly') recurrenceRule = 'FREQ=MONTHLY';
+
+      let dueAt: number | null = null;
+      let finalDueDateTime = dueDateTime;
+      if (recurrenceRule) {
+        if (!finalDueDateTime) {
+          finalDueDateTime = getNextDay9AMString();
+        } else {
+          const parts = finalDueDateTime.split('T');
+          const hasDate = Boolean(parts[0]);
+          const hasTime = Boolean(parts[1]) && parts[1] !== '00:00';
+          if (!hasDate && !hasTime) {
+            finalDueDateTime = getNextDay9AMString();
+          } else if (!hasDate) {
+            const nextDay = new Date();
+            nextDay.setDate(nextDay.getDate() + 1);
+            const y = nextDay.getFullYear();
+            const m = String(nextDay.getMonth() + 1).padStart(2, '0');
+            const d = String(nextDay.getDate()).padStart(2, '0');
+            finalDueDateTime = `${y}-${m}-${d}T${parts[1] || '09:00'}`;
+          } else if (!hasTime) {
+            finalDueDateTime = `${parts[0]}T09:00`;
+          }
+        }
+      }
+
+      if (finalDueDateTime) {
+        dueAt = Math.floor(new Date(finalDueDateTime).getTime() / 1000);
+      }
 
       let serializedDescription: string | undefined = undefined;
       if (contentType === 'checklist') {
@@ -586,7 +659,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setRecurrence(opt.value as any)}
+                  onClick={() => handleRecurrenceChange(opt.value as any)}
                   className={`py-2 px-2 text-xs font-semibold rounded-lg transition-all text-center truncate ${
                     recurrence === opt.value
                       ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30 ring-1 ring-sky-400 font-bold'

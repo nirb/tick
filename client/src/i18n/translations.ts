@@ -109,6 +109,9 @@ export interface Translations {
   copyDescription: string;
   descriptionCopied: string;
   toastDescriptionCopied: string;
+  copyItem: string;
+  itemCopied: string;
+  toastItemCopied: string;
   assignTo: string;
   dueDateTime: string;
   dueDate: string;
@@ -372,6 +375,8 @@ export const dictionaries: Record<Language, Translations> = {
     descriptionPlaceholder: 'Any details or specific instructions...',
     copyDescription: 'Copy description',
     descriptionCopied: 'Description copied to clipboard',
+    copyItem: 'Copy item',
+    itemCopied: 'Item copied to clipboard',
     assignTo: 'Assign To',
     dueDateTime: 'Due Date & Time',
     dueDate: 'Due Date',
@@ -521,6 +526,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastCodeCopied: 'Invite code copied to clipboard!',
     toastLinkCopied: 'Shareable invite link copied!',
     toastDescriptionCopied: 'Description copied to clipboard',
+    toastItemCopied: 'Item copied to clipboard',
     toastJoinedGroup: 'Successfully joined group! 👥',
     toastGroupNameUpdated: 'Group name updated! 👥',
     toastUserNameUpdated: 'Your name has been updated! 👤',
@@ -628,6 +634,8 @@ export const dictionaries: Record<Language, Translations> = {
     descriptionPlaceholder: 'פרטים נוספים או הוראות ספציפיות...',
     copyDescription: 'העתק תיאור',
     descriptionCopied: 'תיאור המשימה הועתק ללוח',
+    copyItem: 'העתק פריט',
+    itemCopied: 'הפריט הועתק ללוח',
     assignTo: 'שיוך ל-',
     dueDateTime: 'תאריך ושעה לביצוע',
     dueDate: 'תאריך יעד',
@@ -777,6 +785,7 @@ export const dictionaries: Record<Language, Translations> = {
     toastCodeCopied: 'קוד ההזמנה הועתק ללוח!',
     toastLinkCopied: 'קישור ההזמנה הועתק!',
     toastDescriptionCopied: 'תיאור המשימה הועתק ללוח',
+    toastItemCopied: 'הפריט הועתק ללוח',
     toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
     toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
     toastUserNameUpdated: 'שמך עודכן בהצלחה! 👤',

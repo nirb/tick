@@ -48,6 +48,7 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const [copiedDescription, setCopiedDescription] = useState(false);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -83,23 +84,27 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
     urgent: t('urgent'),
   };
 
+  const copyToClipboard = async (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  };
+
   const handleCopyDescription = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!content || content.type !== 'description' || !content.description) return;
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(content.description);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = content.description;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
+      await copyToClipboard(content.description);
       setCopiedDescription(true);
       setTimeout(() => setCopiedDescription(false), 2000);
     } catch (err) {
@@ -107,15 +112,38 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
     }
   };
 
+  const handleCopyChecklistItem = async (e: React.MouseEvent, itemId: string, text: string) => {
+    e.stopPropagation();
+    if (!text) return;
+    try {
+      await copyToClipboard(text);
+      setCopiedItemId(itemId);
+      setTimeout(() => setCopiedItemId((curr) => (curr === itemId ? null : curr)), 2000);
+    } catch (err) {
+      console.error('Failed to copy item text:', err);
+    }
+  };
+
   const handleToggleChecklistItem = (index: number) => {
     if (!content || content.type !== 'checklist' || !onUpdateDescription) return;
-    const updatedChecklist = content.checklist.map((item, i) => {
-      if (i === index) {
-        const nextStatus: ChecklistItemStatus = item.status === 'done' ? 'not done' : 'done';
-        return { ...item, status: nextStatus };
-      }
-      return item;
-    });
+    const targetItem = content.checklist[index];
+    if (!targetItem) return;
+
+    const nextStatus: ChecklistItemStatus = targetItem.status === 'done' ? 'not done' : 'done';
+    const toggledItem = { ...targetItem, status: nextStatus };
+
+    let updatedChecklist: typeof content.checklist;
+    if (nextStatus === 'done') {
+      updatedChecklist = [
+        ...content.checklist.filter((_, idx) => idx !== index),
+        toggledItem,
+      ];
+    } else {
+      updatedChecklist = content.checklist.map((item, i) =>
+        i === index ? toggledItem : item
+      );
+    }
+
     const serialized = serializeTaskContent({
       type: 'checklist',
       checklist: updatedChecklist,
@@ -255,31 +283,49 @@ export const TaskPromptModal: React.FC<TaskPromptModalProps> = ({
                     )}
                   </div>
                   <div className="space-y-1.5">
-                    {content.checklist.map((item, index) => (
-                      <div
-                        key={item.id}
-                        className="flex items-start gap-2 text-xs text-slate-200 p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                        onClick={() => handleToggleChecklistItem(index)}
-                      >
-                        <button
-                          type="button"
-                          className={`mt-0.5 w-4 h-4 rounded-md flex items-center justify-center border transition-all shrink-0 ${
-                            item.status === 'done'
-                              ? 'bg-sky-500 border-sky-400 text-white'
-                              : 'border-white/30 hover:border-white/60 bg-transparent'
-                          }`}
+                    {content.checklist.map((item, index) => {
+                      const itemId = item.id || String(index);
+                      const isItemCopied = copiedItemId === itemId;
+                      return (
+                        <div
+                          key={itemId}
+                          className="flex items-start gap-2 text-xs text-slate-200 p-1.5 rounded-lg hover:bg-white/5 transition-colors group/item"
                         >
-                          {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
-                        </button>
-                        <span
-                          className={`break-words flex-1 leading-snug ${
-                            item.status === 'done' ? 'line-through text-slate-500' : 'text-slate-200'
-                          }`}
-                        >
-                          <HyperlinkText text={item.description} />
-                        </span>
-                      </div>
-                    ))}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleChecklistItem(index)}
+                            className={`mt-0.5 w-4 h-4 rounded-md flex items-center justify-center border transition-all shrink-0 ${
+                              item.status === 'done'
+                                ? 'bg-sky-500 border-sky-400 text-white'
+                                : 'border-white/30 hover:border-white/60 bg-transparent'
+                            }`}
+                          >
+                            {item.status === 'done' && <Check className="w-3 h-3 stroke-[3]" />}
+                          </button>
+                          <span
+                            onClick={() => handleToggleChecklistItem(index)}
+                            className={`cursor-pointer break-words flex-1 leading-snug ${
+                              item.status === 'done' ? 'line-through text-slate-500' : 'text-slate-200'
+                            }`}
+                          >
+                            <HyperlinkText text={item.description} />
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleCopyChecklistItem(e, itemId, item.description)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all shrink-0"
+                            title={isItemCopied ? t('itemCopied') : t('copyItem')}
+                            aria-label={isItemCopied ? t('itemCopied') : t('copyItem')}
+                          >
+                            {isItemCopied ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
