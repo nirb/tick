@@ -177,6 +177,10 @@ export const App: React.FC = () => {
     }
   }, [user?.id, group?.id, isAllGroups, loadTasks]);
 
+  useEffect(() => {
+    setSelectedAssignee('');
+  }, [group?.id, isAllGroups]);
+
   const cleanTaskUrl = useCallback(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);

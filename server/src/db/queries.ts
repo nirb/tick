@@ -74,20 +74,25 @@ export async function getGroupMembers(db: D1Database, groupId: string): Promise<
   try {
     const { results } = await db
       .prepare(
-        `SELECT u.id, ? as group_id, u.name, u.email, gm.role, u.avatar_url, gm.joined_at as created_at
+        `SELECT DISTINCT
+           u.id,
+           ? as group_id,
+           u.name,
+           u.email,
+           COALESCE(gm.role, u.role) as role,
+           u.avatar_url,
+           COALESCE(gm.joined_at, u.created_at) as created_at
          FROM users u
-         JOIN group_members gm ON u.id = gm.user_id
-         WHERE gm.group_id = ?
-         ORDER BY gm.role ASC, u.name ASC`
+         LEFT JOIN group_members gm ON u.id = gm.user_id AND gm.group_id = ?
+         WHERE gm.group_id = ? OR u.group_id = ?
+         ORDER BY role ASC, u.name ASC`
       )
-      .bind(groupId, groupId)
+      .bind(groupId, groupId, groupId, groupId)
       .all<User>();
 
-    if (results && results.length > 0) {
-      return results;
-    }
-  } catch {
-    // Fallback if group_members table does not exist yet
+    return results || [];
+  } catch (err) {
+    console.warn('Failed getGroupMembers via join:', err);
   }
 
   const { results: legacy } = await db
@@ -96,28 +101,47 @@ export async function getGroupMembers(db: D1Database, groupId: string): Promise<
     )
     .bind(groupId)
     .all<User>();
-  return legacy;
+  return legacy || [];
 }
 
 export async function getAllUserGroupsMembers(db: D1Database, userId: string): Promise<User[]> {
   try {
     const { results } = await db
       .prepare(
-        `SELECT DISTINCT u.id, gm.group_id, u.name, u.email, gm.role, u.avatar_url, gm.joined_at as created_at
+        `SELECT DISTINCT
+           u.id,
+           'ALL_GROUPS' as group_id,
+           u.name,
+           u.email,
+           u.role,
+           u.avatar_url,
+           u.created_at
          FROM users u
-         JOIN group_members gm ON u.id = gm.user_id
+         LEFT JOIN group_members gm ON u.id = gm.user_id
          WHERE gm.group_id IN (
+           SELECT group_id FROM group_members WHERE user_id = ?
+           UNION
+           SELECT group_id FROM users WHERE id = ?
+         ) OR u.group_id IN (
            SELECT group_id FROM group_members WHERE user_id = ?
            UNION
            SELECT group_id FROM users WHERE id = ?
          )
          ORDER BY u.name ASC`
       )
-      .bind(userId, userId)
+      .bind(userId, userId, userId, userId)
       .all<User>();
 
     if (results && results.length > 0) {
-      return results;
+      const seen = new Set<string>();
+      const uniqueUsers: User[] = [];
+      for (const u of results) {
+        if (!seen.has(u.id)) {
+          seen.add(u.id);
+          uniqueUsers.push(u);
+        }
+      }
+      return uniqueUsers;
     }
   } catch {
     // Fallback if group_members query fails
@@ -125,7 +149,7 @@ export async function getAllUserGroupsMembers(db: D1Database, userId: string): P
 
   const { results: fallback } = await db
     .prepare(
-      `SELECT DISTINCT u.id, u.group_id, u.name, u.email, u.role, u.avatar_url, u.created_at
+      `SELECT DISTINCT u.id, 'ALL_GROUPS' as group_id, u.name, u.email, u.role, u.avatar_url, u.created_at
        FROM users u
        WHERE u.group_id IN (
          SELECT group_id FROM users WHERE id = ?
@@ -141,18 +165,22 @@ export async function getUserGroups(db: D1Database, userId: string): Promise<Gro
   try {
     const { results } = await db
       .prepare(
-        `SELECT g.id as group_id, g.name, g.invite_code, gm.role, gm.joined_at
+        `SELECT DISTINCT
+           g.id as group_id,
+           g.name,
+           g.invite_code,
+           COALESCE(gm.role, u.role) as role,
+           COALESCE(gm.joined_at, u.created_at) as joined_at
          FROM groups g
-         JOIN group_members gm ON g.id = gm.group_id
-         WHERE gm.user_id = ?
-         ORDER BY gm.joined_at ASC`
+         LEFT JOIN group_members gm ON g.id = gm.group_id AND gm.user_id = ?
+         LEFT JOIN users u ON g.id = u.group_id AND u.id = ?
+         WHERE gm.user_id = ? OR u.id = ?
+         ORDER BY joined_at ASC`
       )
-      .bind(userId)
+      .bind(userId, userId, userId, userId)
       .all<GroupMembership>();
 
-    if (results && results.length > 0) {
-      return results;
-    }
+    return results || [];
   } catch {
     // Fallback if group_members table does not exist yet
   }
@@ -166,7 +194,7 @@ export async function getUserGroups(db: D1Database, userId: string): Promise<Gro
     )
     .bind(userId)
     .all<GroupMembership>();
-  return fallback;
+  return fallback || [];
 }
 
 export async function addUserToGroup(
@@ -222,6 +250,7 @@ export async function setUserActiveGroup(
     .prepare('UPDATE users SET group_id = ?, role = ? WHERE id = ?')
     .bind(groupId, role, userId)
     .run();
+  await addUserToGroup(db, userId, groupId, role);
 }
 
 export async function leaveGroup(
@@ -484,10 +513,21 @@ export async function createTask(
   const activityId = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   const priority = data.priority || 'medium';
-  const assigneeId = data.assigneeId || null;
+  let assigneeId = data.assigneeId || null;
   const description = data.description || null;
   const recurrenceRule = data.recurrenceRule || null;
   let dueAt = data.dueAt || null;
+
+  if (!assigneeId) {
+    try {
+      const groupMembers = await getGroupMembers(db, data.groupId);
+      if (groupMembers && groupMembers.length === 1) {
+        assigneeId = groupMembers[0].id;
+      }
+    } catch {
+      // Fallback
+    }
+  }
 
   if (recurrenceRule && !dueAt) {
     const nextDay = new Date();
@@ -652,6 +692,15 @@ export async function updateTask(
     nextDay.setDate(nextDay.getDate() + 1);
     nextDay.setHours(9, 0, 0, 0);
     updates.due_at = Math.floor(nextDay.getTime() / 1000);
+  }
+
+  if (updates.assignee_id === undefined && !existingTask.assignee_id) {
+    try {
+      const groupMembers = await getGroupMembers(db, existingTask.group_id);
+      if (groupMembers && groupMembers.length === 1) {
+        updates.assignee_id = groupMembers[0].id;
+      }
+    } catch {}
   }
 
   const setClauses: string[] = ['updated_at = ?'];

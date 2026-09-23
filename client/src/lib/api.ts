@@ -113,6 +113,8 @@ export const api = {
       }),
 
     getAllMembers: () => request<{ members: User[] }>('/api/groups/all-members'),
+
+    getMembers: (groupId: string) => request<{ members: User[] }>(`/api/groups/${groupId}/members`),
   },
 
   tasks: {

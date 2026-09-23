@@ -183,6 +183,18 @@ groupRoutes.post('/join', async (c) => {
   });
 });
 
+// GET /api/groups/:id/members - Get members of a specific group user belongs to
+groupRoutes.get('/:id/members', async (c) => {
+  const jwtUser = c.get('user');
+  const groupId = c.req.param('id');
+  const membership = await getUserGroupMembership(c.env.DB, jwtUser.sub, groupId);
+  if (!membership) {
+    return c.json({ error: 'You are not a member of this group' }, 403);
+  }
+  const members = await getGroupMembers(c.env.DB, groupId);
+  return c.json({ members });
+});
+
 // POST /api/groups/:id/leave - Leave a group
 groupRoutes.post('/:id/leave', async (c) => {
   const jwtUser = c.get('user');

@@ -86,6 +86,15 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
     onClose();
   };
 
+  React.useEffect(() => {
+    if (selectedAssignee && selectedAssignee !== 'unassigned' && members.length > 0) {
+      const exists = members.some((m) => m.id === selectedAssignee);
+      if (!exists) {
+        onAssigneeChange('');
+      }
+    }
+  }, [members, selectedAssignee, onAssigneeChange]);
+
   return (
     <div className="relative">
       {/* Trigger Button in Navbar: Shows Filter icon if Everyone is selected; otherwise shows the selected user */}

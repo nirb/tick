@@ -213,9 +213,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
       try {
         const res = await api.groups.getAllMembers();
-        if (res.members && res.members.length > 0) {
-          setMembers(res.members);
-          await cacheMembers(res.members, 'ALL_GROUPS');
+        const allMembers = res.members || [];
+        setMembers(allMembers);
+        if (allMembers.length > 0) {
+          await cacheMembers(allMembers, 'ALL_GROUPS');
         }
       } catch (err) {
         console.warn('Failed fetching all members on switch to ALL_GROUPS:', err);
@@ -236,9 +237,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCookie(COOKIE_LAST_SELECTED_GROUP, res.group.id);
       }
       setCookie(COOKIE_LAST_ACTIVE_TIME, Date.now().toString());
-      if (res.members) {
-        setMembers(res.members);
-        await cacheMembers(res.members, res.group.id);
+      let newMembers = res.members;
+      if (!newMembers || newMembers.length === 0) {
+        try {
+          const groupData = await api.groups.getMe();
+          if (groupData.members && groupData.members.length > 0) {
+            newMembers = groupData.members;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      const finalMembers = newMembers || [];
+      setMembers(finalMembers);
+      if (finalMembers.length > 0) {
+        await cacheMembers(finalMembers, res.group.id);
       }
       setUser((prev) => {
         if (!prev) return null;

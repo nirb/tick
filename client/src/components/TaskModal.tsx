@@ -19,6 +19,8 @@ import { parseTaskContent, serializeTaskContent, generateItemId } from '../lib/t
 import { Avatar } from './Avatar';
 import { CalendarPickerModal } from './CalendarPickerModal';
 import { ClockPickerModal } from './ClockPickerModal';
+import { api } from '../lib/api';
+import { cacheMembers, getCachedMembers } from '../lib/offline';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -58,6 +60,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [dueDateTime, setDueDateTime] = useState('');
   const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
   const [selectedTaskGroupId, setSelectedTaskGroupId] = useState<string>('');
+  const [modalMembers, setModalMembers] = useState<User[]>(members);
   const [submitting, setSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isClockOpen, setIsClockOpen] = useState(false);
@@ -171,7 +174,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         setChecklistItems([]);
       }
       setNewChecklistInput('');
-      setAssigneeId(taskToEdit.assignee_id || '');
+      setAssigneeId(taskToEdit.assignee_id || (members && members.length === 1 ? members[0].id : ''));
       setPriority(taskToEdit.priority);
       if (taskToEdit.due_at) {
         const d = new Date(taskToEdit.due_at * 1000);
@@ -201,12 +204,46 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setDescriptionText('');
       setChecklistItems([]);
       setNewChecklistInput('');
-      setAssigneeId('');
+      setAssigneeId(members && members.length === 1 ? members[0].id : '');
       setPriority('medium');
       setDueDateTime('');
       setRecurrence('none');
     }
-  }, [taskToEdit, isOpen, currentGroupId, groups]);
+  }, [taskToEdit, isOpen, currentGroupId, groups, members]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const targetGroupId = selectedTaskGroupId || taskToEdit?.group_id || (currentGroupId && currentGroupId !== 'ALL_GROUPS' ? currentGroupId : undefined);
+    if (targetGroupId && targetGroupId !== currentGroupId && targetGroupId !== 'ALL_GROUPS') {
+      let isMounted = true;
+      (async () => {
+        try {
+          const cached = await getCachedMembers(targetGroupId);
+          if (cached && cached.length > 0 && isMounted) {
+            setModalMembers(cached);
+          }
+          const res = await api.groups.getMembers(targetGroupId);
+          if (res.members && isMounted) {
+            setModalMembers(res.members);
+            await cacheMembers(res.members, targetGroupId);
+          }
+        } catch (err) {
+          console.warn('Could not fetch members for selected group in modal:', err);
+        }
+      })();
+      return () => {
+        isMounted = false;
+      };
+    } else {
+      setModalMembers(members);
+    }
+  }, [selectedTaskGroupId, taskToEdit?.group_id, currentGroupId, members, isOpen]);
+
+  useEffect(() => {
+    if (modalMembers && modalMembers.length === 1) {
+      setAssigneeId(modalMembers[0].id);
+    }
+  }, [modalMembers]);
 
   if (!isOpen) return null;
 
@@ -313,10 +350,16 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         }
       }
 
+      let finalAssigneeId = assigneeId;
+      const effectiveMembers = modalMembers && modalMembers.length > 0 ? modalMembers : members;
+      if (!finalAssigneeId && effectiveMembers && effectiveMembers.length === 1) {
+        finalAssigneeId = effectiveMembers[0].id;
+      }
+
       await onSubmit({
         title: title.trim(),
         description: serializedDescription,
-        assignee_id: assigneeId || null,
+        assignee_id: finalAssigneeId || null,
         priority,
         due_at: dueAt,
         recurrence_rule: recurrenceRule,
@@ -512,42 +555,44 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             )}
           </div>
 
-          {/* Assignee Selection */}
-          <div>
-            <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-              <UserIcon className="w-3.5 h-3.5 text-sky-400" /> {t('assignTo')}
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button
-                type="button"
-                onClick={() => setAssigneeId('')}
-                className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
-                  assigneeId === ''
-                    ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
-                    : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
-                }`}
-              >
-                <span className="text-base">👤</span>
-                <span className="truncate">{t('anyone')}</span>
-              </button>
-
-              {members.map((member) => (
+          {/* Assignee Selection - Only show when group has more than 1 member */}
+          {modalMembers && modalMembers.length > 1 && (
+            <div>
+              <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <UserIcon className="w-3.5 h-3.5 text-sky-400" /> {t('assignTo')}
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
-                  key={member.id}
                   type="button"
-                  onClick={() => setAssigneeId(member.id)}
+                  onClick={() => setAssigneeId('')}
                   className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
-                    assigneeId === member.id
+                    assigneeId === ''
                       ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
                       : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
                   }`}
                 >
-                  <Avatar url={member.avatar_url} name={member.name} size="sm" />
-                  <span className="truncate">{member.name}</span>
+                  <span className="text-base">👤</span>
+                  <span className="truncate">{t('anyone')}</span>
                 </button>
-              ))}
+
+                {modalMembers.map((member) => (
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => setAssigneeId(member.id)}
+                    className={`p-2 rounded-xl border text-start flex items-center gap-2 text-xs transition-colors ${
+                      assigneeId === member.id
+                        ? 'border-sky-400/60 bg-sky-500/25 text-sky-100 font-bold shadow-sm shadow-sky-500/20'
+                        : 'border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 font-medium'
+                    }`}
+                  >
+                    <Avatar url={member.avatar_url} name={member.name} size="sm" />
+                    <span className="truncate">{member.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Priority */}
           <div>
