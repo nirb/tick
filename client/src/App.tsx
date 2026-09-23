@@ -17,6 +17,7 @@ import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
 import { TaskPromptModal } from './components/TaskPromptModal';
 import { InstallModal } from './components/InstallModal';
 import { InstallBanner } from './components/InstallBanner';
+import { VersionUpdateModal } from './components/VersionUpdateModal';
 import { CalendarDayView } from './components/CalendarDayView';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
@@ -708,6 +709,7 @@ export const App: React.FC = () => {
       <>
         <AuthScreen onShowToast={showToast} />
         <ToastContainer toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
+        <VersionUpdateModal />
       </>
     );
   }
@@ -961,6 +963,8 @@ export const App: React.FC = () => {
       />
 
       <InstallBanner />
+
+      <VersionUpdateModal />
 
       <ToastContainer toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
     </div>

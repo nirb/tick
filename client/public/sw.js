@@ -36,8 +36,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Do not cache API calls in Cache Storage (they are cached via IndexedDB)
-  if (url.pathname.startsWith('/api')) {
+  // Do not cache API calls or version checks in Cache Storage
+  if (url.pathname.startsWith('/api') || url.pathname === '/version.json') {
     return;
   }
 
@@ -94,6 +94,13 @@ self.addEventListener('push', function(event) {
   );
 });
 
+// Message Event - Skip Waiting on update request
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Notification Click Event - Focus or Open Window (SRS 7.1)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
@@ -104,9 +111,6 @@ self.addEventListener('notificationclick', function(event) {
       for (const client of clientList) {
         if ('focus' in client) {
           client.focus();
-          if ('navigate' in client) {
-            return client.navigate(targetUrl);
-          }
           client.postMessage({ type: 'NAVIGATE_TO_TARGET', url: targetUrl });
           return client;
         }

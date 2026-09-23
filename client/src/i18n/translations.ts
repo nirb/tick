@@ -214,6 +214,13 @@ export interface Translations {
   installTickApp: string;
   installAppDesc: string;
 
+  // Update Modal
+  newUpdateTitle: string;
+  newUpdateDesc: string;
+  refreshApp: string;
+  updateLater: string;
+  refreshing: string;
+
   // Auth Screen
   logIn: string;
   signUp: string;
@@ -475,6 +482,12 @@ export const dictionaries: Record<Language, Translations> = {
     installTickApp: 'Install Tick App',
     installAppDesc: 'Get native push reminders & instant offline access',
 
+    newUpdateTitle: 'New Update',
+    newUpdateDesc: 'A new version of Tick is available. Refresh to get the latest updates.',
+    refreshApp: 'Refresh App',
+    updateLater: 'Later',
+    refreshing: 'Refreshing...',
+
     logIn: 'Log In',
     signUp: 'Sign Up',
     welcomeBack: 'Welcome Back',
@@ -733,6 +746,12 @@ export const dictionaries: Record<Language, Translations> = {
 
     installTickApp: 'התקנת אפליקציית "הקרציה"',
     installAppDesc: 'קבלו התראות פוש וגישה מהירה גם במצב לא מקוון',
+
+    newUpdateTitle: 'עדכון חדש',
+    newUpdateDesc: 'גרסה חדשה של "הקרציה" זמינה. רעננו כדי לקבל את העדכונים האחרונים.',
+    refreshApp: 'רענן אפליקציה',
+    updateLater: 'אחר כך',
+    refreshing: 'מרענן...',
 
     logIn: 'התחברות',
     signUp: 'הרשמה',
