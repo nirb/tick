@@ -31,7 +31,8 @@ export default defineConfig(({ mode }) => {
         },
         configureServer(server) {
           server.middlewares.use((req, res, next) => {
-            if (req.url === '/version.json') {
+            const pathname = req.url ? req.url.split('?')[0] : '';
+            if (pathname === '/version.json') {
               res.setHeader('Content-Type', 'application/json');
               res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
               res.end(

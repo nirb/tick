@@ -12,6 +12,9 @@ export const VersionUpdateModal: React.FC = () => {
   const currentBuildId = import.meta.env.VITE_APP_BUILD_ID;
 
   const checkForUpdate = useCallback(async () => {
+    // Disable update checks in local development
+    if (import.meta.env.DEV) return;
+
     if (isCheckingRef.current) return;
     isCheckingRef.current = true;
 
@@ -64,6 +67,8 @@ export const VersionUpdateModal: React.FC = () => {
   }, [currentBuildId]);
 
   useEffect(() => {
+    if (import.meta.env.DEV) return;
+
     // Initial check after app mount
     const initialTimer = setTimeout(() => {
       checkForUpdate();
@@ -155,7 +160,7 @@ export const VersionUpdateModal: React.FC = () => {
     window.location.reload();
   };
 
-  if (!isUpdateAvailable) return null;
+  if (import.meta.env.DEV || !isUpdateAvailable) return null;
 
   // If user clicked "Later", show a non-intrusive floating indicator
   if (isDismissed) {
