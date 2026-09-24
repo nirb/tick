@@ -607,16 +607,7 @@ export async function updateTask(
   if (updates.status === 'completed' && existingTask.recurrence_rule && !isPermanentCompletion) {
     const nextDueAt = calculateNextRecurrence(existingTask.due_at || 0, existingTask.recurrence_rule);
 
-    let nextDescription = updates.description !== undefined ? updates.description : existingTask.description;
-    if (nextDescription) {
-      try {
-        const parsed = JSON.parse(nextDescription);
-        if (parsed && parsed.type === 'checklist' && Array.isArray(parsed.checklist)) {
-          parsed.checklist = parsed.checklist.map((item: any) => ({ ...item, status: 'not done' }));
-          nextDescription = JSON.stringify(parsed);
-        }
-      } catch {}
-    }
+    const nextDescription = updates.description !== undefined ? updates.description : existingTask.description;
 
     const setClauses: string[] = [
       'status = ?',
