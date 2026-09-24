@@ -3,6 +3,7 @@ import type { Group, GroupMembership, User } from '../types';
 import { api, setToken } from '../lib/api';
 import { cacheMembers, getCachedMembers } from '../lib/offline';
 import { setCookie, getCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_LAST_ACTIVE_TIME } from '../lib/cookies';
+import { getCurrentPushSubscription } from '../lib/push';
 
 interface AuthContextType {
   user: User | null;
@@ -175,6 +176,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = async () => {
+    try {
+      const sub = await getCurrentPushSubscription();
+      if (sub) {
+        await api.push.unsubscribe(sub.endpoint).catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
     try {
       await api.auth.logout();
     } catch (e) {

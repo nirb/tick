@@ -48,6 +48,13 @@ export const PushProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         const sub = await getCurrentPushSubscription();
         setIsSubscribed(!!sub);
+        if (sub) {
+          try {
+            await api.push.subscribe(sub.toJSON() as PushSubscriptionJSON);
+          } catch (err) {
+            console.warn('Failed syncing push subscription with current user:', err);
+          }
+        }
       }
     };
 
