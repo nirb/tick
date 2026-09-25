@@ -334,8 +334,18 @@ export const App: React.FC = () => {
 
     const now = Math.floor(Date.now() / 1000);
     const due = tasks
-      .filter((t) => t.status !== 'completed' && typeof t.due_at === 'number' && t.due_at <= now && t.assignee_id === user.id)
-      .sort((a, b) => (a.due_at ?? 0) - (b.due_at ?? 0));
+      .filter(
+        (t) =>
+          t.status !== 'completed' &&
+          typeof t.due_at === 'number' &&
+          t.due_at <= now &&
+          (!t.assignee_id || t.assignee_id === user.id)
+      )
+      .sort((a, b) => {
+        const diff = (a.assignee_id === user.id ? 0 : 1) - (b.assignee_id === user.id ? 0 : 1);
+        if (diff !== 0) return diff;
+        return (a.due_at ?? 0) - (b.due_at ?? 0);
+      });
 
     if (due.length > 0) {
       const queue = due.slice(0, 5).map((t) => t.id);

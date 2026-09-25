@@ -892,6 +892,18 @@ export async function getPushSubscriptionsByUsers(db: D1Database, userIds: strin
   return results;
 }
 
+export async function getPushSubscriptionsByGroup(
+  db: D1Database,
+  groupId: string,
+  excludeUserId?: string
+): Promise<PushSubscriptionRow[]> {
+  const members = await getGroupMembers(db, groupId);
+  const targetUserIds = members
+    .map((m) => m.id)
+    .filter((id) => !excludeUserId || id !== excludeUserId);
+  return getPushSubscriptionsByUsers(db, targetUserIds);
+}
+
 // ---------------- Task Activities ----------------
 
 export async function getActivitiesByTaskId(db: D1Database, taskId: string): Promise<TaskActivity[]> {

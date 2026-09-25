@@ -11,6 +11,7 @@ import {
   getActivitiesByTaskId,
   addTaskActivity,
   getPushSubscriptionsByUser,
+  getPushSubscriptionsByGroup,
   getUserGroupMembership,
 } from '../db/queries';
 import { sendPushToSubscriptions } from '../push/vapid';
@@ -110,7 +111,8 @@ taskRoutes.post('/', async (c) => {
     jwtUser.sub
   );
 
-  // Dispatch Push Notification to Assignee if assigned to someone else
+  // Dispatch Push Notification:
+  // 1. If assigned to a specific person: notify assignee
   if (body.assignee_id && body.assignee_id !== jwtUser.sub) {
     c.executionCtx.waitUntil(
       (async () => {
@@ -129,6 +131,28 @@ taskRoutes.post('/', async (c) => {
           }
         } catch (err) {
           console.error('Failed to send task assignment push:', err);
+        }
+      })()
+    );
+  } else if (!body.assignee_id) {
+    // 2. If assigned to "Anyone": notify all other group members!
+    c.executionCtx.waitUntil(
+      (async () => {
+        try {
+          const subs = await getPushSubscriptionsByGroup(c.env.DB, task.group_id, jwtUser.sub);
+          if (subs.length > 0) {
+            await sendPushToSubscriptions(c.env, subs, {
+              title: 'New Task for Anyone 📋',
+              body: `${jwtUser.name} created a task for anyone: "${task.title}"`,
+              url: `/?group=${task.group_id}&task=${task.id}`,
+              actions: [
+                { action: 'open', title: 'View Task' },
+                { action: 'complete', title: 'Mark Done' },
+              ],
+            });
+          }
+        } catch (err) {
+          console.error('Failed to send group task push:', err);
         }
       })()
     );
@@ -191,6 +215,15 @@ taskRoutes.patch('/:id', async (c) => {
             await sendPushToSubscriptions(c.env, newAssigneeSubs, {
               title: 'Task Reassigned to You 📋',
               body: `${jwtUser.name} assigned: "${existing.title}" to you`,
+              url: `/?group=${existing.group_id}&task=${taskId}`,
+            });
+          }
+        } else if (body.assignee_id === null && existing.assignee_id !== null) {
+          const groupSubs = await getPushSubscriptionsByGroup(c.env.DB, existing.group_id, jwtUser.sub);
+          if (groupSubs.length > 0) {
+            await sendPushToSubscriptions(c.env, groupSubs, {
+              title: 'Task Open to Anyone 📋',
+              body: `${jwtUser.name} made task open to anyone: "${existing.title}"`,
               url: `/?group=${existing.group_id}&task=${taskId}`,
             });
           }

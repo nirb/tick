@@ -6,7 +6,7 @@ import { authRoutes } from './routes/auth';
 import { groupRoutes } from './routes/groups';
 import { taskRoutes } from './routes/tasks';
 import { pushRoutes } from './routes/push';
-import { getDueSoonTasks, getPushSubscriptionsByUser } from './db/queries';
+import { getDueSoonTasks, getPushSubscriptionsByUser, getPushSubscriptionsByGroup } from './db/queries';
 import { sendPushToSubscriptions } from './push/vapid';
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -66,17 +66,24 @@ export async function handleScheduled(event: ScheduledEvent, env: Bindings, ctx:
     console.log(`Found ${dueTasks.length} tasks due soon`);
 
     for (const task of dueTasks) {
-      if (!task.assignee_id) continue;
+      let subs = [];
+      let isForAnyone = false;
 
-      const subs = await getPushSubscriptionsByUser(env.DB, task.assignee_id);
+      if (task.assignee_id) {
+        subs = await getPushSubscriptionsByUser(env.DB, task.assignee_id);
+      } else {
+        subs = await getPushSubscriptionsByGroup(env.DB, task.group_id);
+        isForAnyone = true;
+      }
+
       if (subs.length === 0) continue;
 
-      const minutesLeft = task.due_at
-        ? Math.max(1, Math.round((task.due_at - Math.floor(Date.now() / 1000)) / 60))
-        : 30;
+      const title = isForAnyone
+        ? `${task.title} (Open to anyone) needs attention`
+        : `${task.title} needs your attention`;
 
       await sendPushToSubscriptions(env, subs, {
-        title: `${task.title} needs your attention`,
+        title,
         body: `Click to open the Tick App and complete the task`,
         url: `/?group=${task.group_id}&task=${task.id}`,
         tag: `due-reminder-${task.id}`,
