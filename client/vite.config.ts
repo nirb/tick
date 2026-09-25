@@ -1,6 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import https from 'node:https';
+
 const buildId = Date.now().toString();
 
 export default defineConfig(({ mode }) => {
@@ -49,12 +51,23 @@ export default defineConfig(({ mode }) => {
       },
     ],
     server: {
+      host: true,
       port: 5173,
       proxy: {
         '/api': {
           target: targetApi,
           changeOrigin: true,
           secure: false,
+          agent: targetApi.startsWith('https:') ? new https.Agent({ keepAlive: false }) : undefined,
+          configure: (proxy) => {
+            proxy.on('error', (err, _req, res) => {
+              console.warn('[vite-proxy] Remote server connection reset/error:', err.message);
+              if ('headersSent' in res && !res.headersSent && typeof res.writeHead === 'function') {
+                res.writeHead(502, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Proxy connection error' }));
+              }
+            });
+          },
         },
       },
     },
