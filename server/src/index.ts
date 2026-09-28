@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth';
 import { groupRoutes } from './routes/groups';
 import { taskRoutes } from './routes/tasks';
 import { pushRoutes } from './routes/push';
+import { mcpRoutes } from './routes/mcp';
 import { getDueSoonTasks, getPushSubscriptionsByUser, getPushSubscriptionsByGroup } from './db/queries';
 import { sendPushToSubscriptions } from './push/vapid';
 
@@ -44,6 +45,7 @@ app.route('/api/auth', authRoutes);
 app.route('/api/groups', groupRoutes);
 app.route('/api/tasks', taskRoutes);
 app.route('/api/push', pushRoutes);
+app.route('/api/mcp', mcpRoutes);
 
 // 404 Handler
 app.notFound((c) => {

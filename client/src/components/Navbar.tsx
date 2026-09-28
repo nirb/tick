@@ -23,6 +23,7 @@ import {
   Layers,
   Calendar,
   List,
+  Bot,
 } from 'lucide-react';
 import type { ViewType } from '../lib/cookies';
 import { Avatar } from './Avatar';
@@ -30,6 +31,7 @@ import { Avatar } from './Avatar';
 interface NavbarProps {
   onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   onOpenGroup: () => void;
+  onOpenApiKeys: () => void;
   currentTab: FilterTab;
   onTabChange: (tab: FilterTab) => void;
   selectedAssignee: string;
@@ -43,6 +45,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   onShowToast,
   onOpenGroup,
+  onOpenApiKeys,
   currentTab,
   onTabChange,
   selectedAssignee,
@@ -463,6 +466,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <Download className="w-4 h-4 text-sky-400 shrink-0" />
                       <span>{t('installTickApp')}</span>
+                    </button>
+                  )}
+
+                  {/* AI Agent API Keys */}
+                  {user && (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onOpenApiKeys();
+                      }}
+                      className="w-full px-2.5 py-2 hover:bg-white/10 rounded-xl flex items-center justify-between text-xs font-semibold text-slate-200 transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Bot className="w-4 h-4 text-sky-400" />
+                        <span>{t('apiKeysTitle')}</span>
+                      </span>
+                      <span className="text-[10px] font-bold text-sky-300 bg-sky-500/15 border border-sky-400/30 px-2 py-0.5 rounded-lg">
+                        API
+                      </span>
                     </button>
                   )}
                 </div>

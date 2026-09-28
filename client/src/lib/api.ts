@@ -1,4 +1,4 @@
-import type { Group, GroupMembership, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
+import type { ApiKey, Group, GroupMembership, TaskActivity, TaskPriority, TaskStatus, TaskWithAssignee, User } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -70,6 +70,19 @@ export const api = {
     logout: () =>
       request<{ success: boolean }>('/api/auth/logout', {
         method: 'POST',
+      }),
+  },
+
+  apiKeys: {
+    list: () => request<{ api_keys: ApiKey[] }>('/api/auth/api-keys'),
+    create: (data: { name: string; group_id?: string }) =>
+      request<{ success: boolean; key: string; api_key: ApiKey }>('/api/auth/api-keys', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    revoke: (id: string) =>
+      request<{ success: boolean }>(`/api/auth/api-keys/${id}`, {
+        method: 'DELETE',
       }),
   },
 

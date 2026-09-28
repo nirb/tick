@@ -280,6 +280,25 @@ export interface Translations {
   toastGroupCreated: string;
   toastSwitchedGroup: string;
   toastLeftGroup: string;
+
+  // API Keys / AI Agents
+  apiKeysTitle: string;
+  apiKeysDesc: string;
+  createApiKey: string;
+  keyNamePlaceholder: string;
+  generateKeyBtn: string;
+  keyCreatedTitle: string;
+  keyCopyWarning: string;
+  copyKey: string;
+  keyCopied: string;
+  revokeKey: string;
+  revokeKeyConfirm: string;
+  noApiKeys: string;
+  lastUsed: string;
+  neverUsed: string;
+  createdOn: string;
+  toastKeyRevoked: string;
+  toastKeyCreated: string;
 }
 
 export const dictionaries: Record<Language, Translations> = {
@@ -546,6 +565,25 @@ export const dictionaries: Record<Language, Translations> = {
     toastGroupCreated: 'Group created! 👥',
     toastSwitchedGroup: 'Switched group! 👥',
     toastLeftGroup: 'Left group.',
+
+    // API Keys / AI Agents
+    apiKeysTitle: 'AI Agent API Keys',
+    apiKeysDesc: 'Manage API keys for AI agents and automation scripts to interact with your Tick account.',
+    createApiKey: 'Create New Key',
+    keyNamePlaceholder: 'Key name (e.g. My AI Assistant)',
+    generateKeyBtn: 'Generate Key',
+    keyCreatedTitle: 'API Key Generated',
+    keyCopyWarning: 'Make sure to copy your API key now. For your security, you will not be able to view it again!',
+    copyKey: 'Copy API Key',
+    keyCopied: 'Key copied to clipboard! 📋',
+    revokeKey: 'Revoke',
+    revokeKeyConfirm: 'Are you sure you want to revoke this API key? Any agents using it will immediately lose access.',
+    noApiKeys: 'No API keys yet. Create one to connect your AI agent or MCP server.',
+    lastUsed: 'Last used',
+    neverUsed: 'Never',
+    createdOn: 'Created',
+    toastKeyRevoked: 'API key revoked.',
+    toastKeyCreated: 'API key created successfully!',
   },
 
   he: {
@@ -811,5 +849,24 @@ export const dictionaries: Record<Language, Translations> = {
     toastGroupCreated: 'הקבוצה נוצרה בהצלחה! 👥',
     toastSwitchedGroup: 'הועברת לקבוצה בהצלחה! 👥',
     toastLeftGroup: 'עזבת את הקבוצה.',
+
+    // API Keys / AI Agents
+    apiKeysTitle: 'מפתחות API לסוכני AI',
+    apiKeysDesc: 'נהל מפתחות API עבור סוכני AI וסקריפטים לאוטומציה לתקשורת עם חשבון הטיק שלך.',
+    createApiKey: 'צור מפתח חדש',
+    keyNamePlaceholder: 'שם המפתח (לדוגמה: סוכן ה-AI שלי)',
+    generateKeyBtn: 'צור מפתח',
+    keyCreatedTitle: 'מפתח API נוצר בהצלחה',
+    keyCopyWarning: 'הקפד להעתיק את מפתח ה-API כעת. מטעמי אבטחה, לא תוכל לראות אותו שוב!',
+    copyKey: 'העתק מפתח API',
+    keyCopied: 'המפתח הועתק ללוח! 📋',
+    revokeKey: 'בטל',
+    revokeKeyConfirm: 'האם אתה בטוח שברצונך לבטל מפתח API זה? כל סוכן המשתמש בו יאבד גישה באופן מיידי.',
+    noApiKeys: 'עדיין אין מפתחות API. צור מפתח כדי לחבר את סוכן ה-AI או שרת ה-MCP שלך.',
+    lastUsed: 'שימוש אחרון',
+    neverUsed: 'אף פעם',
+    createdOn: 'נוצר ב',
+    toastKeyRevoked: 'מפתח ה-API בוטל.',
+    toastKeyCreated: 'מפתח ה-API נוצר בהצלחה!',
   },
 };

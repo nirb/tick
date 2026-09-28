@@ -84,3 +84,13 @@ export interface ChecklistTaskContent {
 
 export type TaskContent = TextTaskContent | ChecklistTaskContent;
 
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  group_id: string;
+  name: string;
+  key_prefix: string;
+  created_at: number;
+  last_used_at: number | null;
+}
+

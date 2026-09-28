@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Bindings, JWTPayload, UserRole } from '../types';
-import { signJWT, authMiddleware, base64UrlDecode } from '../auth';
+import { signJWT, authMiddleware, base64UrlDecode, generateApiKey, hashApiKey } from '../auth';
 import { hashPassword, verifyPassword } from '../password';
 import {
   createUser,
@@ -13,6 +13,9 @@ import {
   getUserGroups,
   addUserToGroup,
   setUserActiveGroup,
+  createApiKey,
+  listApiKeysByUser,
+  deleteApiKey,
 } from '../db/queries';
 
 export const authRoutes = new Hono<{
@@ -480,5 +483,63 @@ authRoutes.patch('/me', authMiddleware, async (c) => {
 // 6. Logout
 authRoutes.post('/logout', (c) => {
   c.header('Set-Cookie', 'tick_token=; HttpOnly; Path=/; Max-Age=0');
+  return c.json({ success: true });
+});
+
+// 7. List User API Keys (for AI Agents)
+authRoutes.get('/api-keys', authMiddleware, async (c) => {
+  const jwtUser = c.get('user');
+  const apiKeys = await listApiKeysByUser(c.env.DB, jwtUser.sub);
+  return c.json({ api_keys: apiKeys });
+});
+
+// 8. Generate New API Key (for AI Agents)
+authRoutes.post('/api-keys', authMiddleware, async (c) => {
+  const jwtUser = c.get('user');
+  let body: { name?: string; group_id?: string } = {};
+  try {
+    body = await c.req.json<{ name?: string; group_id?: string }>();
+  } catch {
+    body = {};
+  }
+
+  const name = (body.name || '').trim() || 'AI Agent';
+  const groupId = (body.group_id || '').trim() || jwtUser.groupId;
+
+  // Generate high-entropy API key
+  const { key, prefix } = generateApiKey();
+  const keyHash = await hashApiKey(key);
+
+  const newApiKey = await createApiKey(c.env.DB, {
+    userId: jwtUser.sub,
+    groupId,
+    name,
+    keyPrefix: prefix,
+    keyHash,
+  });
+
+  return c.json(
+    {
+      success: true,
+      key, // Returned ONCE to client
+      api_key: newApiKey,
+    },
+    201
+  );
+});
+
+// 9. Revoke / Delete API Key
+authRoutes.delete('/api-keys/:id', authMiddleware, async (c) => {
+  const jwtUser = c.get('user');
+  const keyId = c.req.param('id');
+  if (!keyId) {
+    return c.json({ error: 'API key ID required' }, 400);
+  }
+
+  const deleted = await deleteApiKey(c.env.DB, keyId, jwtUser.sub);
+  if (!deleted) {
+    return c.json({ error: 'API key not found' }, 404);
+  }
+
   return c.json({ success: true });
 });

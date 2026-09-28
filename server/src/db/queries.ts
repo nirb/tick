@@ -10,6 +10,8 @@ import {
   TaskStatus,
   TaskPriority,
   ActivityType,
+  ApiKey,
+  SafeApiKey,
 } from '../types';
 
 export function generateInviteCode(): string {
@@ -946,4 +948,75 @@ export async function addTaskActivity(
     details,
     created_at: now,
   };
+}
+
+// ---------------- API Keys (AI Agent Access) ----------------
+
+export async function createApiKey(
+  db: D1Database,
+  params: {
+    userId: string;
+    groupId: string;
+    name: string;
+    keyPrefix: string;
+    keyHash: string;
+  }
+): Promise<SafeApiKey> {
+  const id = crypto.randomUUID();
+  const now = Math.floor(Date.now() / 1000);
+
+  await db
+    .prepare(`
+      INSERT INTO api_keys (id, user_id, group_id, name, key_prefix, key_hash, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `)
+    .bind(id, params.userId, params.groupId, params.name, params.keyPrefix, params.keyHash, now)
+    .run();
+
+  return {
+    id,
+    user_id: params.userId,
+    group_id: params.groupId,
+    name: params.name,
+    key_prefix: params.keyPrefix,
+    created_at: now,
+    last_used_at: null,
+  };
+}
+
+export async function getApiKeyByHash(db: D1Database, keyHash: string): Promise<ApiKey | null> {
+  const result = await db
+    .prepare('SELECT id, user_id, group_id, name, key_prefix, key_hash, created_at, last_used_at FROM api_keys WHERE key_hash = ?')
+    .bind(keyHash)
+    .first<ApiKey>();
+  return result || null;
+}
+
+export async function updateApiKeyLastUsed(db: D1Database, keyId: string): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  await db
+    .prepare('UPDATE api_keys SET last_used_at = ? WHERE id = ?')
+    .bind(now, keyId)
+    .run();
+}
+
+export async function listApiKeysByUser(db: D1Database, userId: string): Promise<SafeApiKey[]> {
+  const { results } = await db
+    .prepare(`
+      SELECT id, user_id, group_id, name, key_prefix, created_at, last_used_at
+      FROM api_keys
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+    `)
+    .bind(userId)
+    .all<SafeApiKey>();
+  return results || [];
+}
+
+export async function deleteApiKey(db: D1Database, keyId: string, userId: string): Promise<boolean> {
+  const result = await db
+    .prepare('DELETE FROM api_keys WHERE id = ? AND user_id = ?')
+    .bind(keyId, userId)
+    .run();
+  return (result.meta?.changes ?? 0) > 0;
 }

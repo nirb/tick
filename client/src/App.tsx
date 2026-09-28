@@ -11,6 +11,7 @@ import { TaskCard } from './components/TaskCard';
 import type { FilterTab } from './components/TaskFilters';
 import { TaskModal } from './components/TaskModal';
 import { GroupModal } from './components/GroupModal';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { GroupSelectModal } from './components/GroupSelectModal';
 import { ConfirmCompleteModal } from './components/ConfirmCompleteModal';
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
@@ -72,6 +73,7 @@ export const App: React.FC = () => {
   // Modals & UI States
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<TaskWithAssignee | null>(null);
   const [taskToComplete, setTaskToComplete] = useState<TaskWithAssignee | null>(null);
   const [dueTaskQueue, setDueTaskQueue] = useState<string[]>([]);
@@ -725,6 +727,7 @@ export const App: React.FC = () => {
       <Navbar
         onShowToast={showToast}
         onOpenGroup={() => setIsGroupModalOpen(true)}
+        onOpenApiKeys={() => setIsApiKeyModalOpen(true)}
         currentTab={currentTab}
         onTabChange={setCurrentTab}
         selectedAssignee={selectedAssignee}
@@ -888,6 +891,12 @@ export const App: React.FC = () => {
       <GroupModal
         isOpen={isGroupModalOpen}
         onClose={() => setIsGroupModalOpen(false)}
+        onShowToast={showToast}
+      />
+
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
         onShowToast={showToast}
       />
 

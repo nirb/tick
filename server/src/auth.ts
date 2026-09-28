@@ -1,5 +1,6 @@
 import { Context, Next } from 'hono';
 import { Bindings, JWTPayload } from './types';
+import { getApiKeyByHash, updateApiKeyLastUsed, getUserById } from './db/queries';
 
 // Base64URL encoding/decoding utilities using standard Web APIs
 function base64UrlEncode(buffer: Uint8Array | string): string {
@@ -112,7 +113,32 @@ export function extractToken(c: Context): string | null {
     }
   }
 
+  // 3. Check Query parameter: apiKey or token (useful for SSE EventSource)
+  const queryToken = c.req.query('apiKey') || c.req.query('token');
+  if (queryToken && queryToken.trim()) {
+    return queryToken.trim();
+  }
+
   return null;
+}
+
+export async function hashApiKey(key: string): Promise<string> {
+  const data = new TextEncoder().encode(key);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export function generateApiKey(): { key: string; prefix: string } {
+  const randomBytes = crypto.getRandomValues(new Uint8Array(24));
+  let randomHex = '';
+  for (let i = 0; i < randomBytes.length; i++) {
+    randomHex += randomBytes[i].toString(16).padStart(2, '0');
+  }
+  const key = `tick_live_${randomHex}`;
+  const prefix = key.substring(0, 16) + '...';
+  return { key, prefix };
 }
 
 export async function authMiddleware(c: Context<{ Bindings: Bindings; Variables: { user: JWTPayload } }>, next: Next) {
@@ -121,6 +147,41 @@ export async function authMiddleware(c: Context<{ Bindings: Bindings; Variables:
     return c.json({ error: 'Unauthorized: missing token' }, 401);
   }
 
+  // 1. Support AI Agent API Keys (e.g., Bearer tick_live_...)
+  if (token.startsWith('tick_live_')) {
+    const keyHash = await hashApiKey(token);
+    const apiKey = await getApiKeyByHash(c.env.DB, keyHash);
+    if (!apiKey) {
+      return c.json({ error: 'Unauthorized: invalid or revoked API key' }, 401);
+    }
+
+    const user = await getUserById(c.env.DB, apiKey.user_id);
+    if (!user) {
+      return c.json({ error: 'Unauthorized: user not found' }, 401);
+    }
+
+    // Update last_used_at timestamp
+    if (c.executionCtx && typeof c.executionCtx.waitUntil === 'function') {
+      c.executionCtx.waitUntil(updateApiKeyLastUsed(c.env.DB, apiKey.id));
+    } else {
+      await updateApiKeyLastUsed(c.env.DB, apiKey.id);
+    }
+
+    const userPayload: JWTPayload = {
+      sub: user.id,
+      groupId: apiKey.group_id || user.group_id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600 * 24 * 365 * 10,
+    };
+
+    c.set('user', userPayload);
+    return await next();
+  }
+
+  // 2. Support standard user JWT tokens
   const payload = await verifyJWT(token, c.env.JWT_SECRET);
   if (!payload) {
     return c.json({ error: 'Unauthorized: invalid or expired token' }, 401);
