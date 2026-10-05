@@ -70,7 +70,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     try {
       await copyToClipboard(content.description);
       setCopiedDescription(true);
-      onShowToast?.(t('toastDescriptionCopied'), 'success');
+      onShowToast?.(t('descriptionCopied'), 'success');
       setTimeout(() => setCopiedDescription(false), 2000);
     } catch (err) {
       console.error('Failed to copy text:', err);
@@ -83,7 +83,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     try {
       await copyToClipboard(text);
       setCopiedItemId(itemId);
-      onShowToast?.(t('toastItemCopied'), 'success');
+      onShowToast?.(t('itemCopied'), 'success');
       setTimeout(() => setCopiedItemId((curr) => (curr === itemId ? null : curr)), 2000);
     } catch (err) {
       console.error('Failed to copy item text:', err);
@@ -271,7 +271,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
 
             {/* Priority: 16% */}
-            <div className="flex items-center justify-center min-w-0">
+            <div className="flex flex-col items-center justify-center gap-1 min-w-0">
+              <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
+                {t('priority')}
+              </span>
               <span
                 className={`inline-flex items-center justify-center w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs capitalize font-semibold min-w-0 ${
                   priorityColors[task.priority] || priorityColors.medium
@@ -282,19 +285,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
 
             {/* Group: 16% */}
-            <div className="flex items-center justify-center min-w-0">
-              {task.group_name && (
+            <div className="flex flex-col items-center justify-center gap-1 min-w-0">
+              <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
+                {t('groupLabel')}
+              </span>
+              {task.group_name ? (
                 <span
                   className="inline-flex items-center justify-center w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs font-semibold min-w-0 bg-cyan-500/15 text-cyan-200 border-cyan-400/30"
                   title={task.group_name}
                 >
                   <span className="truncate">{task.group_name}</span>
                 </span>
+              ) : (
+                <span className="inline-flex items-center justify-center w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs font-semibold min-w-0 bg-white/5 text-slate-500 border-white/10">
+                  -
+                </span>
               )}
             </div>
 
             {/* Assignee: 16% */}
-            <div className="flex items-center justify-center min-w-0">
+            <div className="flex flex-col items-center justify-center gap-1 min-w-0">
+              <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
+                {t('assignTo')}
+              </span>
               <span
                 className={`inline-flex items-center justify-center gap-1 w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs font-semibold min-w-0 ${
                   isAssignedToMe

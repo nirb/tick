@@ -3,9 +3,7 @@ export type Language = 'en' | 'he';
 export interface Translations {
   // Brand & Common
   appName: string;
-  appTagline: string;
   online: string;
-  offline: string;
   save: string;
   cancel: string;
   delete: string;
@@ -27,27 +25,18 @@ export interface Translations {
   sendTestNotification: string;
   turnOffNotifications: string;
   signOut: string;
-  switchLanguage: string;
 
   // Personas
-  mom: string;
-  dad: string;
-  teen: string;
-  sarahMom: string;
-  alexDad: string;
-  leoTeen: string;
   adminRole: string;
   memberRole: string;
 
   // Filters & Tabs
   allOpen: string;
   mine: string;
-  dueSoon: string;
   completed: string;
   filterBy: string;
 
   // Views
-  viewMode: string;
   viewList: string;
   viewCalendar: string;
   showFutureTasks: string;
@@ -56,7 +45,6 @@ export interface Translations {
   // Task Cards
   nudge: string;
   nudged: string;
-  todayAt: string;
   today: string;
   inDays: string;
   inOneDay: string;
@@ -64,14 +52,12 @@ export interface Translations {
   daysAgo: string;
   oneDayAgo: string;
   twoDaysAgo: string;
-  overdue: string;
   deleteTaskConfirm: string;
   deleteTaskTitle: string;
   confirmCompleteTitle: string;
   confirmCompleteMessage: string;
   confirmCompleteBtn: string;
   confirmCompleteOpDesc: string;
-  confirmCompleteRecurringOpDesc: string;
   confirmDeleteOpDesc: string;
   completeThisOccurrence: string;
   completeThisOccurrenceDesc: string;
@@ -108,12 +94,9 @@ export interface Translations {
   descriptionPlaceholder: string;
   copyDescription: string;
   descriptionCopied: string;
-  toastDescriptionCopied: string;
   copyItem: string;
   itemCopied: string;
-  toastItemCopied: string;
   assignTo: string;
-  dueDateTime: string;
   dueDate: string;
   dueTime: string;
   selectDate: string;
@@ -123,7 +106,6 @@ export interface Translations {
   tomorrow: string;
   nextWeek: string;
   noDueDate: string;
-  noDueTime: string;
   hours: string;
   minutes: string;
   createTask: string;
@@ -134,7 +116,6 @@ export interface Translations {
   addChecklistItem: string;
   checklistItemPlaceholder: string;
   deleteItem: string;
-  checklistProgress: string;
 
   // Task Prompt / Notification Modal
   taskDetails: string;
@@ -148,12 +129,10 @@ export interface Translations {
   snooze6h: string;
   skip: string;
   dismissAll: string;
-  nextTask: string;
   toastTaskSnoozed: string;
 
   // Group Modal
   groupLabel: string;
-  groupTitle: string;
   editGroupName: string;
   editUserName: string;
   groupNamePlaceholder: string;
@@ -184,7 +163,6 @@ export interface Translations {
   autoEnterNoticeWeek: string;
   confirmSelectGroup: string;
   allGroups: string;
-  allGroupsSubtitle: string;
   allGroupsCount: string;
 
   // Install Modal
@@ -224,9 +202,7 @@ export interface Translations {
   // Auth Screen
   logIn: string;
   signUp: string;
-  welcomeBack: string;
   welcomeBackDesc: string;
-  createAccount: string;
   createAccountDesc: string;
   yourName: string;
   namePlaceholder: string;
@@ -269,9 +245,6 @@ export interface Translations {
   toastNudgeSent: string;
   toastNudgeNoSubs: string;
   toastSignedIn: string;
-  toastDemoSignedIn: string;
-  toastBackOnline: string;
-  toastWorkingOffline: string;
   toastCodeCopied: string;
   toastLinkCopied: string;
   toastJoinedGroup: string;
@@ -304,9 +277,7 @@ export interface Translations {
 export const dictionaries: Record<Language, Translations> = {
   en: {
     appName: 'Tick',
-    appTagline: 'Organize, assign, and get things done together',
     online: 'Online',
-    offline: 'Offline',
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -327,24 +298,15 @@ export const dictionaries: Record<Language, Translations> = {
     sendTestNotification: 'Send Test Notification',
     turnOffNotifications: 'Turn Off Notifications',
     signOut: 'Sign Out',
-    switchLanguage: 'עברית',
 
-    mom: 'Mom',
-    dad: 'Dad',
-    teen: 'Leo',
-    sarahMom: 'Sarah (Mom)',
-    alexDad: 'Alex (Dad)',
-    leoTeen: 'Leo (Teen)',
     adminRole: 'Admin',
     memberRole: 'Member',
 
     allOpen: 'All Open',
     mine: 'Mine',
-    dueSoon: 'Due Soon',
     completed: 'Completed',
     filterBy: 'Filter by:',
 
-    viewMode: 'View',
     viewList: 'List View',
     viewCalendar: 'Calendar View',
     showFutureTasks: 'Show future tasks',
@@ -352,7 +314,6 @@ export const dictionaries: Record<Language, Translations> = {
 
     nudge: 'Nudge',
     nudged: 'Nudged! 🔔',
-    todayAt: 'Today at {time}',
     today: 'Today',
     inOneDay: 'in 1 day',
     inTwoDays: 'in 2 days',
@@ -360,14 +321,12 @@ export const dictionaries: Record<Language, Translations> = {
     oneDayAgo: '1 day ago',
     twoDaysAgo: '2 days ago',
     daysAgo: '{days} days ago',
-    overdue: 'Overdue',
     deleteTaskConfirm: 'Are you sure you want to delete this task?',
     deleteTaskTitle: 'Delete Task?',
     confirmCompleteTitle: 'Complete Task?',
     confirmCompleteMessage: 'Are you sure you want to mark this task as completed?',
     confirmCompleteBtn: 'Complete',
     confirmCompleteOpDesc: 'Task will be marked as completed and can be restored anytime.',
-    confirmCompleteRecurringOpDesc: 'Task will be marked as completed and scheduled for the next recurrence.',
     confirmDeleteOpDesc: 'Task will be permanently removed from the app and cannot be recovered.',
     completeThisOccurrence: 'Complete this occurrence',
     completeThisOccurrenceDesc: 'Next occurrence will be scheduled automatically',
@@ -404,7 +363,6 @@ export const dictionaries: Record<Language, Translations> = {
     copyItem: 'Copy item',
     itemCopied: 'Item copied to clipboard',
     assignTo: 'Assign To',
-    dueDateTime: 'Due Date & Time',
     dueDate: 'Due Date',
     dueTime: 'Due Time',
     selectDate: 'Select Date',
@@ -414,7 +372,6 @@ export const dictionaries: Record<Language, Translations> = {
     tomorrow: 'Tomorrow',
     nextWeek: 'Next Week',
     noDueDate: 'No due date',
-    noDueTime: 'No time set',
     hours: 'Hours',
     minutes: 'Minutes',
     createTask: 'Create Task',
@@ -425,7 +382,6 @@ export const dictionaries: Record<Language, Translations> = {
     addChecklistItem: 'Add item',
     checklistItemPlaceholder: 'Add an item (press Enter)...',
     deleteItem: 'Delete item',
-    checklistProgress: '{done} of {total} done',
 
     taskDetails: 'Task Details',
     dueTasksPrompt: 'Due Tasks',
@@ -438,11 +394,9 @@ export const dictionaries: Record<Language, Translations> = {
     snooze6h: '6h',
     skip: 'Skip',
     dismissAll: 'Dismiss All',
-    nextTask: 'Next',
     toastTaskSnoozed: 'Task snoozed for {duration}',
 
     groupLabel: 'Group',
-    groupTitle: 'Group Members',
     editGroupName: 'Edit Group Name',
     editUserName: 'Edit your name',
     groupNamePlaceholder: 'Group name',
@@ -473,7 +427,6 @@ export const dictionaries: Record<Language, Translations> = {
     autoEnterNoticeWeek: 'We will ask again in a week',
     confirmSelectGroup: 'Continue',
     allGroups: 'All Groups',
-    allGroupsSubtitle: 'View tasks from all your groups',
     allGroupsCount: '{count} groups',
 
     installOnIphone: 'Install Tick on iPhone',
@@ -509,9 +462,7 @@ export const dictionaries: Record<Language, Translations> = {
 
     logIn: 'Log In',
     signUp: 'Sign Up',
-    welcomeBack: 'Welcome Back',
     welcomeBackDesc: 'Sign in to access your task board',
-    createAccount: 'Create Account',
     createAccountDesc: 'Get started with your group task manager',
     yourName: 'Your Name *',
     namePlaceholder: 'e.g. Sarah Miller',
@@ -552,13 +503,8 @@ export const dictionaries: Record<Language, Translations> = {
     toastNudgeSent: 'Push reminder sent to {name}! 🔔',
     toastNudgeNoSubs: 'Nudge recorded (no active devices registered for {name}).',
     toastSignedIn: 'Signed in successfully!',
-    toastDemoSignedIn: 'Signed in as {name}!',
-    toastBackOnline: 'You are back online!',
-    toastWorkingOffline: 'Working offline. Local changes will be saved.',
     toastCodeCopied: 'Invite code copied to clipboard!',
     toastLinkCopied: 'Shareable invite link copied!',
-    toastDescriptionCopied: 'Description copied to clipboard',
-    toastItemCopied: 'Item copied to clipboard',
     toastJoinedGroup: 'Successfully joined group! 👥',
     toastGroupNameUpdated: 'Group name updated! 👥',
     toastUserNameUpdated: 'Your name has been updated! 👤',
@@ -588,9 +534,7 @@ export const dictionaries: Record<Language, Translations> = {
 
   he: {
     appName: 'הקרציה',
-    appTagline: 'מארגנים, מחלקים ומבצעים משימות יחד',
     online: 'מחובר',
-    offline: 'לא מחובר',
     save: 'שמור',
     cancel: 'ביטול',
     delete: 'מחק',
@@ -611,24 +555,15 @@ export const dictionaries: Record<Language, Translations> = {
     sendTestNotification: 'שלח התראת בדיקה',
     turnOffNotifications: 'כבה התראות',
     signOut: 'התנתק',
-    switchLanguage: 'English',
 
-    mom: 'אמא',
-    dad: 'אבא',
-    teen: 'ליאו',
-    sarahMom: 'שרה (אמא)',
-    alexDad: 'אלכס (אבא)',
-    leoTeen: 'ליאו (נער)',
     adminRole: 'מנהל',
     memberRole: 'חבר',
 
-    allOpen: 'הכל',
+    allOpen: 'כל הפתוחות',
     mine: 'שלי',
-    dueSoon: 'בקרוב',
     completed: 'הושלמו',
     filterBy: 'סנן לפי:',
 
-    viewMode: 'תצוגה',
     viewList: 'תצוגת רשימה',
     viewCalendar: 'תצוגת לוח שנה',
     showFutureTasks: 'הצג משימות עתידיות',
@@ -636,7 +571,6 @@ export const dictionaries: Record<Language, Translations> = {
 
     nudge: 'נדנד',
     nudged: 'נשלחה תזכורת! 🔔',
-    todayAt: 'היום ב-{time}',
     today: 'היום',
     inOneDay: 'בעוד יום',
     inTwoDays: 'בעוד יומיים',
@@ -644,14 +578,12 @@ export const dictionaries: Record<Language, Translations> = {
     oneDayAgo: 'לפני יום',
     twoDaysAgo: 'לפני יומיים',
     daysAgo: 'לפני {days} ימים',
-    overdue: 'באיחור',
     deleteTaskConfirm: 'האם אתה בטוח שברצונך למחוק משימה זו?',
     deleteTaskTitle: 'מחיקת משימה?',
     confirmCompleteTitle: 'סיום משימה?',
     confirmCompleteMessage: 'האם אתה בטוח שברצונך לסמן משימה זו כהושלמה?',
     confirmCompleteBtn: 'סיום משימה',
     confirmCompleteOpDesc: 'המשימה תסומן כהושלמה וניתן יהיה לשחזר אותה בכל עת.',
-    confirmCompleteRecurringOpDesc: 'המשימה תסומן כהושלמה והמופע הבא יתוזמן אוטומטית.',
     confirmDeleteOpDesc: 'המשימה תימחק לצמיתות מהאפליקציה ולא ניתן יהיה לשחזר אותה.',
     completeThisOccurrence: 'סיים מופע זה',
     completeThisOccurrenceDesc: 'המופע הבא יתוזמן באופן אוטומטי',
@@ -687,8 +619,7 @@ export const dictionaries: Record<Language, Translations> = {
     descriptionCopied: 'תיאור המשימה הועתק ללוח',
     copyItem: 'העתק פריט',
     itemCopied: 'הפריט הועתק ללוח',
-    assignTo: 'שיוך ל-',
-    dueDateTime: 'תאריך ושעה לביצוע',
+    assignTo: 'מבצע/ת',
     dueDate: 'תאריך יעד',
     dueTime: 'שעה',
     selectDate: 'בחר תאריך',
@@ -698,7 +629,6 @@ export const dictionaries: Record<Language, Translations> = {
     tomorrow: 'מחר',
     nextWeek: 'שבוע הבא',
     noDueDate: 'ללא תאריך',
-    noDueTime: 'ללא שעה',
     hours: 'שעות',
     minutes: 'דקות',
     createTask: 'צור משימה',
@@ -709,7 +639,6 @@ export const dictionaries: Record<Language, Translations> = {
     addChecklistItem: 'הוסף פריט',
     checklistItemPlaceholder: 'הוסף פריט (לחץ Enter)...',
     deleteItem: 'מחק פריט',
-    checklistProgress: '{done} מתוך {total} הושלמו',
 
     taskDetails: 'פרטי משימה',
     dueTasksPrompt: 'משימות לביצוע',
@@ -722,11 +651,9 @@ export const dictionaries: Record<Language, Translations> = {
     snooze6h: '6 שעות',
     skip: 'דלג',
     dismissAll: 'סגור הכל',
-    nextTask: 'הבא',
     toastTaskSnoozed: 'המשימה נדחתה ב-{duration}',
 
     groupLabel: 'קבוצה',
-    groupTitle: 'חברי הקבוצה',
     editGroupName: 'עריכת שם הקבוצה',
     editUserName: 'עריכת שמך',
     groupNamePlaceholder: 'שם הקבוצה',
@@ -757,7 +684,6 @@ export const dictionaries: Record<Language, Translations> = {
     autoEnterNoticeWeek: 'נשאל אותך שוב בעוד שבוע',
     confirmSelectGroup: 'המשך',
     allGroups: 'כל הקבוצות',
-    allGroupsSubtitle: 'הצגת משימות מכל הקבוצות שלך',
     allGroupsCount: '{count} קבוצות',
 
     installOnIphone: 'התקנת "הקרציה" באייפון',
@@ -793,9 +719,7 @@ export const dictionaries: Record<Language, Translations> = {
 
     logIn: 'התחברות',
     signUp: 'הרשמה',
-    welcomeBack: 'ברוכים השבים',
     welcomeBackDesc: 'התחברו כדי לצפות בלוח המשימות המשפחתי',
-    createAccount: 'יצירת חשבון חדש',
     createAccountDesc: 'התחילו לנהל משימות קבוצתיות בקלות',
     yourName: 'שמך המלא *',
     namePlaceholder: 'לדוגמה: שרה ישראלי',
@@ -836,13 +760,8 @@ export const dictionaries: Record<Language, Translations> = {
     toastNudgeSent: 'תזכורת נשלחה אל {name}! 🔔',
     toastNudgeNoSubs: 'התזכורת נרשמה (אין מכשירים פעילים עבור {name}).',
     toastSignedIn: 'התחברת בהצלחה!',
-    toastDemoSignedIn: 'התחברת בתור {name}!',
-    toastBackOnline: 'החיבור לאינטרנט חזר!',
-    toastWorkingOffline: 'פועל במצב לא מקוון. השינויים יישמרו מקומית.',
     toastCodeCopied: 'קוד ההזמנה הועתק ללוח!',
     toastLinkCopied: 'קישור ההזמנה הועתק!',
-    toastDescriptionCopied: 'תיאור המשימה הועתק ללוח',
-    toastItemCopied: 'הפריט הועתק ללוח',
     toastJoinedGroup: 'הצטרפת בהצלחה לקבוצה! 👥',
     toastGroupNameUpdated: 'שם הקבוצה עודכן בהצלחה! 👥',
     toastUserNameUpdated: 'שמך עודכן בהצלחה! 👤',
