@@ -246,12 +246,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* First line: Task name 52%, Priority 16%, Group 16%, Assignee 16% */}
+          {/* First line: Task name 40%, Priority 20%, Group 20%, Assignee 20% */}
           <div
             className="grid items-center gap-2 w-full min-w-0"
-            style={{ gridTemplateColumns: '52fr 16fr 16fr 16fr' }}
+            style={{ gridTemplateColumns: '40fr 20fr 20fr 20fr' }}
           >
-            {/* Task name: 52% */}
+            {/* Task name: 40% */}
             <div className="flex flex-col justify-center min-w-0">
               <h3
                 className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
@@ -270,7 +270,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               )}
             </div>
 
-            {/* Priority: 16% */}
+            {/* Priority: 20% */}
             <div className="flex flex-col items-center justify-center gap-1 min-w-0">
               <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
                 {t('priority')}
@@ -284,7 +284,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </span>
             </div>
 
-            {/* Group: 16% */}
+            {/* Group: 20% */}
             <div className="flex flex-col items-center justify-center gap-1 min-w-0">
               <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
                 {t('groupLabel')}
@@ -303,7 +303,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               )}
             </div>
 
-            {/* Assignee: 16% */}
+            {/* Assignee: 20% */}
             <div className="flex flex-col items-center justify-center gap-1 min-w-0">
               <span className="text-[10px] font-medium text-slate-400 truncate tracking-tight">
                 {t('assignTo')}
