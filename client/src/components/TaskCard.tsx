@@ -10,7 +10,6 @@ import {
   Trash2,
   Edit2,
   Calendar,
-  ChevronDown,
   CheckSquare,
   Copy,
 } from 'lucide-react';
@@ -39,7 +38,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onUpdateDescription,
   onShowToast,
 }) => {
-  const { user, isAllGroups } = useAuth();
+  const { user } = useAuth();
   const { t, language } = useLanguage();
   const [nudging, setNudging] = useState(false);
   const [nudged, setNudged] = useState(false);
@@ -155,18 +154,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const dueInfo = formatDue(task.due_at);
 
 
-  const priorityCellColors = {
-    low: 'bg-white/10 text-white',
-    medium: 'bg-blue-500/20 text-blue-200',
-    high: 'bg-orange-500/20 text-orange-200',
-    urgent: 'bg-red-500/25 text-red-200 font-bold',
-  };
-
-  const priorityBoxBorderColors = {
-    low: 'border-white/20',
-    medium: 'border-blue-400/30',
-    high: 'border-orange-400/35',
-    urgent: 'border-red-400/40',
+  const priorityColors = {
+    low: 'bg-white/15 text-white border-white/35 font-semibold',
+    medium: 'bg-blue-500/20 text-blue-200 border-blue-400/40 font-semibold',
+    high: 'bg-orange-500/20 text-orange-200 border-orange-400/40 font-semibold',
+    urgent: 'bg-red-500/25 text-red-200 border-red-400/40 font-bold shadow-sm shadow-red-500/20',
   };
 
   const priorityBorderClasses = {
@@ -254,92 +246,78 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0 grid grid-cols-10 items-center gap-2">
-              {/* Task name: 50% in all groups (or 70% in single group) */}
-              <div className={`${isAllGroups && task.group_name ? 'col-span-5' : 'col-span-7'} flex flex-col justify-center min-w-0`}>
-                <h3
-                  className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
-                    }`}
+          {/* First line: Task name 52%, Priority 16%, Group 16%, Assignee 16% */}
+          <div
+            className="grid items-center gap-2 w-full min-w-0"
+            style={{ gridTemplateColumns: '52fr 16fr 16fr 16fr' }}
+          >
+            {/* Task name: 52% */}
+            <div className="flex flex-col justify-center min-w-0">
+              <h3
+                className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
+                  }`}
+              >
+                {task.title}
+              </h3>
+              {!hideDueBadge && dueInfo && (
+                <span
+                  className={`text-[11px] font-semibold text-start truncate ${
+                    dueInfo.isOverdue ? 'text-rose-400' : 'text-slate-400'
+                  }`}
                 >
-                  {task.title}
-                </h3>
-                {!hideDueBadge && dueInfo && (
-                  <span
-                    className={`text-[11px] font-semibold text-start truncate ${
-                      dueInfo.isOverdue ? 'text-rose-400' : 'text-slate-400'
-                    }`}
-                  >
-                    {dueInfo.relativeText}
-                  </span>
-                )}
-              </div>
-
-              {/* Middle: Priority badge with assigned name enclosed in unified framed box (30%) */}
-              <div className="col-span-3 min-w-0 flex items-center justify-center">
-                <div
-                  className={`w-full rounded-lg sm:rounded-xl border ${
-                    priorityBoxBorderColors[task.priority] || 'border-white/15'
-                  } bg-slate-950/60 overflow-hidden flex flex-col min-w-0 shadow-xs divide-y divide-white/10`}
-                >
-                  {/* Top: Assignee */}
-                  <div className="flex items-center justify-center gap-1 px-1.5 py-0.5 sm:py-1 min-w-0 max-w-full bg-white/[0.03]">
-                    {task.assignee_name ? (
-                      <>
-                        <Avatar
-                          url={task.assignee_avatar}
-                          name={task.assignee_name}
-                          size="xs"
-                          className="w-3.5 h-3.5 shrink-0"
-                        />
-                        <span
-                          className={`text-[10px] sm:text-[11px] font-semibold truncate ${
-                            isAssignedToMe ? 'text-sky-300' : 'text-slate-200'
-                          }`}
-                          title={isAssignedToMe ? t('you') : task.assignee_name}
-                        >
-                          {isAssignedToMe ? t('you') : task.assignee_name}
-                        </span>
-                      </>
-                    ) : (
-                      <span
-                        className="text-[10px] sm:text-[11px] text-slate-400/80 italic truncate"
-                        title={t('unassigned')}
-                      >
-                        {t('unassigned')}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bottom: Priority */}
-                  <div
-                    className={`flex items-center justify-center px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold capitalize min-w-0 ${
-                      priorityCellColors[task.priority] || priorityCellColors.medium
-                    }`}
-                  >
-                    <span className="truncate">{t(task.priority)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Group Name: 20% */}
-              {isAllGroups && task.group_name && (
-                <div className="col-span-2 min-w-0 flex items-center justify-center">
-                  <span
-                    className="inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/10 text-slate-300 border border-white/15 max-w-full min-w-0"
-                    title={task.group_name}
-                  >
-                    <span className="truncate">{task.group_name}</span>
-                  </span>
-                </div>
+                  {dueInfo.relativeText}
+                </span>
               )}
             </div>
 
-            {/* Expand / Collapse Arrow at the end of the row */}
-            <ChevronDown
-              className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-sky-400' : ''
+            {/* Priority: 16% */}
+            <div className="flex items-center justify-center min-w-0">
+              <span
+                className={`inline-flex items-center justify-center w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs capitalize font-semibold min-w-0 ${
+                  priorityColors[task.priority] || priorityColors.medium
                 }`}
-            />
+              >
+                <span className="truncate">{t(task.priority)}</span>
+              </span>
+            </div>
+
+            {/* Group: 16% */}
+            <div className="flex items-center justify-center min-w-0">
+              {task.group_name && (
+                <span
+                  className="inline-flex items-center justify-center w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs font-semibold min-w-0 bg-cyan-500/15 text-cyan-200 border-cyan-400/30"
+                  title={task.group_name}
+                >
+                  <span className="truncate">{task.group_name}</span>
+                </span>
+              )}
+            </div>
+
+            {/* Assignee: 16% */}
+            <div className="flex items-center justify-center min-w-0">
+              <span
+                className={`inline-flex items-center justify-center gap-1 w-full px-1 py-0.5 rounded-full border text-[10px] sm:text-xs font-semibold min-w-0 ${
+                  isAssignedToMe
+                    ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
+                    : task.assignee_name
+                    ? 'bg-white/10 text-slate-200 border-white/20'
+                    : 'bg-white/5 text-slate-400/80 border-white/10 italic'
+                }`}
+                title={isAssignedToMe ? t('you') : task.assignee_name || t('unassigned')}
+              >
+                {task.assignee_name && (
+                  <Avatar
+                    url={task.assignee_avatar}
+                    name={task.assignee_name}
+                    size="xs"
+                    className="w-3.5 h-3.5 shrink-0"
+                  />
+                )}
+                <span className="truncate">
+                  {isAssignedToMe ? t('you') : task.assignee_name || t('unassigned')}
+                </span>
+              </span>
+            </div>
           </div>
 
           {/* Expanded Section: Description/Checklist + Second Line Badges */}
