@@ -13,7 +13,6 @@ import {
   ChevronDown,
   CheckSquare,
   Copy,
-  Users,
 } from 'lucide-react';
 import { parseTaskContent, serializeTaskContent, getChecklistStats } from '../lib/taskContent';
 import { Avatar } from './Avatar';
@@ -155,11 +154,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const dueInfo = formatDue(task.due_at);
 
-  const priorityColors = {
-    low: 'bg-white/15 text-white border-white/35 font-semibold',
-    medium: 'bg-blue-500/20 text-blue-200 border-blue-400/40 font-semibold',
-    high: 'bg-orange-500/20 text-orange-200 border-orange-400/40 font-semibold',
-    urgent: 'bg-red-500/25 text-red-200 border-red-400/40 font-bold shadow-sm shadow-red-500/20',
+
+  const priorityCellColors = {
+    low: 'bg-white/10 text-white',
+    medium: 'bg-blue-500/20 text-blue-200',
+    high: 'bg-orange-500/20 text-orange-200',
+    urgent: 'bg-red-500/25 text-red-200 font-bold',
+  };
+
+  const priorityBoxBorderColors = {
+    low: 'border-white/20',
+    medium: 'border-blue-400/30',
+    high: 'border-orange-400/35',
+    urgent: 'border-red-400/40',
   };
 
   const priorityBorderClasses = {
@@ -250,37 +257,69 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center gap-2">
             <div className="flex-1 min-w-0 grid grid-cols-10 items-center gap-2">
               {/* Task name: 50% in all groups (or 70% in single group) */}
-              <div className={`${isAllGroups && task.group_name ? 'col-span-5' : 'col-span-7'} flex items-center min-w-0`}>
+              <div className={`${isAllGroups && task.group_name ? 'col-span-5' : 'col-span-7'} flex flex-col justify-center min-w-0`}>
                 <h3
                   className={`text-sm sm:text-base font-bold leading-snug break-words tracking-tight text-start select-none min-w-0 flex-1 ${isCompleted ? 'line-through text-slate-400' : 'text-white'
                     }`}
                 >
                   {task.title}
                 </h3>
+                {!hideDueBadge && dueInfo && (
+                  <span
+                    className={`text-[11px] font-semibold text-start truncate ${
+                      dueInfo.isOverdue ? 'text-rose-400' : 'text-slate-400'
+                    }`}
+                  >
+                    {dueInfo.relativeText}
+                  </span>
+                )}
               </div>
 
-              {/* Middle: Priority badge when open (or when hideDueBadge is true), "in x days" when closed in list view (30%) */}
+              {/* Middle: Priority badge with assigned name enclosed in unified framed box (30%) */}
               <div className="col-span-3 min-w-0 flex items-center justify-center">
-                {isExpanded || hideDueBadge ? (
-                  <span
-                    className={`inline-flex items-center justify-center w-full px-2 py-0.5 rounded-full border text-xs capitalize font-semibold min-w-0 ${priorityColors[task.priority] || priorityColors.medium
-                      }`}
+                <div
+                  className={`w-full rounded-lg sm:rounded-xl border ${
+                    priorityBoxBorderColors[task.priority] || 'border-white/15'
+                  } bg-slate-950/60 overflow-hidden flex flex-col min-w-0 shadow-xs divide-y divide-white/10`}
+                >
+                  {/* Top: Assignee */}
+                  <div className="flex items-center justify-center gap-1 px-1.5 py-0.5 sm:py-1 min-w-0 max-w-full bg-white/[0.03]">
+                    {task.assignee_name ? (
+                      <>
+                        <Avatar
+                          url={task.assignee_avatar}
+                          name={task.assignee_name}
+                          size="xs"
+                          className="w-3.5 h-3.5 shrink-0"
+                        />
+                        <span
+                          className={`text-[10px] sm:text-[11px] font-semibold truncate ${
+                            isAssignedToMe ? 'text-sky-300' : 'text-slate-200'
+                          }`}
+                          title={isAssignedToMe ? t('you') : task.assignee_name}
+                        >
+                          {isAssignedToMe ? t('you') : task.assignee_name}
+                        </span>
+                      </>
+                    ) : (
+                      <span
+                        className="text-[10px] sm:text-[11px] text-slate-400/80 italic truncate"
+                        title={t('unassigned')}
+                      >
+                        {t('unassigned')}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Bottom: Priority */}
+                  <div
+                    className={`flex items-center justify-center px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold capitalize min-w-0 ${
+                      priorityCellColors[task.priority] || priorityCellColors.medium
+                    }`}
                   >
                     <span className="truncate">{t(task.priority)}</span>
-                  </span>
-                ) : (
-                  dueInfo && (
-                    <span
-                      className={`inline-flex items-center justify-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full border text-[11px] sm:text-xs font-semibold w-full min-w-0 ${dueInfo.isOverdue
-                        ? 'bg-rose-500/25 text-rose-200 border-rose-400/40'
-                        : 'bg-white/10 text-slate-200 border-white/15'
-                        }`}
-                      title={dueInfo.relativeText}
-                    >
-                      <span className="truncate">{dueInfo.relativeText}</span>
-                    </span>
-                  )
-                )}
+                  </div>
+                </div>
               </div>
 
               {/* Group Name: 20% */}
@@ -482,13 +521,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </span>
                 )}
 
-                {/* Group Badge */}
-                {isAllGroups && task.group_name && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-200 border border-cyan-400/30 font-semibold text-xs">
-                    <Users className="w-3 h-3 text-cyan-400" />
-                    <span>{task.group_name}</span>
-                  </span>
-                )}
 
                 {/* Due Date */}
                 {dueInfo && (
@@ -507,24 +539,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </span>
                 )}
 
-                {/* Assignee Chip */}
-                <div className="ms-auto flex items-center gap-2">
-                  {task.assignee_name ? (
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${isAssignedToMe
-                        ? 'bg-sky-500/20 text-sky-200 border-sky-400/40'
-                        : 'bg-white/10 text-slate-200 border-white/15'
-                        }`}
-                    >
-                      <Avatar url={task.assignee_avatar} name={task.assignee_name} size="xs" />
-                      <span>{isAssignedToMe ? t('you') : task.assignee_name}</span>
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 text-xs italic font-medium">{t('unassigned')}</span>
-                  )}
-
-                  {/* Nudge Assignee Button (FR-PUSH-2) */}
-                  {!isCompleted && isAssignedToOther && (
+                {/* Nudge Assignee Button (FR-PUSH-2) */}
+                {!isCompleted && isAssignedToOther && (
+                  <div className="ms-auto flex items-center gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -540,8 +557,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       <BellRing className={`w-3 h-3 ${nudging ? 'animate-bounce' : ''}`} />
                       {nudged ? t('nudged') : t('nudge')}
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

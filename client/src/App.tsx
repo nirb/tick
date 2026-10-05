@@ -683,7 +683,8 @@ export const App: React.FC = () => {
     return b.created_at - a.created_at;
   });
 
-  // View 1 (List view) enhancement: hide tasks with > 5 days due
+  // View 1 (List view) enhancement: hide tasks with > 5 days due, but show at least 4 tasks if available
+  const MIN_DISPLAYED_TASKS = 4;
   const fiveDaysDate = new Date();
   fiveDaysDate.setDate(fiveDaysDate.getDate() + 5);
   fiveDaysDate.setHours(23, 59, 59, 999);
@@ -694,10 +695,19 @@ export const App: React.FC = () => {
     typeof t.due_at === 'number' &&
     t.due_at > fiveDaysCutoff;
 
-  const hiddenFutureTasksCount = sortedTasks.filter(isMoreThanFiveDaysDue).length;
+  const nearTasks = sortedTasks.filter((t) => !isMoreThanFiveDaysDue(t));
+  const futureTasks = sortedTasks.filter(isMoreThanFiveDaysDue);
+
+  const futureTasksNeeded = Math.max(0, MIN_DISPLAYED_TASKS - nearTasks.length);
+  const autoIncludedFutureIds = new Set(futureTasks.slice(0, futureTasksNeeded).map((t) => t.id));
+
+  const isHiddenFutureTask = (t: TaskWithAssignee) =>
+    isMoreThanFiveDaysDue(t) && !autoIncludedFutureIds.has(t.id);
+
+  const hiddenFutureTasksCount = sortedTasks.filter(isHiddenFutureTask).length;
   const displayedTasks = showFutureTasks
     ? sortedTasks
-    : sortedTasks.filter((t) => !isMoreThanFiveDaysDue(t));
+    : sortedTasks.filter((t) => !isHiddenFutureTask(t));
 
   const currentPromptTaskId = dueTaskQueue[0] || null;
   const currentPromptTask = currentPromptTaskId ? tasks.find((t) => t.id === currentPromptTaskId) || null : null;

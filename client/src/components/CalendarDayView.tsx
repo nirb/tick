@@ -168,9 +168,28 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
       return b.created_at - a.created_at;
     });
 
-    const hiddenFutureGroups = groups.filter((g) => g.isFuture);
-    const hiddenCount = hiddenFutureGroups.reduce((acc, g) => acc + g.tasks.length, 0);
-    const visibleGroups = showFutureTasks ? groups : groups.filter((g) => !g.isFuture);
+    const MIN_DISPLAYED_TASKS = 4;
+    const nearGroups = groups.filter((g) => !g.isFuture);
+    const futureGroups = groups.filter((g) => g.isFuture);
+
+    let currentVisibleCount = nearGroups.reduce((acc, g) => acc + g.tasks.length, 0) + noDue.length;
+    const autoIncludedFutureGroupKeys = new Set<string>();
+
+    if (currentVisibleCount < MIN_DISPLAYED_TASKS) {
+      for (const fg of futureGroups) {
+        autoIncludedFutureGroupKeys.add(fg.dateKey);
+        currentVisibleCount += fg.tasks.length;
+        if (currentVisibleCount >= MIN_DISPLAYED_TASKS) {
+          break;
+        }
+      }
+    }
+
+    const remainingHiddenFutureGroups = futureGroups.filter((g) => !autoIncludedFutureGroupKeys.has(g.dateKey));
+    const hiddenCount = remainingHiddenFutureGroups.reduce((acc, g) => acc + g.tasks.length, 0);
+    const visibleGroups = showFutureTasks
+      ? groups
+      : groups.filter((g) => !g.isFuture || autoIncludedFutureGroupKeys.has(g.dateKey));
 
     return {
       dayGroups: groups,
