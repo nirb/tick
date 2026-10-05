@@ -23,6 +23,7 @@ import { CalendarDayView } from './components/CalendarDayView';
 import { AuthScreen } from './components/AuthScreen';
 import { ToastContainer, type ToastMessage } from './components/Toast';
 import { useGroupPrompt } from './hooks/useGroupPrompt';
+import { useIsDesktop } from './hooks/useMediaQuery';
 import { getCookie, setCookie, COOKIE_LAST_SELECTED_GROUP, COOKIE_VIEW_TYPE, type ViewType } from './lib/cookies';
 import { Plus, CheckCircle, RefreshCw, Calendar as CalendarIcon, ChevronUp } from 'lucide-react';
 
@@ -31,6 +32,8 @@ export const App: React.FC = () => {
   const { showIOSGuide, setShowIOSGuide } = usePush();
   const { isInstallModalOpen, setIsInstallModalOpen } = useInstall();
   const { t } = useLanguage();
+  const isDesktop = useIsDesktop();
+  const minTasksToShow = isDesktop ? 3 : 4;
 
   const {
     isGroupSelectModalOpen,
@@ -683,8 +686,7 @@ export const App: React.FC = () => {
     return b.created_at - a.created_at;
   });
 
-  // View 1 (List view) enhancement: hide tasks with > 5 days due, but show at least 4 tasks if available
-  const MIN_DISPLAYED_TASKS = 4;
+  // View 1 (List view) enhancement: hide tasks with > 5 days due, but show at least 4 tasks on mobile / 3 on desktop if available
   const fiveDaysDate = new Date();
   fiveDaysDate.setDate(fiveDaysDate.getDate() + 5);
   fiveDaysDate.setHours(23, 59, 59, 999);
@@ -698,7 +700,7 @@ export const App: React.FC = () => {
   const nearTasks = sortedTasks.filter((t) => !isMoreThanFiveDaysDue(t));
   const futureTasks = sortedTasks.filter(isMoreThanFiveDaysDue);
 
-  const futureTasksNeeded = Math.max(0, MIN_DISPLAYED_TASKS - nearTasks.length);
+  const futureTasksNeeded = Math.max(0, minTasksToShow - nearTasks.length);
   const autoIncludedFutureIds = new Set(futureTasks.slice(0, futureTasksNeeded).map((t) => t.id));
 
   const isHiddenFutureTask = (t: TaskWithAssignee) =>
@@ -774,6 +776,7 @@ export const App: React.FC = () => {
               setTaskToEdit(null);
               setIsTaskModalOpen(true);
             }}
+            minTasksToShow={minTasksToShow}
           />
         ) : displayedTasks.length === 0 ? (
           <div className="space-y-4">

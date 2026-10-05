@@ -17,6 +17,7 @@ interface CalendarDayViewProps {
   onUpdateDescription?: (taskId: string, description: string | null) => Promise<void>;
   onShowToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
   onOpenCreateTask: () => void;
+  minTasksToShow?: number;
 }
 
 interface DayGroup {
@@ -58,6 +59,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
   onUpdateDescription,
   onShowToast,
   onOpenCreateTask,
+  minTasksToShow = 4,
 }) => {
   const { t, language } = useLanguage();
 
@@ -168,18 +170,17 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
       return b.created_at - a.created_at;
     });
 
-    const MIN_DISPLAYED_TASKS = 4;
     const nearGroups = groups.filter((g) => !g.isFuture);
     const futureGroups = groups.filter((g) => g.isFuture);
 
     let currentVisibleCount = nearGroups.reduce((acc, g) => acc + g.tasks.length, 0) + noDue.length;
     const autoIncludedFutureGroupKeys = new Set<string>();
 
-    if (currentVisibleCount < MIN_DISPLAYED_TASKS) {
+    if (currentVisibleCount < minTasksToShow) {
       for (const fg of futureGroups) {
         autoIncludedFutureGroupKeys.add(fg.dateKey);
         currentVisibleCount += fg.tasks.length;
-        if (currentVisibleCount >= MIN_DISPLAYED_TASKS) {
+        if (currentVisibleCount >= minTasksToShow) {
           break;
         }
       }
@@ -197,7 +198,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
       hiddenFutureTasksCount: hiddenCount,
       visibleDayGroups: visibleGroups,
     };
-  }, [tasks, language, t, showFutureTasks, currentTab]);
+  }, [tasks, language, t, showFutureTasks, currentTab, minTasksToShow]);
 
   if (visibleDayGroups.length === 0 && noDueDateTasks.length === 0) {
     return (
