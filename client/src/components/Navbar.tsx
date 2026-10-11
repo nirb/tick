@@ -102,10 +102,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside as EventListener);
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside as EventListener);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
@@ -261,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-white/12 shadow-lg shadow-black/30">
+    <header className="sticky top-0 z-30 bg-slate-950/80 backdrop-blur-xl border-b border-white/12 shadow-lg shadow-black/30 pt-[env(safe-area-inset-top,0px)]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Start side: Menu (Tick Image Toggle Button) */}
         <div className="flex-1 flex items-center justify-start min-w-0">
@@ -271,7 +271,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={toggleMainMenu}
               aria-label={t('appName')}
               aria-expanded={isMenuOpen}
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border transition-all active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 relative shrink-0 shadow-md ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden border transition-all active:scale-95 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 relative shrink-0 shadow-md touch-manipulation select-none ${
                 isMenuOpen
                   ? 'border-sky-400 ring-2 ring-sky-400/40 shadow-sky-500/20'
                   : 'border-white/15 hover:border-white/30 shadow-black/20 hover:scale-105'
@@ -280,17 +280,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               <img
                 src="/icons/icon-192.png"
                 alt={t('appName')}
-                className="w-full h-full object-cover select-none"
+                draggable={false}
+                className="w-full h-full object-cover select-none pointer-events-none"
               />
               {isMenuOpen && (
-                <div className="absolute inset-0 bg-slate-950/60 flex items-center justify-center text-white backdrop-blur-[1px]">
+                <div className="absolute inset-0 bg-slate-950/60 flex items-center justify-center text-white backdrop-blur-[1px] pointer-events-none">
                   <X className="w-5 h-5 stroke-[2.5]" />
                 </div>
               )}
             </button>
 
             {isMenuOpen && (
-              <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-dropdown-expand space-y-3">
+              <div className="absolute start-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-5rem-env(safe-area-inset-top,0px))] overflow-y-auto bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-3 z-50 text-slate-100 animate-dropdown-expand space-y-3">
                 {/* User Profile Info */}
                 {user && (
                   <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
@@ -534,8 +535,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
             {showGroupMenu && (
-              <div className="fixed top-[4.5rem] left-1/2 -translate-x-1/2 z-40">
-                <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 text-xs text-slate-100 animate-dropdown-expand">
+              <div className="fixed top-[calc(4.5rem+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2 z-40">
+                <div className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-6rem-env(safe-area-inset-top,0px))] overflow-y-auto bg-slate-900/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/15 p-2 text-xs text-slate-100 animate-dropdown-expand">
                   <div className="px-2.5 py-1.5 border-b border-white/10 mb-1 flex items-center justify-between text-slate-300 font-bold">
                     <span className="flex items-center gap-1.5">
                       <Users className="w-3.5 h-3.5 text-sky-400" />

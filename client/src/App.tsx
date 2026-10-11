@@ -872,7 +872,7 @@ export const App: React.FC = () => {
       </main>
 
       {/* Floating Action Button (All Screen Sizes) */}
-      <div className="fixed bottom-6 end-6 z-30">
+      <div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] end-6 z-30">
         <button
           onClick={() => {
             setTaskToEdit(null);

@@ -167,7 +167,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onShowToast }) => {
   return (
     <div className="min-h-screen bg-transparent text-white flex flex-col justify-center items-center px-4 py-12">
       {/* Top Language Switcher */}
-      <div className="absolute top-6 end-6">
+      <div className="absolute top-[calc(1.5rem+env(safe-area-inset-top,0px))] end-6">
         <button
           onClick={toggleLanguage}
           className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
